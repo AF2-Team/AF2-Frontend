@@ -1,8 +1,8 @@
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import React from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 import styled from "styled-components/native";
-
 
 const FrameContainer = styled(LinearGradient).attrs({
   colors: [
@@ -110,6 +110,7 @@ const Element = styled(Image)`
 
 
 export default function WelcomeScreen() {
+  const router = useRouter();
   return (
     <FrameContainer>
       <TusGustosTus
@@ -117,7 +118,7 @@ export default function WelcomeScreen() {
       />
       <YaEresMiembroTexto>Ya eres miembro?</YaEresMiembroTexto>
       <IniciaSesiN> Inicia sesion</IniciaSesiN>
-      <BotonRegistro>
+      <BotonRegistro onPress={() => router.push("../screens/register")}>
         <OverlapGroup>
           <RegStrateConTu
             source={require("@/assets/images/reg-strate-con-tu-correo.png")}
