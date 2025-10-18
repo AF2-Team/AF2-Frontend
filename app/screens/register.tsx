@@ -1,7 +1,7 @@
 import React from "react";
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Checkbox } from "react-native-paper";
-
+import {useFonts, Alegreya-Italic} from '@expo-google-fonts/alegreya';
 const RegisterScreen = () =>{
     const[checked,setChecked]= React.useState(false);
     const [formData, setFormData]= React.useState({
@@ -11,7 +11,7 @@ const RegisterScreen = () =>{
         confirmPassword:''
 
     });
-    const handleChange=(name,value)=>{
+    const handleChange=(name, value)=>{
         setFormData({...formData,[name]:value});
     };
 
@@ -99,20 +99,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   header: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontFamily:'Alegreya-Italic',
+    fontSize: 35,
+  
+    width:225,
+    height:48,
     textAlign: 'center',
     marginVertical: 20,
-    color: '#333',
+    color: '#423646',
+
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 30,
-    color: '#333',
+    color: '#423646',
   },
   formGroup: {
     marginBottom: 20,
+    color: '#423646',
   },
   label: {
     fontSize: 16,
@@ -124,9 +129,15 @@ const styles = StyleSheet.create({
     height: 50,
     borderWidth: 1,
     borderColor: '#ddd',
-    borderRadius: 8,
-    paddingHorizontal: 15,
+    paddingLeft:16.80,
+    paddingTop:13,
+    paddingBottom:13,
+    borderRadius: 50,
     fontSize: 16,
+    width:380,
+    position:'fixed',
+    color: '#423646',
+    backgroundColor: '#E2E2E2',
   },
   checkboxContainer: {
     flexDirection: 'row',
@@ -136,7 +147,7 @@ const styles = StyleSheet.create({
   checkboxLabel: {
     marginLeft: 8,
     fontSize: 14,
-    color: '#666',
+    color: '#423646',
   },
   divider: {
     height: 1,
