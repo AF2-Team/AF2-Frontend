@@ -1,184 +1,290 @@
 import React from "react";
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { Checkbox } from "react-native-paper";
-import {useFonts, Alegreya-Italic} from '@expo-google-fonts/alegreya';
-const RegisterScreen = () =>{
-    const[checked,setChecked]= React.useState(false);
-    const [formData, setFormData]= React.useState({
-        name:'',
-        email:'',
-        password:'',
-        confirmPassword:''
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import {
+  useFonts,
+  Alegreya_400Regular_Italic,
+} from "@expo-google-fonts/alegreya";
 
-    });
-    const handleChange=(name, value)=>{
-        setFormData({...formData,[name]:value});
-    };
+const RegisterScreen = () => {
+  const [passwordVisible, setPasswordVisible] = React.useState(false);
+  const [confirmPasswordVisible, setConfirmPasswordVisible] =
+    React.useState(false);
+  const [errors, setErrors] = React.useState({});
+  const [fontsLoaded] = useFonts({
+    Alegreya_400Regular_Italic,
+  });
 
-    const handleSubmit=()=>{
+  const [checked, setChecked] = React.useState(false);
+  const [formData, setFormData] = React.useState({
+    nombre: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
 
-//Aqui pondremos la logica para el registro
-        console.log(formData);
-    };
+  if (!fontsLoaded) {
+    return null;
+  }
 
+  const handleChange = (name, value) => {
+    setFormData({ ...formData, [name]: value });
+  };
 
-return(
+  const handleSubmit = () => {
+    const newErrors = {};
+
+    if (!formData.nombre) {
+      newErrors.nombre = "El nombre es obligatorio";
+    }
+
+    if (!formData.email) {
+      newErrors.email = "El correo es obligatorio";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "El formato del correo no es válido";
+    }
+
+    if (formData.password.length < 6) {
+      newErrors.password = "La contraseña debe tener al menos 6 caracteres";
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = "Las contraseñas no coinciden";
+    }
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length === 0) {
+      //Aqui pondremos la logica para el registro
+      console.log("Formulario enviado:", formData);
+    }
+  };
+
+  return (
     <ScrollView contentContainerStyle={styles.container}>
-    
-    <Text style={styles.header}> A fun site for you</Text>
+      <Text style={styles.header}> A fun site for you</Text>
 
-    <Text style={styles.header}> Crear una cuenta</Text>
+      <Text style={styles.header}> Crear una cuenta</Text>
 
-
-     <View style={styles.formGroup}>
+      <View style={styles.formGroup}>
         <Text style={styles.label}>Nombre y Apellido</Text>
         <TextInput
-        style={styles.input}
-        value={formData.nombre}
-        onChangeText={(text)=>handleChange('nombre',text)}/>
-     </View>
+          style={styles.input}
+          value={formData.nombre}
+          onChangeText={(text) => handleChange("nombre", text)}
+          placeholder="Ej:Jhon Cenna"
+          placeholderTextColor="#888"
+        />
+        {errors.nombre && <Text style={styles.errorText}>{errors.nombre}</Text>}
+      </View>
       <View style={styles.formGroup}>
         <Text style={styles.label}>Direccion de correo electronico</Text>
         <TextInput
-        style={styles.input}
-        value={formData.email}
-        onChangeText={(text)=>handleChange('email',text)}
-        keyboardType="email-address"
-        autoCapitalize="none"/>
-     </View>
-
-      <View style={styles.formGroup}>
-       <Text style={styles.label}>Contrasena</Text>
-       <TextInput
-       style={styles.input}
-       value={formData.password}
-       onChangeText={(text)=>handleChange('password',text)}
-       secureTextEntry/>
+          style={styles.input}
+          value={formData.email}
+          onChangeText={(text) => handleChange("email", text)}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          placeholder="correo@dominio.com"
+          placeholderTextColor="#888"
+        />
+        {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
       </View>
 
-        <View style={styles.formGroup}>
-         <Text style={styles.label}>Confirmar Contrasena</Text>
-         <TextInput
-         style={styles.input}
-         value={formData.confirmPassword}
-         onChangeText={(text)=>handleChange('confirmPassword',text)}
-         secureTextEntry/>
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>Contrasena</Text>
+        <View>
+          <TextInput
+            style={styles.input}
+            value={formData.password}
+            onChangeText={(text) => handleChange("password", text)}
+            secureTextEntry={!passwordVisible}
+            placeholder="Minimo 6 caracteres"
+            placeholderTextColor="#888"
+          />
+          <TouchableOpacity
+            style={styles.icon}
+            onPress={() => setPasswordVisible(!passwordVisible)}
+          >
+            <MaterialCommunityIcons
+              name={passwordVisible ? "eye-off" : "eye"}
+              size={24}
+              color="grey"
+            />
+          </TouchableOpacity>
         </View>
-     <View style={styles.checkboxContainer}>
+        {errors.password && (
+          <Text style={styles.errorText}>{errors.password}</Text>
+        )}
+      </View>
+
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>Confirmar Contrasena</Text>
+        <View>
+          <TextInput
+            style={styles.input}
+            value={formData.confirmPassword}
+            onChangeText={(text) => handleChange("confirmPassword", text)}
+            secureTextEntry={!confirmPasswordVisible}
+            placeholder="Confirmar Contraseña"
+            placeholderTextColor="#888"
+          />
+          <TouchableOpacity
+            style={styles.icon}
+            onPress={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
+          >
+            <MaterialCommunityIcons
+              name={confirmPasswordVisible ? "eye-off" : "eye"}
+              size={24}
+              color="grey"
+            />
+          </TouchableOpacity>
+        </View>
+        {errors.confirmPassword && (
+          <Text style={styles.errorText}>{errors.confirmPassword}</Text>
+        )}
+      </View>
+      <View style={styles.checkboxContainer}>
         <Checkbox
-        status={checked ? 'checked': 'unchecked'}
-        onPress={()=>setChecked(!checked)}
-        color="#6200EE"/>
-        <Text style={styles.checkboxLabel}>La contrasena debe tener al menos 6 caracteres</Text>
-          
-          
-           <View style={styles.divider} />
+          status={checked ? "checked" : "unchecked"}
+          onPress={() => setChecked(!checked)}
+          color="#6200EE"
+        />
+        <Text style={styles.checkboxLabel}>
+          He leido el contrato de privacidad y terminos de uso
+        </Text>
+      </View>
 
-        <TouchableOpacity style={styles.registerButton} onPress={handleSubmit}>
-            <Text style={styles.registerButtonText}>CREAR CUENTA</Text>
+      <View style={styles.divider} />
+
+      <TouchableOpacity style={styles.registerButton} onPress={handleSubmit}>
+        <Text style={styles.registerButtonText}>CREAR CUENTA</Text>
+      </TouchableOpacity>
+
+      <View style={styles.loginLinkContainer}>
+        <Text style={styles.loginText}> Ya eres miembro?</Text>
+        <TouchableOpacity>
+          <Text style={styles.loginLink}> Inicia sesion ahora</Text>
         </TouchableOpacity>
-
-        <View style={styles.loginLinkContainer}>
-            <Text style={styles.loginText}> Ya eres miembro?</Text>
-            <TouchableOpacity>
-                <Text style={styles.loginLink}> Inicia sesion ahora</Text>
-            </TouchableOpacity>
-        </View>
-
-     </View>
-     </ScrollView>
- 
-
-);
+      </View>
+    </ScrollView>
+  );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
+    flex: 1,
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   header: {
-    fontFamily:'Alegreya-Italic',
+    fontFamily: "Alegreya_400Regular_Italic",
     fontSize: 35,
-  
-    width:225,
-    height:48,
-    textAlign: 'center',
-    marginVertical: 20,
-    color: '#423646',
 
+    // width: 225,
+    height: 48,
+    textAlign: "center",
+    marginVertical: 20,
+    color: "#423646",
+    alignSelf: "center",
   },
   title: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 30,
-    color: '#423646',
+    color: "#423646",
   },
   formGroup: {
     marginBottom: 20,
-    color: '#423646',
+    color: "#423646",
+    alignSelf: "center",
+    width: "90%",
   },
   label: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "regular",
     marginBottom: 8,
-    color: '#333',
+    color: "#333",
+    fontFamily: "Open Sans",
   },
   input: {
     height: 50,
     borderWidth: 1,
-    borderColor: '#ddd',
-    paddingLeft:16.80,
-    paddingTop:13,
-    paddingBottom:13,
-    borderRadius: 50,
+    borderColor: "#6F6A6F",
+    paddingHorizontal: 15,
+    //paddingLeft: 16.8,
+    //paddingTop: 13,
+    paddingBottom: 13,
+    borderRadius: 12,
     fontSize: 16,
-    width:380,
-    position:'fixed',
-    color: '#423646',
-    backgroundColor: '#E2E2E2',
+    // width: 380,
+    //position: "fixed",
+    color: "#423646",
+    backgroundColor: "#FAF7F7",
+  },
+  icon: {
+    position: "absolute",
+    right: 15,
+    top: 13,
   },
   checkboxContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 20,
   },
   checkboxLabel: {
     marginLeft: 8,
     fontSize: 14,
-    color: '#423646',
+    color: "#423646",
+    flex: 1,
   },
-  divider: {
-    height: 1,
-    backgroundColor: '#ddd',
-    marginVertical: 20,
-  },
+  //divider: {
+  //  height: 1,
+  //backgroundColor: "#ddd",
+  //marginVertical: 20,
+  //},
   registerButton: {
-    backgroundColor: '#6200EE',
+    backgroundColor: "#BCA1BD",
     height: 50,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
+    borderRadius: 30,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 10,
+
+    //marginTop: 0,
   },
   registerButtonText: {
-    color: 'white',
+    color: "#423646",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   loginLinkContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
   },
   loginText: {
     marginRight: 5,
-    color: '#666',
+    color: "#423646",
+    fontFamily: "Open Sans",
   },
   loginLink: {
-    color: '#6200EE',
-    fontWeight: 'bold',
+    color: "#423646",
+    fontWeight: "bold",
+  },
+  errorText: {
+    color: "red",
+    fontSize: 12,
+    marginTop: 5,
+    marginLeft: 10,
   },
 });
 
