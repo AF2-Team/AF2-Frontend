@@ -6,9 +6,12 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Image,
+  Dimensions,
 } from "react-native";
 import { Checkbox } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import Logo from "../../assets/images/Logotipo.svg";
 import {
   useFonts,
   Alegreya_400Regular_Italic,
@@ -70,8 +73,7 @@ const RegisterScreen = () => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.header}> A fun site for you</Text>
-
+      <Logo style={styles.logo} />
       <Text style={styles.header}> Crear una cuenta</Text>
 
       <View style={styles.formGroup}>
@@ -192,9 +194,14 @@ const styles = StyleSheet.create({
     // width: 225,
     height: 48,
     textAlign: "center",
-    marginVertical: 20,
+    marginBottom: 20,
     color: "#423646",
     alignSelf: "center",
+  },
+  logo: {
+    width: "60%",
+    alignSelf: "center",
+    marginBottom: "8%",
   },
   title: {
     fontSize: 20,
@@ -216,24 +223,24 @@ const styles = StyleSheet.create({
     fontFamily: "Open Sans",
   },
   input: {
-    height: 50,
+    height: 41,
     borderWidth: 1,
     borderColor: "#6F6A6F",
     paddingHorizontal: 15,
     //paddingLeft: 16.8,
     //paddingTop: 13,
-    paddingBottom: 13,
+    paddingBottom: 10,
     borderRadius: 12,
     fontSize: 16,
-    // width: 380,
+
     //position: "fixed",
     color: "#423646",
     backgroundColor: "#FAF7F7",
   },
   icon: {
     position: "absolute",
-    right: 15,
-    top: 13,
+    right: 13,
+    top: 9,
   },
   checkboxContainer: {
     flexDirection: "row",
