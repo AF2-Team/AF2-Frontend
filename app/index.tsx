@@ -3,14 +3,14 @@ import { useRouter } from "expo-router";
 import React from "react";
 import {
   Dimensions,
-  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
-
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+import Logo from "../assets/images/logo-land.svg";
+import Land2 from "../assets/images/land2.svg";
+const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
 export default function WelcomeScreen() {
   const router = useRouter();
@@ -27,57 +27,37 @@ export default function WelcomeScreen() {
   return (
     <LinearGradient
       colors={[
-        "rgba(255, 255, 255, 1)",
-        "rgba(188, 161, 189, 1)",
-        "rgba(102, 81, 108, 1)",
-        "rgba(66, 54, 70, 1)",
-        "rgba(0, 0, 0, 1)",
+        "rgba(255, 255, 255, 1) 0%",
+        "rgba(188, 161, 189, 1) 25%",
+        "rgba(102, 81, 108, 1) 50%",
+        "rgba(66, 54, 70, 1) 75%",
+        "rgba(0, 0, 0, 1) 100%",
       ]}
       locations={[0, 0.25, 0.5, 0.75, 1]}
       style={styles.container}
     >
-      {/* Logo y texto principal */}
-      <View style={styles.logoSection}>
-        <Image
-          source={require("@/assets/images/10-1.png")}
-          style={styles.logoImage}
-          resizeMode="contain"
-        />
-        <Image
-          source={require("@/assets/images/a-fun-site-for-you.png")}
-          style={styles.subtitleImage}
-          resizeMode="contain"
-        />
-      </View>
-
-      {/* Texto del eslogan */}
-      <Image
-        source={require("@/assets/images/tus-gustos-tus-reglas-tu-espacio.png")}
-        style={styles.sloganImage}
-        resizeMode="contain"
-      />
-
-      {/* Botón de registro */}
-      <TouchableOpacity 
-        style={styles.registerButton} 
-        onPress={handleRegisterPress}
-        activeOpacity={0.8}
-      >
-        <View style={styles.buttonContainer}>
-          <Image
-            source={require("@/assets/images/reg-strate-con-tu-correo.png")}
-            style={styles.registerButtonText}
-            resizeMode="contain"
-          />
+      <View style={styles.content}>
+        {/* Logo y texto principal */}
+        <View style={styles.logoSection}>
+          <Logo style={styles.logo} />
+          <Land2 style={styles.land2} />
         </View>
-      </TouchableOpacity>
 
-      {/* Sección de login */}
-      <View style={styles.loginSection}>
-        <Text style={styles.memberText}>Ya eres miembro?</Text>
-        <TouchableOpacity onPress={handleLoginPress} activeOpacity={0.7}>
-          <Text style={styles.loginText}>Inicia sesión</Text>
+        {/* Botón de registro */}
+        <TouchableOpacity
+          style={styles.registerButton}
+          onPress={handleRegisterPress}
+        >
+          <Text style={styles.buttonText}>REGRISTRATE AHORA CON TU CORREO</Text>
         </TouchableOpacity>
+
+        {/* Sección de login */}
+        <View style={styles.loginSection}>
+          <Text style={styles.memberText}>¿Ya eres miembro?</Text>
+          <TouchableOpacity onPress={handleLoginPress} activeOpacity={0.7}>
+            <Text style={styles.loginText}>Inicia sesión ahora</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </LinearGradient>
   );
@@ -88,53 +68,35 @@ const styles = StyleSheet.create({
     flex: 1,
     width: screenWidth,
     minHeight: screenHeight,
-    borderRadius: 50,
-    overflow: 'hidden',
-    position: 'relative',
+    borderRadius: 30,
+    overflow: "hidden",
+  },
+  content: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
   logoSection: {
-    position: 'absolute',
-    top: 116,
-    left: 33,
+    alignItems: "center",
     width: 332,
-    height: 212,
   },
-  logoImage: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: 160,
-    height: 212,
+  logo: {
+    marginTop: -20,
+    width: "60%",
   },
-  subtitleImage: {
-    position: 'absolute',
-    top: 135,
-    left: 113,
-    width: 216,
-    height: 29,
-  },
-  sloganImage: {
-    position: 'absolute',
-    top: 378,
-    left: 125,
-    width: 156,
-    height: 143,
+  land2: {
+    marginTop: 50,
+    marginBottom: 20,
   },
   registerButton: {
-    position: 'absolute',
-    top: 636,
-    left: 47,
-    width: 321,
-    height: 50,
-  },
-  buttonContainer: {
-    backgroundColor: '#8a2be2',
+    marginTop: 50,
+    backgroundColor: "#bca1bd",
     borderRadius: 30,
     height: 50,
     width: 319,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -143,30 +105,31 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
-  registerButtonText: {
-    width: 213,
-    height: 14,
+
+  buttonText: {
+    color: "#423646",
+    fontFamily: "Open Sans",
+    fontSize: 14,
+    fontWeight: "bold",
   },
   loginSection: {
-    position: 'absolute',
-    top: 737,
-    left: 134,
-    alignItems: 'center',
+    alignItems: "center",
+    marginTop: 37,
   },
   memberText: {
-    color: '#fff',
-    fontFamily: 'Open Sans',
+    color: "#fff",
+    fontFamily: "Open Sans",
     fontSize: 15,
-    fontWeight: '400',
-    textAlign: 'center',
+    fontWeight: "400",
+    textAlign: "center",
     width: 131,
     marginBottom: 8,
   },
   loginText: {
-    color: '#fff',
-    fontFamily: 'Open Sans',
+    color: "#fff",
+    fontFamily: "Open Sans",
     fontSize: 15,
-    fontWeight: '700',
-    textDecorationLine: 'underline',
+    fontWeight: "700",
+    textDecorationLine: "underline",
   },
 });

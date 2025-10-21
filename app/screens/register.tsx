@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { Checkbox } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import Logo from "../../assets/images/Logotipo.svg";
+import Logo from "../../assets/images/logotipo.svg";
 import {
   useFonts,
   Alegreya_400Regular_Italic,
