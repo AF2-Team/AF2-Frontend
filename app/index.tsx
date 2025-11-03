@@ -16,7 +16,7 @@ export default function WelcomeScreen() {
   const router = useRouter();
 
   const handleRegisterPress = () => {
-    router.push("../screens/usernameChoose");
+    router.push("../screens/ForgotPasswordScreen");
   };
 
   const handleLoginPress = () => {
