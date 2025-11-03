@@ -3,12 +3,12 @@ import { useRouter } from 'expo-router';
 import styled from 'styled-components/native';
 
 // Importar los íconos (asegúrate de tener estas imágenes en tu proyecto)
-const heartOutline = require('../assets/icons/heart_outline.png');
-const heartFilled = require('../assets/icons/heart_filled.png');
-const commentIcon = require('../assets/icons/comment.png');
-const repostIcon = require('../assets/icons/repost.png');
-const favoriteOutline = require('../assets/icons/favorite_outline.png');
-const favoriteFilled = require('../assets/icons/favorite_filled.png');
+const heartOutline = require('../assets/images/heart_outline.png');
+const heartFilled = require('../assets/images/heart_filled.png');
+const commentIcon = require('../assets/images/comment.png');
+const repostIcon = require('../assets/images/repost.png');
+const favoriteOutline = require('../assets/images/favorite_outline.png');
+const favoriteFilled = require('../assets/images/favorite_filled.png');
 
 interface PostFooterProps {
   onCommentPress?: () => void;
