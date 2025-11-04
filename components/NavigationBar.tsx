@@ -1,36 +1,58 @@
 import React from 'react';
-import { useRouter } from 'expo-router';
+import { useRouter, usePathname } from 'expo-router';
 import styled from 'styled-components/native';
 
-// Importar los íconos
-const homeIcon = require('../assets/images/homeIcon.png');
-const searchIcon = require('../assets/images/searchIcon.png');
-const notificationIcon = require('../assets/images/notificationIcon.png');
-const messageIcon = require('../assets/images/messageIcon.png');
+// Importar los íconos en sus versiones outline y filled
+const homeIconOutline = require('../assets/images/homeIcon_outline.png');
+const homeIconFilled = require('../assets/images/homeIcon_filled.png');
+const searchIconOutline = require('../assets/images/searchIcon_outline.png');
+const notificationIconOutline = require('../assets/images/notificationIcon_outline.png');
+const notificationIconFilled = require('../assets/images/notificationIcon_filled.png');
+const messagesIconOutline = require('../assets/images/messagesIcon_outline.png');
+const messagesIconFilled = require('../assets/images/messagesIcon_filled.png');
 
 export const NavigationBar = () => {
   const router = useRouter();
+  const pathname = usePathname();
 
   const navigateTo = (screen: string) => {
     router.push(`/screens/${screen}`);
   };
 
+  // Determinar qué ícono mostrar según la pantalla activa
+  const getIconSource = (screen: string) => {
+    const isActive = pathname === `/screens/${screen}`;
+    
+    switch(screen) {
+      case 'home':
+        return isActive ? homeIconFilled : homeIconOutline;
+      case 'search':
+        return searchIconOutline; // Siempre outline, no necesita filled
+      case 'notifications':
+        return isActive ? notificationIconFilled : notificationIconOutline;
+      case 'messages':
+        return isActive ? messagesIconFilled : messagesIconOutline;
+      default:
+        return homeIconOutline;
+    }
+  };
+
   return (
     <Container>
       <NavButton onPress={() => navigateTo('home')}>
-        <Icon source={homeIcon} />
+        <Icon source={getIconSource('home')} />
       </NavButton>
 
       <NavButton onPress={() => navigateTo('search')}>
-        <Icon source={searchIcon} />
+        <Icon source={getIconSource('search')} />
       </NavButton>
 
       <NavButton onPress={() => navigateTo('notifications')}>
-        <Icon source={notificationIcon} />
+        <Icon source={getIconSource('notifications')} />
       </NavButton>
 
       <NavButton onPress={() => navigateTo('messages')}>
-        <Icon source={messageIcon} />
+        <Icon source={getIconSource('messages')} />
       </NavButton>
     </Container>
   );
