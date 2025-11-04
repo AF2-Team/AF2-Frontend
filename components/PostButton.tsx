@@ -1,8 +1,8 @@
-import React from 'react';
-import { useRouter } from 'expo-router';
-import styled from 'styled-components/native';
+import React from "react";
+import { useRouter } from "expo-router";
+import styled from "styled-components/native";
 
-const postButtonIcon = require('../../assets/images/post_button.png'); 
+const postButtonIcon = require("../../assets/images/post_button.png");
 
 interface PostButtonProps {
   onPress?: () => void;
@@ -10,9 +10,10 @@ interface PostButtonProps {
   style?: any;
 }
 
-export const PostButton = ({ 
-  onPress, 
-  navigateTo = '/screens/create-post' 
+export const PostButton = ({
+  onPress,
+  navigateTo = "/screens/create-post",
+  style
 }: PostButtonProps) => {
   const router = useRouter();
 
@@ -20,13 +21,12 @@ export const PostButton = ({
     if (onPress) {
       onPress();
     } else {
-      // Uso de rutas absolutas para mayor robustez
-      router.push(navigateTo as any); 
+      router.push(navigateTo);
     }
   };
 
   return (
-    <ButtonContainer onPress={handlePress} activeOpacity={0.8}>
+    <ButtonContainer style={style} onPress={handlePress} activeOpacity={0.8}>
       <ButtonImage source={postButtonIcon} />
     </ButtonContainer>
   );
