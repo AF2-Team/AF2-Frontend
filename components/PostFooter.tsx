@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
 import styled from 'styled-components/native';
 
-// Importar los íconos (asegúrate de tener estas imágenes en tu proyecto)
 const heartOutline = require('../assets/images/heart_outline.png');
 const heartFilled = require('../assets/images/heart_filled.png');
 const commentIcon = require('../assets/images/comment.png');
