@@ -1,17 +1,21 @@
-import React from 'react';
-import { useRouter, usePathname } from 'expo-router';
-import styled from 'styled-components/native';
+import React from "react";
+import { useRouter, usePathname } from "expo-router";
+import styled from "styled-components/native";
 
 // Importar los íconos en sus versiones outline y filled
-const homeIconOutline = require('../assets/images/homeIcon_outline.png');
-const homeIconFilled = require('../assets/images/homeIcon_filled.png');
-const searchIconOutline = require('../assets/images/searchIcon_outline.png');
-const notificationIconOutline = require('../assets/images/notificationIcon_outline.png');
-const notificationIconFilled = require('../assets/images/notificationIcon_filled.png');
-const messagesIconOutline = require('../assets/images/messagesIcon_outline.png');
-const messagesIconFilled = require('../assets/images/messagesIcon_filled.png');
+const homeIconOutline = require("../assets/images/homeIcon_outline.png");
+const homeIconFilled = require("../assets/images/homeIcon_filled.png");
+const searchIconOutline = require("../assets/images/searchIcon_outline.png");
+const notificationIconOutline = require("../assets/images/notificationIcon_outline.png");
+const notificationIconFilled = require("../assets/images/notificationIcon_filled.png");
+const messagesIconOutline = require("../assets/images/messagesIcon_outline.png");
+const messagesIconFilled = require("../assets/images/messagesIcon_filled.png");
 
-export const NavigationBar = () => {
+interface NavigationBarProps {
+  style?: any;
+}
+
+export const NavigationBar = ({ style }: NavigationBarProps) => {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -19,18 +23,17 @@ export const NavigationBar = () => {
     router.push(`/screens/${screen}`);
   };
 
-  // Determinar qué ícono mostrar según la pantalla activa
   const getIconSource = (screen: string) => {
     const isActive = pathname === `/screens/${screen}`;
-    
-    switch(screen) {
-      case 'home':
+
+    switch (screen) {
+      case "home":
         return isActive ? homeIconFilled : homeIconOutline;
-      case 'search':
-        return searchIconOutline; // Siempre outline, no necesita filled
-      case 'notifications':
+      case "search":
+        return searchIconOutline;
+      case "notifications":
         return isActive ? notificationIconFilled : notificationIconOutline;
-      case 'messages':
+      case "messages":
         return isActive ? messagesIconFilled : messagesIconOutline;
       default:
         return homeIconOutline;
@@ -38,21 +41,20 @@ export const NavigationBar = () => {
   };
 
   return (
-    <Container>
-      <NavButton onPress={() => navigateTo('home')}>
-        <Icon source={getIconSource('home')} />
+    <Container style={style}>
+      {" "}
+      {/* Aplicar estilos adicionales */}
+      <NavButton onPress={() => navigateTo("home")}>
+        <Icon source={getIconSource("home")} />
       </NavButton>
-
-      <NavButton onPress={() => navigateTo('search')}>
-        <Icon source={getIconSource('search')} />
+      <NavButton onPress={() => navigateTo("search")}>
+        <Icon source={getIconSource("search")} />
       </NavButton>
-
-      <NavButton onPress={() => navigateTo('notifications')}>
-        <Icon source={getIconSource('notifications')} />
+      <NavButton onPress={() => navigateTo("notifications")}>
+        <Icon source={getIconSource("notifications")} />
       </NavButton>
-
-      <NavButton onPress={() => navigateTo('messages')}>
-        <Icon source={getIconSource('messages')} />
+      <NavButton onPress={() => navigateTo("messages")}>
+        <Icon source={getIconSource("messages")} />
       </NavButton>
     </Container>
   );
@@ -67,9 +69,6 @@ const Container = styled.View`
   flex-direction: row;
   justify-content: space-around;
   align-items: center;
-  position: absolute;
-  bottom: 20px;
-  align-self: center;
   padding-horizontal: 10px;
   shadow-color: #000;
   shadow-offset: 0px 2px;
