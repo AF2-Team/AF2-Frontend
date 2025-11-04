@@ -7,6 +7,7 @@ const postButtonIcon = require('../../assets/images/post_button.png');
 interface PostButtonProps {
   onPress?: () => void;
   navigateTo?: string;
+  style?: any;
 }
 
 export const PostButton = ({ 
@@ -33,16 +34,11 @@ export const PostButton = ({
 
 // Styled Components
 const ButtonContainer = styled.TouchableOpacity`
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
   width: 54px;
   height: 54px;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.4); 
-  elevation: 6;
 `;
 
 const ButtonImage = styled.Image`
