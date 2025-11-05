@@ -5,6 +5,7 @@ import { Header } from "../../components/Header";
 import { FloatingActionButton } from "../../components/FloatingActionButton";
 import { NavigationBar } from "../../components/NavigationBar";
 import { Feed } from "../../components/Feed";
+import { TagsFeed } from "../../components/TagsFeed";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 const NAV_BAR_WIDTH = 180;
@@ -46,9 +47,7 @@ export const HomeScreen = () => {
           <Feed />
         </View>
         <View key="2">
-          <View style={styles.placeholder}>
-            {/* TagsFeed iría aquí en el futuro */}
-          </View>
+          <TagsFeed />
         </View>
       </PagerView>
 
@@ -65,12 +64,6 @@ const styles = StyleSheet.create({
   },
   pagerView: {
     flex: 1,
-  },
-  placeholder: {
-    flex: 1,
-    backgroundColor: "#f8f9fa",
-    justifyContent: "center",
-    alignItems: "center",
   },
   floatingButton: {
     position: "absolute",
