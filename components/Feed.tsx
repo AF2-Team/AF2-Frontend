@@ -129,6 +129,17 @@ export const Feed = () => {
     );
   };
 
+  const handleNotInterested = (postId: string) => {
+    console.log("Eliminando post no interesante:", postId);
+
+    // Aquí iría la llamada a la API para marcar como no interesante
+    // Por ahora, solo lo removemos del estado local
+    setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
+
+    // También podrías enviar esta información al backend
+    // api.markPostAsNotInterested(postId);
+  };
+
   const handleCommentPress = (postId: string) => {
     router.push(`/screens/comments/${postId}`);
   };
@@ -148,6 +159,7 @@ export const Feed = () => {
       onCommentPress={() => handleCommentPress(item.id)}
       onOptionsPress={() => handleOptionsPress(item.id)}
       onHashtagPress={handleHashtagPress}
+      onNotInterested={handleNotInterested}
     />
   );
 
