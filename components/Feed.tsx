@@ -1,91 +1,91 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { FlatList, ActivityIndicator, RefreshControl } from 'react-native';
-import styled from 'styled-components/native';
-import { useRouter } from 'expo-router';
-import { Post } from './Post';
-import { PostData } from '../types/PostTypes';
+import React, { useState, useCallback, useEffect } from "react";
+import { FlatList, ActivityIndicator, RefreshControl } from "react-native";
+import styled from "styled-components/native";
+import { useRouter } from "expo-router";
+import { Post } from "./Post";
+import { PostData } from "../types/PostTypes";
 
 // Datos mock - reemplaza con la API real
 const mockPosts: PostData[] = [
   {
-    id: '1',
+    id: "1",
     user: {
-      id: 'user1',
-      username: 'the-preachersdauther',
+      id: "user1",
+      username: "the-preachersdauther",
       avatarUrl: null,
-      avatarShape: 'circle',
+      avatarShape: "circle",
       isFollowing: false,
     },
     createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     content: `#losser\n\nbabygirl\n\ngirlhood is a spectrum`,
-    hashtags: ['losser', 'babygirl', 'girlhood', 'spectrum'],
+    hashtags: ["losser", "babygirl", "girlhood", "spectrum"],
     initialLikes: 3,
     initialFavorites: 1,
     initialReposts: 2,
     initialComments: 4,
   },
   {
-    id: '2',
+    id: "2",
     user: {
-      id: 'user2',
-      username: 'slu',
+      id: "user2",
+      username: "slu",
       avatarUrl: null,
-      avatarShape: 'square',
+      avatarShape: "square",
       isFollowing: true,
     },
     createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
     content: `Explorando nuevos horizontes en el desarrollo frontend.`,
-    hashtags: ['reactnative', 'typescript', 'frontend'],
+    hashtags: ["reactnative", "typescript", "frontend"],
     initialLikes: 8,
     initialFavorites: 2,
     initialReposts: 1,
     initialComments: 3,
   },
   {
-    id: '3',
+    id: "3",
     user: {
-      id: 'user3',
-      username: 'creative_writer',
+      id: "user3",
+      username: "creative_writer",
       avatarUrl: null,
-      avatarShape: 'circle',
+      avatarShape: "circle",
       isFollowing: false,
     },
     createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
     content: `Acabo de descubrir algo increíble en mi viaje de autodescubrimiento.`,
-    hashtags: ['autodescubrimiento', 'viaje', 'crecimiento'],
+    hashtags: ["autodescubrimiento", "viaje", "crecimiento"],
     initialLikes: 15,
     initialFavorites: 3,
     initialReposts: 5,
     initialComments: 7,
   },
   {
-    id: '4',
+    id: "4",
     user: {
-      id: 'user4',
-      username: 'photo_lover',
+      id: "user4",
+      username: "photo_lover",
       avatarUrl: null,
-      avatarShape: 'circle',
+      avatarShape: "circle",
       isFollowing: false,
     },
     createdAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
     content: `Un atardecer que capturé hoy. ¿No es maravilloso?`,
-    hashtags: ['atardecer', 'fotografía', 'naturaleza'],
+    hashtags: ["atardecer", "fotografía", "naturaleza"],
     initialLikes: 25,
     initialFavorites: 5,
     initialReposts: 3,
     initialComments: 12,
-    mediaUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-  }
+    mediaUrl:
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+  },
 ];
 
-export const PostFeed = () => {
+export const Feed = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [posts, setPosts] = useState<PostData[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  // Simular carga de posts desde API
   const loadPosts = useCallback(async (isRefresh = false) => {
     if (!isRefresh) {
       setLoading(true);
@@ -93,26 +93,17 @@ export const PostFeed = () => {
     setError(null);
 
     try {
-      // Aquí iría la llamada real a la API
-      // const response = await fetch('/api/posts');
-      // const postsData = await response.json();
-      
-      // Simulamos un delay de red
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Simulamos una respuesta exitosa
+      await new Promise((resolve) => setTimeout(resolve, 1500));
       setPosts(mockPosts);
-      
     } catch (err) {
-      console.error('Error loading posts:', err);
-      setError('No se pudieron cargar las publicaciones');
+      console.error("Error loading posts:", err);
+      setError("No se pudieron cargar las publicaciones");
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   }, []);
 
-  // Cargar posts al montar el componente
   useEffect(() => {
     loadPosts();
   }, [loadPosts]);
@@ -124,22 +115,18 @@ export const PostFeed = () => {
 
   const handleFollowChange = (userId: string, isFollowing: boolean) => {
     console.log(`Usuario ${userId} - Seguir: ${isFollowing}`);
-    
-    // Actualizar estado local
-    setPosts(prevPosts => 
-      prevPosts.map(post => 
-        post.user.id === userId 
-          ? { 
-              ...post, 
+
+    setPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post.user.id === userId
+          ? {
+              ...post,
               user: { ...post.user, isFollowing },
-              isFollowing 
+              isFollowing,
             }
-          : post
-      )
+          : post,
+      ),
     );
-    
-    // Aquí iría la llamada a la API
-    // followUser(userId, isFollowing);
   };
 
   const handleCommentPress = (postId: string) => {
@@ -185,7 +172,7 @@ export const PostFeed = () => {
         </EmptyContainer>
       );
     }
-    
+
     return (
       <EmptyContainer>
         <EmptyText>No hay publicaciones aún</EmptyText>
@@ -210,15 +197,15 @@ export const PostFeed = () => {
         renderItem={renderPost}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ 
+        contentContainerStyle={{
           paddingBottom: 100,
-          flexGrow: posts.length === 0 ? 1 : 0 
+          flexGrow: posts.length === 0 ? 1 : 0,
         }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={['#423646']}
+            colors={["#423646"]}
             tintColor="#423646"
           />
         }
@@ -228,7 +215,6 @@ export const PostFeed = () => {
   );
 };
 
-// Styled Components
 const Container = styled.View`
   flex: 1;
   background-color: #ffffff;
