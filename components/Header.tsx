@@ -1,15 +1,14 @@
-import React from 'react';
-import { useRouter } from 'expo-router';
-import styled from 'styled-components/native';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withTiming 
-} from 'react-native-reanimated';
+import React from "react";
+import { useRouter } from "expo-router";
+import styled from "styled-components/native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from "react-native-reanimated";
 
-// Importar assets
-const logo = require('../assets/images/logo.png');
-const defaultAvatar = require('../assets/images/default_avatar.png');
+const logo = require("../assets/images/logo.png");
+const defaultAvatar = require("../assets/images/default_avatar.png");
 
 interface HeaderProps {
   currentUser?: {
@@ -20,101 +19,95 @@ interface HeaderProps {
   onTabChange: (index: number) => void;
 }
 
-// Dimensiones exactas del indicador
 const INDICATOR_WIDTH = 26.95;
 const INDICATOR_HEIGHT = 2.82;
 
-export const Header = ({ 
-  currentUser, 
+export const Header = ({
+  currentUser,
   activeTabIndex,
-  onTabChange
+  onTabChange,
 }: HeaderProps) => {
   const router = useRouter();
   const indicatorPosition = useSharedValue(0);
 
-  // Array para almacenar los layouts de cada tab
   const tabLayouts = React.useRef([
-    { width: 0, x: 0 }, // Inicio
-    { width: 0, x: 0 }  // Etiquetas
+    { width: 0, x: 0 },
+    { width: 0, x: 0 },
   ]);
 
-  const tabs = ['Inicio', 'Etiquetas'];
-  
-  // Función que se ejecuta cuando se renderiza cada tab
+  const tabs = ["Inicio", "Etiquetas"];
+
   const handleLayout = (event: any, index: number) => {
     const { width, x } = event.nativeEvent.layout;
     tabLayouts.current[index] = { width, x };
-    
-    // Si es la pestaña activa, actualizamos la posición del indicador
+
     if (index === activeTabIndex) {
       updateIndicatorPosition(index);
     }
   };
 
-  // Función para calcular y actualizar la posición del indicador
   const updateIndicatorPosition = (index: number) => {
     const activeLayout = tabLayouts.current[index];
-    
-    // Si no hemos medido el layout, salimos
+
     if (activeLayout.width === 0) return;
-    
-    // Cálculo preciso: centro del tab - mitad del ancho del indicador
-    const newPosition = 
-      activeLayout.x + 
-      (activeLayout.width / 2) - 
-      (INDICATOR_WIDTH / 2);
-    
+
+    const newPosition =
+      activeLayout.x + activeLayout.width / 2 - INDICATOR_WIDTH / 2;
+
     indicatorPosition.value = withTiming(newPosition, {
-      duration: 200
+      duration: 200,
     });
   };
 
-  // Actualizar la posición cuando cambia la pestaña activa
   React.useEffect(() => {
     updateIndicatorPosition(activeTabIndex);
   }, [activeTabIndex]);
 
   const indicatorStyle = useAnimatedStyle(() => {
     return {
-      transform: [{ translateX: indicatorPosition.value }]
+      transform: [{ translateX: indicatorPosition.value }],
     };
   });
 
   const handleProfilePress = () => {
-    router.push('/screens/profile');
+    router.push("/screens/profile");
+  };
+
+  const handleTabPress = (tab: "inicio" | "etiquetas") => {
+    onTabChange(tab === "inicio" ? 0 : 1);
   };
 
   return (
     <HeaderContainer>
       <HeaderContent>
-        {/* Logo */}
         <LogoContainer>
           <Logo source={logo} />
         </LogoContainer>
 
-        {/* Tabs con medición de layout */}
         <TabsContainer>
           {tabs.map((tab, index) => (
-            <Tab 
+            <Tab
               key={tab}
               onLayout={(event) => handleLayout(event, index)}
               active={activeTabIndex === index}
-              onPress={() => onTabChange(index)}
+              onPress={() =>
+                handleTabPress(index === 0 ? "inicio" : "etiquetas")
+              }
             >
-              <TabText active={activeTabIndex === index}>
-                {tab}
-              </TabText>
+              <TabText active={activeTabIndex === index}>{tab}</TabText>
             </Tab>
           ))}
-          {/* Indicador con posición calculada dinámicamente */}
           <TabIndicator style={indicatorStyle} />
         </TabsContainer>
 
-        {/* Avatar */}
         <AvatarContainer>
           <AvatarButton onPress={handleProfilePress}>
-            <Avatar 
-              source={currentUser?.avatarUrl ? { uri: currentUser.avatarUrl } : defaultAvatar}
+            <Avatar
+              source={
+                currentUser?.avatarUrl
+                  ? { uri: currentUser.avatarUrl }
+                  : defaultAvatar
+              }
             />
           </AvatarButton>
         </AvatarContainer>
@@ -123,14 +116,13 @@ export const Header = ({
   );
 };
 
-// Styled Components
 const HeaderContainer = styled.View`
   width: 100%;
   height: 181px;
   background-color: #423646;
   justify-content: flex-end;
   padding-bottom: 20px;
-  padding-top: 50px; // Para el notch
+  padding-top: 50px;
 `;
 
 const HeaderContent = styled.View`
@@ -166,9 +158,9 @@ const Tab = styled.TouchableOpacity<{ active: boolean }>`
 `;
 
 const TabText = styled.Text<{ active: boolean }>`
-  font-family: 'OpenSans-Bold';
+  font-family: "OpenSans-Bold";
   font-size: 16px;
-  color: ${({ active }) => active ? '#FFFFFF' : '#ADADAD'};
+  color: ${({ active }) => (active ? "#FFFFFF" : "#ADADAD")};
   margin-bottom: 8px;
 `;
 
@@ -177,7 +169,7 @@ const TabIndicator = styled(Animated.View)`
   bottom: 0;
   height: ${INDICATOR_HEIGHT}px;
   width: ${INDICATOR_WIDTH}px;
-  background-color: #BCA1BD;
+  background-color: #bca1bd;
   border-radius: ${INDICATOR_HEIGHT / 2}px;
 `;
 
