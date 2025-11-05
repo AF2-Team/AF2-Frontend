@@ -4,7 +4,7 @@ import { useRouter } from "expo-router";
 import styled from "styled-components/native";
 
 const defaultAvatar = require("../assets/images/default_avatar.png");
-const followButton = require("../assets/images/follow_button.png");
+const followButton = require("../assets/images/followButton.png");
 const followingButton = require("../assets/images/followingButton.png");
 
 interface UserInfoHeaderProps {
