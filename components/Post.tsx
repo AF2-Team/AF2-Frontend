@@ -10,6 +10,7 @@ interface PostProps {
   onCommentPress?: () => void;
   onOptionsPress?: () => void;
   onHashtagPress?: (hashtag: string) => void;
+  onNotInterested?: (postId: string) => void;
 }
 
 export const Post = ({
@@ -18,6 +19,7 @@ export const Post = ({
   onCommentPress,
   onOptionsPress,
   onHashtagPress,
+  onNotInterested,
 }: PostProps) => {
   return (
     <PostContainer>
@@ -27,6 +29,9 @@ export const Post = ({
         isFollowing={post.isFollowing}
         onFollowChange={onFollowChange}
         onOptionsPress={onOptionsPress}
+        postId={post.id}
+        postContent={post.content}
+        onNotInterested={onNotInterested}
       />
 
       <ContentContainer>
