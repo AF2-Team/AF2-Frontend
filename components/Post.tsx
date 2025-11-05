@@ -1,66 +1,49 @@
-import React from 'react';
-import styled from 'styled-components/native';
-import { PostHeader } from './PostHeader';
-import { PostFooter } from './PostFooter';
+import React from "react";
+import styled from "styled-components/native";
+import { PostHeader } from "./PostHeader";
+import { PostFooter } from "./PostFooter";
+import { PostData } from "../types/PostTypes";
 
 interface PostProps {
-  post: {
-    id: string;
-    user: {
-      id: string;
-      username: string;
-      avatarUrl?: string;
-      avatarShape?: 'circle' | 'square';
-    };
-    createdAt: string;
-    content: string;
-    hashtags?: string[];
-    initialLikes: number;
-    initialFavorites: number;
-    initialReposts: number;
-    initialComments: number;
-    mediaUrl?: string; // Nuevo campo para contenido multimedia
-  };
+  post: PostData;
   onFollowChange?: (userId: string, isFollowing: boolean) => void;
   onCommentPress?: () => void;
   onOptionsPress?: () => void;
   onHashtagPress?: (hashtag: string) => void;
 }
 
-export const Post = ({ 
-  post, 
-  onFollowChange, 
-  onCommentPress, 
+export const Post = ({
+  post,
+  onFollowChange,
+  onCommentPress,
   onOptionsPress,
-  onHashtagPress 
+  onHashtagPress,
 }: PostProps) => {
   return (
     <PostContainer>
-      <PostHeader 
+      <PostHeader
         user={post.user}
         createdAt={post.createdAt}
+        isFollowing={post.isFollowing}
         onFollowChange={onFollowChange}
         onOptionsPress={onOptionsPress}
       />
-      
-      {/* Contenido de texto simple */}
+
       <ContentContainer>
         <ContentText>{post.content}</ContentText>
       </ContentContainer>
 
-      {/* Contenido multimedia (si existe) */}
       {post.mediaUrl && (
         <MediaContainer>
           <PostImage source={{ uri: post.mediaUrl }} />
         </MediaContainer>
       )}
-      
-      {/* Hashtags como botones separados - más confiable */}
+
       {post.hashtags && post.hashtags.length > 0 && (
         <HashtagsContainer>
           {post.hashtags.map((hashtag, index) => (
-            <HashtagButton 
-              key={index} 
+            <HashtagButton
+              key={index}
               onPress={() => onHashtagPress?.(hashtag)}
             >
               <Hashtag>#{hashtag}</Hashtag>
@@ -68,7 +51,7 @@ export const Post = ({
           ))}
         </HashtagsContainer>
       )}
-      
+
       <PostFooter
         onCommentPress={onCommentPress}
         initialLikes={post.initialLikes}
@@ -83,7 +66,6 @@ export const Post = ({
   );
 };
 
-// Styled Components
 const PostContainer = styled.View`
   background-color: #fff;
   margin-bottom: 12px;
