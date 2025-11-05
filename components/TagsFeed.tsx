@@ -9,6 +9,7 @@ import styled from "styled-components/native";
 import { useRouter } from "expo-router";
 import { Post } from "./Post";
 import { TagFilterBar } from "./TagFilterBar";
+import { TagFilterModal } from "./TagFilterModal";
 import { PostData } from "../types/PostTypes";
 
 // Datos mock para etiquetas seguidas
@@ -102,9 +103,12 @@ export const TagsFeed = () => {
   const [followedTags, setFollowedTags] = useState(mockFollowedTags);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [showTagFilterMenu, setShowTagFilterMenu] = useState(false);
+  const [showTagFilterModal, setShowTagFilterModal] = useState(false);
 
   const selectedTagsCount = selectedTags.length;
+
+  // Obtener las etiquetas seguidas como array de strings para el modal
+  const followedTagNames = mockFollowedTags.map((tag) => tag.name);
 
   const loadTagPosts = useCallback(
     async (isRefresh = false) => {
@@ -144,8 +148,17 @@ export const TagsFeed = () => {
   }, [loadTagPosts]);
 
   const handleTagFilterPress = () => {
-    console.log("Abrir menú de filtro de etiquetas");
-    setShowTagFilterMenu(true);
+    setShowTagFilterModal(true);
+  };
+
+  const handleCloseTagFilterModal = () => {
+    setShowTagFilterModal(false);
+  };
+
+  const handleApplyTagFilter = (selectedTagsFromModal: string[]) => {
+    setSelectedTags(selectedTagsFromModal);
+    setShowTagFilterModal(false);
+    // El feed se actualizará automáticamente por el useEffect que depende de selectedTags
   };
 
   const handleManageTagsPress = () => {
@@ -332,6 +345,14 @@ export const TagsFeed = () => {
         }
         ListHeaderComponent={renderHeader}
         ListEmptyComponent={renderEmptyComponent}
+      />
+
+      <TagFilterModal
+        visible={showTagFilterModal}
+        onClose={handleCloseTagFilterModal}
+        onApply={handleApplyTagFilter}
+        followedTags={followedTagNames}
+        selectedTags={selectedTags}
       />
     </Container>
   );
