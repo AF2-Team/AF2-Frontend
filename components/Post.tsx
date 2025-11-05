@@ -1,4 +1,5 @@
 import React from "react";
+import { useRouter } from "expo-router";
 import styled from "styled-components/native";
 import { PostHeader } from "./PostHeader";
 import { PostFooter } from "./PostFooter";
@@ -21,6 +22,19 @@ export const Post = ({
   onHashtagPress,
   onNotInterested,
 }: PostProps) => {
+  const router = useRouter();
+
+  const handleImagePress = () => {
+    if (post.mediaUrl) {
+      router.push({
+        pathname: "/screens/ImageFullScreen",
+        params: {
+          post: JSON.stringify(post),
+        },
+      });
+    }
+  };
+
   return (
     <PostContainer>
       <PostHeader
@@ -40,7 +54,9 @@ export const Post = ({
 
       {post.mediaUrl && (
         <MediaContainer>
-          <PostImage source={{ uri: post.mediaUrl }} />
+          <TouchableOpacity onPress={handleImagePress}>
+            <PostImage source={{ uri: post.mediaUrl }} />
+          </TouchableOpacity>
         </MediaContainer>
       )}
 
@@ -116,3 +132,4 @@ const Hashtag = styled.Text`
   font-size: 14px;
   font-weight: 600;
 `;
+const TouchableOpacity = styled.TouchableOpacity``;
