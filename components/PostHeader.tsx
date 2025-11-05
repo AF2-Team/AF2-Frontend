@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useRouter } from "expo-router";
 import styled from "styled-components/native";
+import { PostOptionsModal } from "./PostOptionsModal";
 
 const defaultAvatar = require("../assets/images/default_avatar.png");
 const followButton = require("../assets/images/follow_button.png");
@@ -17,6 +18,9 @@ interface PostHeaderProps {
   isFollowing?: boolean;
   onFollowChange?: (userId: string, isFollowing: boolean) => void;
   onOptionsPress?: () => void;
+  postId: string;
+  postContent?: string;
+  onNotInterested?: (postId: string) => void;
 }
 
 export const PostHeader = ({
@@ -25,9 +29,13 @@ export const PostHeader = ({
   isFollowing = false,
   onFollowChange,
   onOptionsPress,
+  postId,
+  postContent,
+  onNotInterested,
 }: PostHeaderProps) => {
   const router = useRouter();
   const [following, setFollowing] = useState(isFollowing);
+  const [showOptionsModal, setShowOptionsModal] = useState(false);
 
   const handleFollowPress = () => {
     const newFollowState = !following;
@@ -43,9 +51,32 @@ export const PostHeader = ({
   };
 
   const handleOptionsPress = () => {
+    setShowOptionsModal(true);
     if (onOptionsPress) {
       onOptionsPress();
     }
+  };
+
+  const handleCloseModal = () => {
+    setShowOptionsModal(false);
+  };
+
+  const handleNotInterested = () => {
+    console.log("No me interesa el post:", postId);
+    if (onNotInterested) {
+      onNotInterested(postId);
+    }
+    setShowOptionsModal(false);
+  };
+
+  const handleFollowFromModal = () => {
+    const newFollowState = true;
+    setFollowing(newFollowState);
+
+    if (onFollowChange) {
+      onFollowChange(user.id, newFollowState);
+    }
+    setShowOptionsModal(false);
   };
 
   const formatRelativeTime = (dateString: string): string => {
@@ -82,30 +113,40 @@ export const PostHeader = ({
   };
 
   return (
-    <Container>
-      <AvatarContainer onPress={handleUserPress}>
-        <Avatar
-          source={user.avatarUrl ? { uri: user.avatarUrl } : defaultAvatar}
-          avatarShape={user.avatarShape || "circle"}
-        />
-      </AvatarContainer>
+    <>
+      <Container>
+        <AvatarContainer onPress={handleUserPress}>
+          <Avatar
+            source={user.avatarUrl ? { uri: user.avatarUrl } : defaultAvatar}
+            avatarShape={user.avatarShape || "circle"}
+          />
+        </AvatarContainer>
 
-      <UserInfo onPress={handleUserPress}>
-        <Username>{user.username}</Username>
-        <DateText>{formatRelativeTime(createdAt)}</DateText>
-      </UserInfo>
+        <UserInfo onPress={handleUserPress}>
+          <Username>{user.username}</Username>
+          <DateText>{formatRelativeTime(createdAt)}</DateText>
+        </UserInfo>
 
-      <ActionsContainer>
-        {!following && (
-          <FollowButton onPress={handleFollowPress}>
-            <FollowButtonImage source={followButton} />
-          </FollowButton>
-        )}
-        <OptionsButton onPress={handleOptionsPress}>
-          <OptionsIcon source={moveVertIcon} />
-        </OptionsButton>
-      </ActionsContainer>
-    </Container>
+        <ActionsContainer>
+          {!following && (
+            <FollowButton onPress={handleFollowPress}>
+              <FollowButtonImage source={followButton} />
+            </FollowButton>
+          )}
+          <OptionsButton onPress={handleOptionsPress}>
+            <OptionsIcon source={moveVertIcon} />
+          </OptionsButton>
+        </ActionsContainer>
+      </Container>
+
+      <PostOptionsModal
+        visible={showOptionsModal}
+        onClose={handleCloseModal}
+        onNotInterested={handleNotInterested}
+        onFollow={handleFollowFromModal}
+        isFollowing={following}
+      />
+    </>
   );
 };
 
