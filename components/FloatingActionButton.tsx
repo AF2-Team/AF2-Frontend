@@ -2,19 +2,19 @@ import React from "react";
 import { useRouter } from "expo-router";
 import styled from "styled-components/native";
 
-const postButtonIcon = require("../../assets/images/post_button.png");
+const postButtonIcon = require("../assets/images/post_button.png");
 
-interface PostButtonProps {
+interface FloatingActionButtonProps {
   onPress?: () => void;
   navigateTo?: string;
   style?: any;
 }
 
-export const PostButton = ({
+export const FloatingActionButton = ({
   onPress,
   navigateTo = "/screens/create-post",
-  style
-}: PostButtonProps) => {
+  style,
+}: FloatingActionButtonProps) => {
   const router = useRouter();
 
   const handlePress = () => {
@@ -32,7 +32,6 @@ export const PostButton = ({
   );
 };
 
-// Styled Components
 const ButtonContainer = styled.TouchableOpacity`
   width: 54px;
   height: 54px;
