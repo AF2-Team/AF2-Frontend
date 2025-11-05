@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useRouter } from "expo-router";
 import styled from "styled-components/native";
 
-// Importar assets
 const defaultAvatar = require("../assets/images/default_avatar.png");
 const followButton = require("../assets/images/follow_button.png");
 const moveVertIcon = require("../assets/images/move_vert.png");
@@ -49,7 +48,6 @@ export const PostHeader = ({
     }
   };
 
-  // Función para formatear la fecha relativa
   const formatRelativeTime = (dateString: string): string => {
     const date = new Date(dateString);
     const now = new Date();
@@ -85,7 +83,6 @@ export const PostHeader = ({
 
   return (
     <Container>
-      {/* Avatar del usuario */}
       <AvatarContainer onPress={handleUserPress}>
         <Avatar
           source={user.avatarUrl ? { uri: user.avatarUrl } : defaultAvatar}
@@ -93,13 +90,11 @@ export const PostHeader = ({
         />
       </AvatarContainer>
 
-      {/* Información del usuario y fecha */}
       <UserInfo onPress={handleUserPress}>
         <Username>{user.username}</Username>
         <DateText>{formatRelativeTime(createdAt)}</DateText>
       </UserInfo>
 
-      {/* Botones de acción */}
       <ActionsContainer>
         {!following && (
           <FollowButton onPress={handleFollowPress}>
@@ -114,7 +109,6 @@ export const PostHeader = ({
   );
 };
 
-// Styled Components
 const Container = styled.View`
   flex-direction: row;
   align-items: center;
@@ -162,4 +156,5 @@ const FollowButton = styled.TouchableOpacity`
 const FollowButtonImage = styled.Image``;
 
 const OptionsButton = styled.TouchableOpacity``;
+
 const OptionsIcon = styled.Image``;
