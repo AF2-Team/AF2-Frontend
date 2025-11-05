@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { useRouter } from 'expo-router';
-import styled from 'styled-components/native';
+import React, { useState } from "react";
+import { useRouter } from "expo-router";
+import styled from "styled-components/native";
 
-const heartOutline = require('../assets/images/heart_outline.png');
-const heartFilled = require('../assets/images/heart_filled.png');
-const commentIcon = require('../assets/images/comment.png');
-const repostIcon = require('../assets/images/repost.png');
-const favoriteOutline = require('../assets/images/favorite_outline.png');
-const favoriteFilled = require('../assets/images/favorite_filled.png');
+const heartOutline = require("../assets/icons/heart_outline.png");
+const heartFilled = require("../assets/icons/heart_filled.png");
+const commentIcon = require("../assets/icons/comment.png");
+const repostIcon = require("../assets/icons/repost.png");
+const favoriteOutline = require("../assets/icons/favorite_outline.png");
+const favoriteFilled = require("../assets/icons/favorite_filled.png");
 
 interface PostFooterProps {
   onCommentPress?: () => void;
@@ -21,20 +21,18 @@ interface PostFooterProps {
   postImage?: string;
 }
 
-export const PostFooter = ({ 
+export const PostFooter = ({
   onCommentPress,
   initialLikes,
   initialFavorites,
-  initialReposts, 
+  initialReposts,
   initialComments,
   postId,
   postContent,
   postAuthor,
-  postImage 
+  postImage,
 }: PostFooterProps) => {
   const router = useRouter();
-  
-  // Estados individuales para cada tipo de interacción
   const [isLiked, setIsLiked] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [likesCount, setLikesCount] = useState(initialLikes);
@@ -42,60 +40,61 @@ export const PostFooter = ({
   const [repostsCount, setRepostsCount] = useState(initialReposts);
   const [commentsCount, setCommentsCount] = useState(initialComments);
 
-  // Calcular el total de interacciones
-  const totalInteractions = likesCount + favoritesCount + repostsCount + commentsCount;
+  const totalInteractions =
+    likesCount + favoritesCount + repostsCount + commentsCount;
 
   const handleLikePress = () => {
-    setIsLiked(prev => {
+    setIsLiked((prev) => {
       const newState = !prev;
-      setLikesCount(prevCount => newState ? prevCount + 1 : prevCount - 1);
-      // Llamada a la API para like
+      setLikesCount((prevCount) => (newState ? prevCount + 1 : prevCount - 1));
       return newState;
     });
   };
 
   const handleFavoritePress = () => {
-    setIsFavorite(prev => {
+    setIsFavorite((prev) => {
       const newState = !prev;
-      setFavoritesCount(prevCount => newState ? prevCount + 1 : prevCount - 1);
-      // Llamada a la API para favorito
+      setFavoritesCount((prevCount) =>
+        newState ? prevCount + 1 : prevCount - 1,
+      );
       return newState;
     });
   };
 
   const handleRepostPress = () => {
-    setRepostsCount(prev => prev + 1);
+    setRepostsCount((prev) => prev + 1);
     router.push({
-      pathname: '/screens/create-repost',
-      params: { 
+      pathname: "/screens/create-repost",
+      params: {
         postId,
         postContent,
         postAuthor,
         postImage,
-      }
+      },
     });
   };
 
   const handleCommentPress = () => {
-    setCommentsCount(prev => prev + 1);
+    setCommentsCount((prev) => prev + 1);
     if (onCommentPress) {
       onCommentPress();
     }
   };
 
+  const likeSource = isLiked ? heartFilled : heartOutline;
+  const favoriteSource = isFavorite ? favoriteFilled : favoriteOutline;
+
   return (
     <Container>
-      {/* Contador de Notas (Total de interacciones) - No es presionable */}
       <NotesContainer>
         <NotesText>
-          {totalInteractions} {totalInteractions === 1 ? 'nota' : 'notas'}
+          {totalInteractions} {totalInteractions === 1 ? "nota" : "notas"}
         </NotesText>
       </NotesContainer>
 
-      {/* Botones de interacción */}
       <InteractionsContainer>
         <IconButton onPress={handleLikePress}>
-          <Icon source={isLiked ? heartFilled : heartOutline} />
+          <Icon source={likeSource} />
           <CountText>{likesCount}</CountText>
         </IconButton>
 
@@ -110,7 +109,7 @@ export const PostFooter = ({
         </IconButton>
 
         <IconButton onPress={handleFavoritePress}>
-          <Icon source={isFavorite ? favoriteFilled : favoriteOutline} />
+          <Icon source={favoriteSource} />
           <CountText>{favoritesCount}</CountText>
         </IconButton>
       </InteractionsContainer>
@@ -118,7 +117,6 @@ export const PostFooter = ({
   );
 };
 
-// Styled Components
 const Container = styled.View`
   flex-direction: row;
   justify-content: space-between;
