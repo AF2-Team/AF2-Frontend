@@ -2,12 +2,12 @@
 import React, { useState } from "react";
 import styled from "styled-components/native";
 
-const commentIcon = require("../assets/icons/messageImage.png");
-const repostIcon = require("../assets/icons/repostImage.png");
-const favoriteIcon = require("../assets/icons/favoriteImage_outline.png");
-const favoriteFilledIcon = require("../assets/icons/favortieImage_filled.png");
-const likeIcon = require("../assets/icons/likeImage_outline.png");
-const likeFilledIcon = require("../assets/icons/likeImage_filled.png");
+const commentIcon = require("../assets/images/messageImage.png");
+const repostIcon = require("../assets/images/repostImage.png");
+const favoriteIcon = require("../assets/images/favoriteImage_outline.png");
+const favoriteFilledIcon = require("../assets/images/favoriteImage_filled.png");
+const likeIcon = require("../assets/images/likeImage_outline.png");
+const likeFilledIcon = require("../assets/images/likeImagen_filled.png");
 
 interface ImagePostFooterProps {
   initialLikes: number;

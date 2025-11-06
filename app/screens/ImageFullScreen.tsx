@@ -5,14 +5,38 @@ import styled from "styled-components/native";
 import { ImagePostFooter } from "../../components/ImagePostFooter";
 import { UserInfoHeader } from "../../components/UserInfoHeader";
 import { PostData } from "../../types/PostTypes";
-
+import { Text } from "react-native";
 const backArrow = require("../../assets/images/back_arrow.png");
 
 export default function ImageFullScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
 
-  const post = JSON.parse(params.post as string) as PostData;
+  const postString = params.post;
+
+  if (!postString || typeof postString !== "string") {
+    return (
+      <Container>
+        <Text style={{ color: "white", textAlign: "center", marginTop: 100 }}>
+          No se pudo cargar la información del post.
+        </Text>
+      </Container>
+    );
+  }
+
+  let post: PostData;
+  try {
+    post = JSON.parse(postString);
+  } catch (e) {
+    console.error("Error parsing post JSON:", e);
+    return (
+      <Container>
+        <Text style={{ color: "white", textAlign: "center", marginTop: 100 }}>
+          Error: El formato de los datos es incorrecto.
+        </Text>
+      </Container>
+    );
+  }
 
   const [isFollowing, setIsFollowing] = useState(
     post.user.isFollowing || false,

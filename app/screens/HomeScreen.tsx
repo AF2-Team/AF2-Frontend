@@ -78,3 +78,4 @@ const styles = StyleSheet.create({
     zIndex: 11,
   },
 });
+export default HomeScreen;

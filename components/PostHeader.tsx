@@ -5,7 +5,7 @@ import { PostOptionsModal } from "./PostOptionsModal";
 
 const defaultAvatar = require("../assets/images/default_avatar.png");
 const followButton = require("../assets/images/follow_button.png");
-const moveVertIcon = require("../assets/images/move_vert.png");
+const moveVertIcon = require("../assets/images/more_vert.png");
 
 interface PostHeaderProps {
   user: {

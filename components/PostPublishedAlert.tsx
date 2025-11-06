@@ -3,7 +3,7 @@ import { Animated, Dimensions } from "react-native";
 import styled from "styled-components/native";
 
 const { height: screenHeight } = Dimensions.get("window");
-const checkIcon = require("../assets/images/faCheckCircle.png");
+const checkIcon = require("../assets/images/check-icon.png");
 
 interface PostPublishedAlertProps {
   visible: boolean;
@@ -117,5 +117,5 @@ const MessageText = styled.Text`
   color: #1291eb;
   font-size: 14px;
   font-weight: 600;
-  font-family: "OpenSans-SemiBold", "System";
+  font-family: OpenSans-SemiBold;
 `;

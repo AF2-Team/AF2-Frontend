@@ -3,13 +3,13 @@ import { useRouter, usePathname } from "expo-router";
 import styled from "styled-components/native";
 import { Dimensions } from "react-native";
 
-const homeIconOutline = require("../images/homeIcon_outline.png");
-const homeIconFilled = require("../images/homeIcon_filled.png");
-const searchIconOutline = require("../images/searchIcon_outline.png");
-const notificationIconOutline = require("../images/notificationIcon_outline.png");
-const notificationIconFilled = require("../images/notificationIcon_filled.png");
-const messagesIconOutline = require("../images/messagesIcon_outline.png");
-const messagesIconFilled = require("../images/messagesIcon_filled.png");
+const homeIconOutline = require("../assets/images/homeIcon_outline.png");
+const homeIconFilled = require("../assets/images/homeIcon_filled.png");
+const searchIconOutline = require("../assets/images/searchIcon_outline.png");
+const notificationIconOutline = require("../assets/images/notificationIcon_outline.png");
+const notificationIconFilled = require("../assets/images/notificationIcon_filled.png");
+const messagesIconOutline = require("../assets/images/messageIcon_outline.png");
+const messagesIconFilled = require("../assets/images/messageIcon_filled.png");
 
 const { width: screenWidth } = Dimensions.get("window");
 

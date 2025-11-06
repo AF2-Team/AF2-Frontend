@@ -9,7 +9,7 @@ import { PostPublishedAlert } from "../../components/PostPublishedAlert";
 // Importar íconos
 const textStyleIcon = require("../../assets/images/aa-icon.png");
 const galleryIcon = require("../../assets/images/photo.png");
-const defaultAvatar = require("../../assets/images/default-avatar.png");
+const defaultAvatar = require("../../assets/images/default_avatar.png");
 
 // Mock user data
 const currentUser = {
@@ -167,6 +167,7 @@ export const CreatePostScreen = () => {
 const Container = styled.View`
   flex: 1;
   background-color: #ffffff;
+  margin-top: 5%;
 `;
 
 const Header = styled.View`
@@ -199,7 +200,7 @@ const PublishButtonText = styled.Text<{ disabled: boolean }>`
   color: #ffffff;
   font-size: 14px;
   font-weight: 600;
-  font-family: "OpenSans-SemiBold", "System";
+  font-family: Open Sans;
 `;
 
 const Content = styled.View`
@@ -225,7 +226,7 @@ const Username = styled.Text`
   font-size: 16px;
   font-weight: 600;
   color: #000000;
-  font-family: "OpenSans-SemiBold", "System";
+  font-family: OpenSans;
 `;
 
 const TextInput = styled.TextInput`
@@ -233,7 +234,7 @@ const TextInput = styled.TextInput`
   font-size: 16px;
   color: #000000;
   min-height: 200px;
-  font-family: "OpenSans-Regular", "System";
+  font-family: OpenSans-Regular;
 `;
 
 const AddTagsButton = styled.TouchableOpacity`
@@ -248,7 +249,7 @@ const AddTagsText = styled.Text`
   color: #000000;
   font-size: 13px;
   font-weight: 500;
-  font-family: "OpenSans-Medium", "System";
+  font-family: OpenSans-Medium;
 `;
 
 const MediaPreview = styled.Image`
@@ -271,6 +272,7 @@ const BottomBar = styled.View`
   align-items: center;
   padding: 16px;
   background-color: #ffffff;
+  margin-bottom: 5%;
 `;
 
 const TextStyleButton = styled.TouchableOpacity`
@@ -290,3 +292,4 @@ const MediaIcon = styled.Image`
   width: 24px;
   height: 24px;
 `;
+export default CreatePostScreen;
