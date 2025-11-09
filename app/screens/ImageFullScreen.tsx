@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Animated, Easing } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { Animated, Easing, Text } from "react-native";
 import styled from "styled-components/native";
 import { ImagePostFooter } from "../../components/ImagePostFooter";
 import { UserInfoHeader } from "../../components/UserInfoHeader";
-import { PostData } from "../../types/PostTypes";
-import { Text } from "react-native";
+import { PostData } from "../../types/PostTypes.ts";
 const backArrow = require("../../assets/images/back_arrow.png");
 
 export default function ImageFullScreen() {

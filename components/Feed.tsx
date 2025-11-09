@@ -1,9 +1,9 @@
-import React, { useState, useCallback, useEffect } from "react";
-import { FlatList, ActivityIndicator, RefreshControl } from "react-native";
-import styled from "styled-components/native";
 import { useRouter } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
+import { ActivityIndicator, FlatList, RefreshControl } from "react-native";
+import styled from "styled-components/native";
+import { PostData } from "../types/PostTypes.ts";
 import { Post } from "./Post";
-import { PostData } from "../types/PostTypes";
 
 // Datos mock - reemplaza con la API real
 const mockPosts: PostData[] = [
