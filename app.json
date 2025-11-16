@@ -4,7 +4,7 @@
     "slug": "af2-frontend",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/logo-splash.png",
     "scheme": "af2frontend",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
