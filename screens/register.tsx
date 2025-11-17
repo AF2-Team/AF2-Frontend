@@ -264,8 +264,8 @@ export const Frame =  (): JSX.Element => {
   return (
     <FrameContainer>
       <Group>
-        <YaEresMiembro alt="Ya eres miembro" src={yaEresMiembro} />
-        <IniciaSesiNAhora alt="Inicia sesin ahora" src={iniciaSesiNAhora} />
+        <YaEresMiembro alt="Ya eres miembro" src={YaEresMiembro} />
+        <IniciaSesiNAhora alt="Inicia sesión ahora" src={iniciaSesiNAhora} />
       </Group>
 
       <Btn>

@@ -1,16 +1,15 @@
-import React, { useState, useCallback, useEffect } from "react";
+import { useRouter } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
 import {
-  FlatList,
-  ActivityIndicator,
-  RefreshControl,
-  ScrollView,
+    ActivityIndicator,
+    FlatList,
+    RefreshControl
 } from "react-native";
 import styled from "styled-components/native";
-import { useRouter } from "expo-router";
+import { PostData } from "../types/PostTypes.ts";
 import { Post } from "./Post";
 import { TagFilterBar } from "./TagFilterBar";
 import { TagFilterModal } from "./TagFilterModal";
-import { PostData } from "../types/PostTypes";
 
 // Datos mock para etiquetas seguidas
 const mockFollowedTags = [

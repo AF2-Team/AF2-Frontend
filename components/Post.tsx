@@ -1,9 +1,9 @@
-import React from "react";
 import { useRouter } from "expo-router";
+import React from "react";
 import styled from "styled-components/native";
-import { PostHeader } from "./PostHeader";
+import { PostData } from "../types/PostTypes.ts";
 import { PostFooter } from "./PostFooter";
-import { PostData } from "../types/PostTypes";
+import { PostHeader } from "./PostHeader";
 
 interface PostProps {
   post: PostData;
