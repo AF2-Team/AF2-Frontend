@@ -10,7 +10,7 @@ const FollowButton: React.FC<FollowButtonProps> = ({ isFollowing, onPress }) => 
     
     const buttonText = isFollowing ? 'Siguiendo' : 'Seguir';
     
-    // Estilos condicionales
+   
     const containerStyle = isFollowing 
         ? styles.followingButton 
         : styles.followButton;
@@ -28,7 +28,7 @@ const FollowButton: React.FC<FollowButtonProps> = ({ isFollowing, onPress }) => 
 
 const styles = StyleSheet.create({
     followButton: {
-        backgroundColor: '#1E88E5', // Azul de acción
+        backgroundColor: '#1E88E5', 
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 20,
@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     followingButton: {
-        backgroundColor: '#E0E0E0', // Gris de inactividad
+        backgroundColor: '#E0E0E0',
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 20,

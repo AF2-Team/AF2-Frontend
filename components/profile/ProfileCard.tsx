@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, StyleProp, ViewStyle } from 'react-native';
-import ProfilePicture, { ProfilePictureProps } from './ProfilePicture'; 
+import { View, Text, StyleSheet, StyleProp, ViewStyle, ImageSourcePropType } from 'react-native';
+import ProfilePicture from './ProfilePicture'; 
 
 const LOCAL_COLORS = {
   WHITE: '#FFFFFF',
@@ -12,21 +12,24 @@ const LOCAL_SIZES = {
   SPACING_SM: 8,
   SPACING_MD: 12,
   AVATAR_SIZE: 100,
-  AVATAR_OFFSET: 50, // CLAVE DE LA SUPERPOSICIÓN
+  AVATAR_OFFSET: 50, 
 } as const;
 
-// --- INTERFACE ---
 export interface ProfileCardProps {
   username: string;
+  displayName: string;
   bio: string;
-  profileImageUrl?: ProfilePictureProps['imageUrl']; 
+  //profileImageUrl?: ProfilePictureProps['imageUrl']; 
+  avatarSource?: ImageSourcePropType | null;
   style?: StyleProp<ViewStyle>;
 }
 
 const ProfileCard = ({
   username,
+  displayName,
   bio,
-  profileImageUrl ,
+  //profileImageUrl ,
+  avatarSource,
   style,
 }: ProfileCardProps) => {
 
@@ -36,12 +39,18 @@ const ProfileCard = ({
     <View style={[styles.cardContainer, style, { marginTop: -negativeMarginTop }]}>
       
       <ProfilePicture 
-        imageUrl={profileImageUrl}
-        style={styles.profilePicturePosition} // Aplica un margen superior para "bajarlo" en la tarjeta 
+        //imageUrl={profileImageUrl}
+        source={avatarSource}
+        style={styles.profilePicturePosition} // Aplica un margen superior para bajarlo en la tarjeta 
       />
 
+      <View style={styles.displayNameContainer}>
+        <Text style={styles.displayNameText}>{displayName}</Text>
+      </View>
+
+
       <View style={styles.usernameContainer}>
-        <Text style={styles.usernameText}>{username}</Text>
+        <Text style={styles.usernameText}>@{username}</Text>
       </View>
 
       <View style={styles.bioContainer}>
@@ -66,12 +75,8 @@ const styles = StyleSheet.create({
     
     backgroundColor: LOCAL_COLORS.WHITE, 
   },
+  
   profilePicturePosition: {
-    // Esto empuja la imagen hacia abajo DENTRO de la tarjeta.
-    // Para que la imagen quede centrada, su margen superior debe ser la mitad de su tamaño.
-    // Pero como la tarjeta tiene padding: LOCAL_SIZES.SPACING_LG, debemos ajustarlo.
-    // Queremos que el centro de la imagen esté en el borde superior de la tarjeta (visual).
-    // Por lo tanto, el margen superior debe ser la mitad del tamaño de la imagen.
     marginTop: -LOCAL_SIZES.AVATAR_SIZE / 2, 
   },
   
@@ -80,11 +85,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: LOCAL_SIZES.SPACING_MD, 
   },
-  usernameText: {
+  displayNameContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 2, 
+  },
+  displayNameText: {
     color: LOCAL_COLORS.BLACK,
     textAlign: 'center',
     fontSize: 20, 
     fontWeight: '600',
+    lineHeight: 24, 
+  },
+  usernameText: {
+    color: '#616161',
+    textAlign: 'center',
+    fontSize: 15, 
+    fontWeight: '400',
     lineHeight: 24, 
   },
   

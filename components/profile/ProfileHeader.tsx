@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Image, StyleProp, ViewStyle } from 'react-native';
+import { View, StyleSheet, Image, StyleProp, ViewStyle, ImageSourcePropType } from 'react-native';
 import CircleIconButton, { CircleIconButtonProps } from '../ui/CircleIconButton'; 
 
 
@@ -17,7 +17,9 @@ const LOCAL_COLORS = {
 export interface HeaderProfileProps {
   //URL de la imagen de cubierta (red) o URI de archivo (galería/cámara)
   //Si es undefined o null, se usará la imagen local por defecto
-  coverImageUrl?: string;
+  //coverImageUrl?: string;
+  //coverSource acepta URL ({uri: string}), local (number del require()), o null/undefined.
+  coverSource?: ImageSourcePropType | null;
   //Si es true, fuerza el uso de la imagen local por defecto, ignorando coverImageUrl
   useDefaultCover?: boolean; 
   onPressBack?: () => void;
@@ -26,14 +28,16 @@ export interface HeaderProfileProps {
 }
 
 const HeaderProfile = ({
-  coverImageUrl,
+  //coverImageUrl,
+  coverSource,
   useDefaultCover = false,
   onPressBack,
   onPressSettings,
   style,
 }: HeaderProfileProps) => {
   
-  const isDefault = useDefaultCover || !coverImageUrl;
+  //const isDefault = useDefaultCover || !coverImageUrl;
+  const shouldShowColorFallback = useDefaultCover || !coverSource;
 
   const backButtonProps: CircleIconButtonProps = { 
     name: 'arrow-left', 
@@ -50,18 +54,20 @@ const HeaderProfile = ({
       
       styles.container, 
       //Si es default entonces muestra el color por defecto
-      isDefault && { backgroundColor: LOCAL_COLORS.PRIMARY }, 
+      //isDefault && { backgroundColor: LOCAL_COLORS.PRIMARY }, 
+      shouldShowColorFallback && { backgroundColor: LOCAL_COLORS.PRIMARY },
       style
       
       ]}
     >
-      {isDefault ? (
-        //Si es default, no renderizamos la etiqueta Image
+      {/*{isDefault ? (*/}
+        {shouldShowColorFallback ? (
+        //Si no hay URL, renderizamos el View de relleno
         <View style={styles.coverFallback} />
       ) : (
         //Si hay URL, renderizamos la imagen
         <Image
-          source={{ uri: coverImageUrl }}
+          source={coverSource!}
           style={styles.coverImage}
           resizeMode="cover"
         />

@@ -1,27 +1,39 @@
 import React from 'react';
-import {StyleSheet, ScrollView, SafeAreaView, StatusBar, View} from 'react-native';
+import {StyleSheet, ScrollView, SafeAreaView, StatusBar, View, ImageSourcePropType} from 'react-native';
 
 import HeaderProfile from '../../components/profile/ProfileHeader';
 import ProfileCard from '../../components/profile/ProfileCard';
 import ProfileTabs from '../../components/profile/ProfileTabs'; 
 
+const LOCAL_AVATAR: ImageSourcePropType = require('../../assets/images/default_avatar.png'); 
+const LOCAL_COVER: ImageSourcePropType= require('../../assets/images/brokenhours-cover.jpg');
 
 const MOCK_USER_DATA = {
   username: 'broken-hours',
+  displayName: 'Broken Hours',
   bio: "Todos los cerebos del mundo son impotentes contra cualquier estupidez que esé de moda - Fontaine -",
   
+  coverImageUrl: null, // Viene de la API/Red
+  profileImageUrl: null, // Viene de la API/Red
+
   // Usamos URLs de prueba para simular imágenes subidas por el usuario
-  coverImageUrl: 'https://picsum.photos/seed/profile-cover/600/210', 
-  profileImageUrl: 'https://picsum.photos/seed/profile-avatar/100/100', 
+ /*coverImageUrl: 'https://picsum.photos/seed/profile-cover/600/210', 
+  profileImageUrl: 'https://picsum.photos/seed/profile-avatar/100/100', */
 };
 
-// --- CONSTANTES GLOBALES DE COLOR ---
+
 const APP_COLORS = {
   PRIMARY: '#423646', // Tu color principal
   BACKGROUND: '#F5F5F5'
 };
 
+const finalAvatarSource = MOCK_USER_DATA.profileImageUrl
+        ? { uri: MOCK_USER_DATA.profileImageUrl } 
+        : LOCAL_AVATAR;                           
 
+const finalCoverSource = MOCK_USER_DATA.coverImageUrl
+        ? { uri: MOCK_USER_DATA.coverImageUrl }
+        : LOCAL_COVER;
 const ProfileUserScreen: React.FC = () => {
   
   const handleTabChange = (tabId: string) => {
@@ -36,22 +48,23 @@ const ProfileUserScreen: React.FC = () => {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
-        {/* 1. HEADER (Cargará la imagen por MOCK_USER_DATA.coverImageUrl) */}
+        {/*HEADER (Cargará la imagen por MOCK_USER_DATA.coverImageUrl) */}
         <HeaderProfile 
-          coverImageUrl={MOCK_USER_DATA.coverImageUrl}
+          coverSource={finalCoverSource}
           onPressBack={() => console.log('Back')}
           onPressSettings={() => console.log('Settings')}
         />
         
         <View style={styles.contentWrapper}>
-          {/* 2. CARD (Cargará la imagen por MOCK_USER_DATA.profileImageUrl) */}
+          {/*CARD (Cargará la imagen por MOCK_USER_DATA.profileImageUrl) */}
         <ProfileCard
           username={MOCK_USER_DATA.username}
+          displayName={MOCK_USER_DATA.displayName}
           bio={MOCK_USER_DATA.bio}
-          profileImageUrl={MOCK_USER_DATA.profileImageUrl}
+          avatarSource={finalAvatarSource}
         />
 
-        {/* 3. TABS */}
+        {/* TABS */}
         <ProfileTabs onTabChange={handleTabChange} />
         </View>
         

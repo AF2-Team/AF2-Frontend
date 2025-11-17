@@ -4,8 +4,6 @@ import { View, Text, TouchableOpacity, StyleSheet, StyleProp,
 import FollowersList from './FollowersList';
 
 
-
-
 const TABS = [
   { id: 'posts', title: 'Publicaciones' },
   { id: 'favorite', title: 'Favoritos' },
