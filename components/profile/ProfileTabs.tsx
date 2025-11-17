@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StyleProp, 
   ScrollView, ViewStyle } from 'react-native';
 import FollowersList from './FollowersList';
+import { Feed } from '../Feed';
 
 
 const TABS = [
@@ -16,8 +17,8 @@ type TabId = typeof TABS[number]['id'];
 
 
 const LOCAL_COLORS = {
-  // Color activo (puedes ajustarlo si el #423646 es demasiado oscuro)
-  ACTIVE: '#1E88E5', 
+  
+  ACTIVE: '#BCA1BD', 
   INACTIVE: '#616161', 
   BORDER: '#E0E0E0', 
   WHITE: '#FFFFFF',
@@ -51,7 +52,7 @@ const ProfileTabs = ({ style, onTabChange }: ProfileTabsProps) => {
     // Nota: Aquí se implementaría el componente de contenido real
     switch (activeTab) {
       case 'posts':
-        return <Text style={styles.contentText}>Contenido: Lista de Publicaciones.</Text>;
+        return <Feed scrollEnabled={false}/>;
       case 'about':
         return <Text style={styles.contentText}>Contenido: Información Detallada del Usuario.</Text>;
       case 'followers':

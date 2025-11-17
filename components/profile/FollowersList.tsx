@@ -9,7 +9,7 @@ const INITIAL_MOCK_FOLLOWERS: FollowerData[] = [
         username: 'nightingale_writer', 
         displayName: 'La pluma oscura', 
         bio: 'Especializada en fanfics de fantasía oscura y angst.',
-        avatarUrl: 'https://picsum.photos/seed/fanfic-1/100/100', 
+        avatarSource: {uri:'https://picsum.photos/seed/fanfic-1/100/100'}, 
         isFollowing: true, 
     },
     { 
@@ -17,7 +17,7 @@ const INITIAL_MOCK_FOLLOWERS: FollowerData[] = [
         username: 'celestial_muse', 
         displayName: 'Museo Cósmico 🌙', 
         bio: 'Escribiendo historias de ciencia ficción y romance épico desde 2018.',
-        avatarUrl: null, 
+        avatarSource: null, 
         isFollowing: false, 
     },
     { 
@@ -25,7 +25,7 @@ const INITIAL_MOCK_FOLLOWERS: FollowerData[] = [
         username: 'dragonheart_art', 
         displayName: 'Artista del Reino Perdido', 
         bio: 'Principalmente fanart y worldbuilding original. ¡No me pidan fics!',
-        avatarUrl: 'https://picsum.photos/seed/fanfic-3/100/100',
+        avatarSource: {uri:'https://picsum.photos/seed/fanfic-3/100/100'},
         isFollowing: true,
     },
 ];

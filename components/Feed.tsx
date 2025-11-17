@@ -2,7 +2,7 @@ import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, RefreshControl } from "react-native";
 import styled from "styled-components/native";
-import { PostData } from "../types/PostTypes.ts";
+import { PostData } from "../types/PostTypes";
 import { Post } from "./Post";
 
 // Datos mock - reemplaza con la API real
@@ -79,7 +79,7 @@ const mockPosts: PostData[] = [
   },
 ];
 
-export const Feed = () => {
+export const Feed = ({scrollEnabled=true}) => {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -136,8 +136,7 @@ export const Feed = () => {
     // Por ahora, solo lo removemos del estado local
     setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
 
-    // También podrías enviar esta información al backend
-    // api.markPostAsNotInterested(postId);
+  
   };
 
   const handleCommentPress = (postId: string) => {
@@ -221,6 +220,7 @@ export const Feed = () => {
             tintColor="#423646"
           />
         }
+        scrollEnabled= {scrollEnabled}
         ListEmptyComponent={renderEmptyComponent}
       />
     </Container>

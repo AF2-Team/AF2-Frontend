@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { View, StyleSheet, Image, Platform, StyleProp, ViewStyle, ImageSourcePropType } from 'react-native';
+import { View, StyleSheet, Image, StyleProp, ViewStyle, ImageSourcePropType } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons'; 
 
 const LOCAL_SIZES = {

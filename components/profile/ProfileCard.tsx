@@ -83,7 +83,6 @@ const styles = StyleSheet.create({
   usernameContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: LOCAL_SIZES.SPACING_MD, 
   },
   displayNameContainer: {
     justifyContent: 'center',

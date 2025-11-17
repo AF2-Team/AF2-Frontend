@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ImageSourcePropType } from 'react-native';
 import ProfilePicture from './ProfilePicture'; 
 import FollowButton from '../ui/FollowButton'; 
 
@@ -9,7 +9,7 @@ export interface FollowerData {
     username: string; 
     displayName: string; 
     bio: string;
-    avatarUrl: string | null;
+    avatarSource: ImageSourcePropType | null;
     // Propiedad de estado real del usuario
     isFollowing: boolean; 
 }
@@ -24,13 +24,13 @@ const FollowerItem: React.FC<FollowerItemProps> = ({ follower, onToggleFollow })
     
     // Función simple para envolver la llamada al padre
     const handlePress = () => {
-        onToggleFollow(follower.id);
+        onToggleFollow(follower.id); 
     };
 
     return (
         <View style={styles.container}>
             <ProfilePicture 
-                imageUrl={follower.avatarUrl} 
+                source={follower.avatarSource} 
                 size={50}
                 borderWidth={1}
             />
