@@ -1,7 +1,8 @@
+import { usePathname, useRouter } from "expo-router";
 import React from "react";
-import { useRouter, usePathname } from "expo-router";
 import styled from "styled-components/native";
-import { Dimensions } from "react-native";
+// Asegúrate de tener instalada esta librería: npx expo install react-native-safe-area-context
+import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const homeIconOutline = require("../assets/images/homeIcon_outline.png");
 const homeIconFilled = require("../assets/images/homeIcon_filled.png");
@@ -11,18 +12,15 @@ const notificationIconFilled = require("../assets/images/notificationIcon_filled
 const messagesIconOutline = require("../assets/images/messageIcon_outline.png");
 const messagesIconFilled = require("../assets/images/messageIcon_filled.png");
 
-const { width: screenWidth } = Dimensions.get("window");
-
 interface NavigationBarProps {
   style?: any;
 }
 
-const NAV_BAR_WIDTH = 180;
-const NAV_BAR_HEIGHT = 87;
-
 export const NavigationBar = ({ style }: NavigationBarProps) => {
   const router = useRouter();
   const pathname = usePathname();
+  // Esto detecta si es un iPhone con 'notch' o barra inferior, o un Android moderno
+  const insets = useSafeAreaInsets();
 
   const navigateTo = (screen: string) => {
     router.push(`/(tabs)/${screen}`);
@@ -46,7 +44,8 @@ export const NavigationBar = ({ style }: NavigationBarProps) => {
   };
 
   return (
-    <Container style={style}>
+    // Pasamos los insets al styled component
+    <Container style={style} insets={insets}>
       <NavButton onPress={() => navigateTo("home")}>
         <Icon source={getIconSource("home")} />
       </NavButton>
@@ -66,33 +65,53 @@ export const NavigationBar = ({ style }: NavigationBarProps) => {
   );
 };
 
-const Container = styled.View`
-  width: ${NAV_BAR_WIDTH}px;
-  height: ${NAV_BAR_HEIGHT}px;
+// --- ESTILOS CORREGIDOS ---
+
+interface ContainerProps {
+  insets: EdgeInsets;
+}
+
+const Container = styled.View<ContainerProps>`
+  /* 1. ANCHO TOTAL: Esto es lo más importante para arreglar tu problema */
+  width: 100%; 
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  /* 2. ESTILO VISUAL */
   background-color: #423646;
-  border-radius: 12px;
+  /* Quitamos el border-radius para que sea una barra plana */
+  border-radius: 0px; 
+  
+  /* 3. ALINEACIÓN */
   flex-direction: row;
   justify-content: space-around;
   align-items: center;
-  padding-horizontal: 10px;
+
+  /* 4. ALTURA DINÁMICA (Se adapta si el celular tiene botones virtuales o barra swipe) */
+  padding-bottom: ${(props) => props.insets.bottom}px;
+  height: ${(props) => 60 + props.insets.bottom}px;
+
+  /* 5. SOMBRA */
   shadow-color: #000;
-  shadow-offset: 0px 2px;
+  shadow-offset: 0px -2px;
   shadow-opacity: 0.25;
   shadow-radius: 3.84px;
   elevation: 5;
 `;
 
 const NavButton = styled.TouchableOpacity`
-  width: 40px;
-  height: 40px;
+  /* Área de toque grande para facilitar el uso */
+  flex: 1; 
+  height: 100%;
   justify-content: center;
   align-items: center;
-  border-radius: 20px;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: transparent; 
 `;
 
 const Icon = styled.Image`
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   resize-mode: contain;
 `;
