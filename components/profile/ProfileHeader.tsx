@@ -1,15 +1,16 @@
+import { useRouter } from 'expo-router';
 import React from 'react';
-import { View, StyleSheet, Image, StyleProp, ViewStyle, ImageSourcePropType } from 'react-native';
-import CircleIconButton, { CircleIconButtonProps } from '../ui/CircleIconButton'; 
+import { Image, ImageSourcePropType, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import CircleIconButton, { CircleIconButtonProps } from '../ui/CircleIconButton';
 
 
 const LOCAL_SIZES = {
-  HEADER_HEIGHT: 210, 
-  HEADER_PADDING: 15, 
+  HEADER_HEIGHT: 210,
+  HEADER_PADDING: 15,
 } as const;
 
 const LOCAL_COLORS = {
-  PRIMARY: '#423646', 
+  PRIMARY: '#423646',
   WHITE: '#FFFFFF',
 } as const;
 
@@ -21,7 +22,7 @@ export interface HeaderProfileProps {
   //coverSource acepta URL ({uri: string}), local (number del require()), o null/undefined.
   coverSource?: ImageSourcePropType | null;
   //Si es true, fuerza el uso de la imagen local por defecto, ignorando coverImageUrl
-  useDefaultCover?: boolean; 
+  useDefaultCover?: boolean;
   onPressBack?: () => void;
   onPressSettings?: () => void;
   style?: StyleProp<ViewStyle>;
@@ -35,13 +36,14 @@ const HeaderProfile = ({
   onPressSettings,
   style,
 }: HeaderProfileProps) => {
-  
+
+  const router = useRouter();
   //const isDefault = useDefaultCover || !coverImageUrl;
   const shouldShowColorFallback = useDefaultCover || !coverSource;
 
-  const backButtonProps: CircleIconButtonProps = { 
-    name: 'arrow-left', 
-    onPress: onPressBack || (() => console.log('Back pressed')),
+  const backButtonProps: CircleIconButtonProps = {
+    name: 'arrow-left',
+    onPress: onPressBack || (() => router.push('/screens/HomeScreen')),
   };
 
   const settingsButtonProps: CircleIconButtonProps = {
@@ -51,17 +53,17 @@ const HeaderProfile = ({
 
   return (
     <View style={[
-      
-      styles.container, 
+
+      styles.container,
       //Si es default entonces muestra el color por defecto
       //isDefault && { backgroundColor: LOCAL_COLORS.PRIMARY }, 
       shouldShowColorFallback && { backgroundColor: LOCAL_COLORS.PRIMARY },
       style
-      
-      ]}
+
+    ]}
     >
       {/*{isDefault ? (*/}
-        {shouldShowColorFallback ? (
+      {shouldShowColorFallback ? (
         //Si no hay URL, renderizamos el View de relleno
         <View style={styles.coverFallback} />
       ) : (
@@ -72,7 +74,7 @@ const HeaderProfile = ({
           resizeMode="cover"
         />
       )}
-      
+
       <View style={styles.buttonsContainer}>
         <CircleIconButton {...backButtonProps} />
         <CircleIconButton {...settingsButtonProps} />
@@ -84,7 +86,7 @@ const HeaderProfile = ({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    height: LOCAL_SIZES.HEADER_HEIGHT, 
+    height: LOCAL_SIZES.HEADER_HEIGHT,
     // El color de fondo se establece dinámicamente o por defecto
   },
   coverImage: {
@@ -98,12 +100,12 @@ const styles = StyleSheet.create({
   },
   buttonsContainer: {
     position: 'absolute',
-    top: LOCAL_SIZES.HEADER_PADDING, 
+    top: LOCAL_SIZES.HEADER_PADDING,
     left: LOCAL_SIZES.HEADER_PADDING,
     right: LOCAL_SIZES.HEADER_PADDING,
     flexDirection: 'row',
-    justifyContent: 'space-between', 
-    zIndex: 10, 
+    justifyContent: 'space-between',
+    zIndex: 10,
   },
 });
 

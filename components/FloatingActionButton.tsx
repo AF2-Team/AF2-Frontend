@@ -1,5 +1,5 @@
-import React from "react";
 import { useRouter } from "expo-router";
+import React from "react";
 import styled from "styled-components/native";
 
 const postButtonIcon = require("../assets/images/post_button.png");
@@ -12,7 +12,7 @@ interface FloatingActionButtonProps {
 
 export const FloatingActionButton = ({
   onPress,
-  navigateTo = "/screens/create-post",
+  navigateTo = "/screens/CreatePostScreen",
   style,
 }: FloatingActionButtonProps) => {
   const router = useRouter();

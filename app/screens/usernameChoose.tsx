@@ -1,18 +1,18 @@
+import {
+  Alegreya_400Regular_Italic,
+  useFonts,
+} from "@expo-google-fonts/alegreya";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
 import {
-  View,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  SafeAreaView,
+  View,
 } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import {
-  useFonts,
-  Alegreya_400Regular_Italic,
-} from "@expo-google-fonts/alegreya";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const ChooseUsernameScreen = () => {
   // Corregí el valor inicial para que coincida con la imagen

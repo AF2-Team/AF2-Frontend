@@ -1,20 +1,20 @@
+import {
+  Alegreya_400Regular_Italic,
+  useFonts,
+} from "@expo-google-fonts/alegreya";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
 import {
-  View,
+  Alert,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  SafeAreaView,
-  Alert,
+  View,
 } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Logo from "../../assets/images/logotipo.svg"; // Ajusta la ruta si es necesario
-import {
-  useFonts,
-  Alegreya_400Regular_Italic,
-} from "@expo-google-fonts/alegreya";
 
 const ForgotPasswordScreen = () => {
   // Estado para controlar qué paso del formulario mostrar

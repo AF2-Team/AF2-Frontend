@@ -8,8 +8,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Logo from "../assets/images/logo-land.svg";
 import Land2 from "../assets/images/land2.svg";
+import Logo from "../assets/images/logo-land.svg";
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
 export default function WelcomeScreen() {

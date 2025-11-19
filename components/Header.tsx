@@ -1,11 +1,11 @@
-import React from "react";
 import { useRouter } from "expo-router";
-import styled from "styled-components/native";
+import React from "react";
 import Animated, {
-  useSharedValue,
   useAnimatedStyle,
+  useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import styled from "styled-components/native";
 
 const logo = require("../assets/images/logo.png");
 const defaultAvatar = require("../assets/images/default_avatar.png");
@@ -70,7 +70,7 @@ export const Header = ({
   });
 
   const handleProfilePress = () => {
-    router.push("/screens/profile");
+    router.push("/screens/ProfileUserScreen");
   };
 
   const handleTabPress = (tab: "inicio" | "etiquetas") => {
