@@ -1,8 +1,7 @@
-import { usePathname, useRouter } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
+import { useRouter, usePathname } from "expo-router";
 import styled from "styled-components/native";
-// Asegúrate de tener instalada esta librería: npx expo install react-native-safe-area-context
-import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Dimensions, Pressable } from "react-native";
 
 const homeIconOutline = require("../assets/images/homeIcon_outline.png");
 const homeIconFilled = require("../assets/images/homeIcon_filled.png");
@@ -12,15 +11,18 @@ const notificationIconFilled = require("../assets/images/notificationIcon_filled
 const messagesIconOutline = require("../assets/images/messageIcon_outline.png");
 const messagesIconFilled = require("../assets/images/messageIcon_filled.png");
 
+const { width: screenWidth } = Dimensions.get("window");
+
 interface NavigationBarProps {
   style?: any;
 }
 
+// Altura ajustada para el nuevo diseño flotante
+const NAV_BAR_HEIGHT = 60; 
+
 export const NavigationBar = ({ style }: NavigationBarProps) => {
   const router = useRouter();
   const pathname = usePathname();
-  // Esto detecta si es un iPhone con 'notch' o barra inferior, o un Android moderno
-  const insets = useSafeAreaInsets();
 
   const navigateTo = (screen: string) => {
     router.push(`/(tabs)/${screen}`);
@@ -44,74 +46,81 @@ export const NavigationBar = ({ style }: NavigationBarProps) => {
   };
 
   return (
-    // Pasamos los insets al styled component
-    <Container style={style} insets={insets}>
+    <Container style={style}>
       <NavButton onPress={() => navigateTo("home")}>
-        <Icon source={getIconSource("home")} />
+        {({ pressed }) => (
+          <ButtonContent pressed={pressed}>
+            <Icon source={getIconSource("home")} pressed={pressed} />
+          </ButtonContent>
+        )}
       </NavButton>
 
       <NavButton onPress={() => navigateTo("search")}>
-        <Icon source={getIconSource("search")} />
+        {({ pressed }) => (
+          <ButtonContent pressed={pressed}>
+            <Icon source={getIconSource("search")} pressed={pressed} />
+          </ButtonContent>
+        )}
       </NavButton>
 
       <NavButton onPress={() => navigateTo("notifications")}>
-        <Icon source={getIconSource("notifications")} />
+        {({ pressed }) => (
+          <ButtonContent pressed={pressed}>
+            <Icon source={getIconSource("notifications")} pressed={pressed} />
+          </ButtonContent>
+        )}
       </NavButton>
 
       <NavButton onPress={() => navigateTo("messages")}>
-        <Icon source={getIconSource("messages")} />
+        {({ pressed }) => (
+          <ButtonContent pressed={pressed}>
+            <Icon source={getIconSource("messages")} pressed={pressed} />
+          </ButtonContent>
+        )}
       </NavButton>
     </Container>
   );
 };
 
-// --- ESTILOS CORREGIDOS ---
-
-interface ContainerProps {
-  insets: EdgeInsets;
-}
-
-const Container = styled.View<ContainerProps>`
-  /* 1. ANCHO TOTAL: Esto es lo más importante para arreglar tu problema */
-  width: 100%; 
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-
-  /* 2. ESTILO VISUAL */
+// Styled Components - SOLO CAMBIO ESTA LÍNEA:
+const Container = styled.View`
+  width: 100%; /* ← CAMBIADO: De screenWidth * 0.9 a 100% */
+  height: ${NAV_BAR_HEIGHT}px;
   background-color: #423646;
-  /* Quitamos el border-radius para que sea una barra plana */
-  border-radius: 0px; 
-  
-  /* 3. ALINEACIÓN */
+  border-radius: 0px; /* ← OPCIONAL: Si quieres esquinas cuadradas */
   flex-direction: row;
   justify-content: space-around;
   align-items: center;
-
-  /* 4. ALTURA DINÁMICA (Se adapta si el celular tiene botones virtuales o barra swipe) */
-  padding-bottom: ${(props) => props.insets.bottom}px;
-  height: ${(props) => 60 + props.insets.bottom}px;
-
-  /* 5. SOMBRA */
+  padding-horizontal: 0px;
   shadow-color: #000;
-  shadow-offset: 0px -2px;
+  shadow-offset: 0px 2px;
   shadow-opacity: 0.25;
   shadow-radius: 3.84px;
   elevation: 5;
 `;
 
-const NavButton = styled.TouchableOpacity`
-  /* Área de toque grande para facilitar el uso */
-  flex: 1; 
+const NavButton = styled.Pressable`
+  flex: 1;
   height: 100%;
   justify-content: center;
   align-items: center;
-  background-color: transparent; 
+  background-color: transparent;
+  border-radius: 0px;
 `;
 
-const Icon = styled.Image`
-  width: 26px;
-  height: 26px;
+const ButtonContent = styled.View<{ pressed: boolean }>`
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  background-color: ${({ pressed }) => 
+    pressed ? 'rgba(255, 255, 255, 0.15)' : 'transparent'};
+  border-radius: 0px; /* ← OPCIONAL: Coherencia con diseño full-width */
+`;
+
+const Icon = styled.Image<{ pressed: boolean }>`
+  width: 24px;
+  height: 24px;
   resize-mode: contain;
+  opacity: ${({ pressed }) => pressed ? 0.8 : 1};
 `;

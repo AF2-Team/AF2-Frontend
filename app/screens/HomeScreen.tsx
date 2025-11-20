@@ -72,9 +72,10 @@ const styles = StyleSheet.create({
     zIndex: 12,
   },
   navigationBar: {
-    position: "absolute",
-    bottom: 20,
-    left: (screenWidth - NAV_BAR_WIDTH) / 2,
+    position: 'absolute',
+    bottom: 0,
+    left: 0, 
+    right: 0,
     zIndex: 11,
   },
 });
