@@ -2,13 +2,14 @@ import React from 'react';
 import { ImageSourcePropType, ScrollView, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useRouter } from "expo-router";
 import ProfileCard from '../../components/profile/ProfileCard';
 import HeaderProfile from '../../components/profile/ProfileHeader';
 import ProfileTabs from '../../components/profile/ProfileTabs';
-
 const LOCAL_AVATAR: ImageSourcePropType = require('../../assets/images/default_avatar.png');
 const LOCAL_COVER: ImageSourcePropType = require('../../assets/images/brokenhours-cover.jpg');
 
+ 
 const MOCK_USER_DATA = {
   username: 'broken-hours',
   displayName: 'Broken Hours',
@@ -36,11 +37,11 @@ const finalCoverSource = MOCK_USER_DATA.coverImageUrl
   ? { uri: MOCK_USER_DATA.coverImageUrl }
   : LOCAL_COVER;
 const ProfileUserScreen: React.FC = () => {
-
+  const router = useRouter();
   const handleTabChange = (tabId: string) => {
     console.log(`Pestaña cambiada a: ${tabId}`);
   };
-
+ 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: APP_COLORS.PRIMARY }]}>
       <StatusBar barStyle="light-content" backgroundColor={APP_COLORS.PRIMARY} />
@@ -53,7 +54,7 @@ const ProfileUserScreen: React.FC = () => {
         <HeaderProfile
           coverSource={finalCoverSource}
           //onPressBack={() => console.log('Back')}
-          onPressSettings={() => console.log('Settings')}
+          onPressSettings={() => router.push("/screens/ConfigurationScreen")}
         />
 
         <View style={styles.contentWrapper}>
