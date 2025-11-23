@@ -1,37 +1,39 @@
 import React, { useState, useCallback } from "react";
+import { useRouter } from "expo-router";
 import styled from "styled-components/native";
 import { Ionicons } from "@expo/vector-icons";
 
-// Definición de colores basada en tu referencia visual
-const COLOR_BACKGROUND = '#423646';
-const COLOR_LIGHT_TEXT = '#faf7f7';
+const COLOR_BACKGROUND = "#423646";
+const COLOR_LIGHT_TEXT = "#faf7f7";
 const ICON_SIZE = 24;
 
-// Configuración centralizada de íconos
 const ICON_CONFIG = {
   size: ICON_SIZE,
   comment: {
-    name: 'chatbubble-outline' as const,
-    color: COLOR_LIGHT_TEXT
+    name: "chatbubble-outline" as const,
+    color: COLOR_LIGHT_TEXT,
   },
   repost: {
-    name: 'arrow-redo-outline' as const, 
-    color: COLOR_LIGHT_TEXT
+    name: "arrow-redo-outline" as const,
+    color: COLOR_LIGHT_TEXT,
   },
   favorite: {
-    active: { name: 'star' as const, color: COLOR_LIGHT_TEXT },
-    inactive: { name: 'star-outline' as const, color: COLOR_LIGHT_TEXT }
+    active: { name: "star" as const, color: COLOR_LIGHT_TEXT },
+    inactive: { name: "star-outline" as const, color: COLOR_LIGHT_TEXT },
   },
   like: {
-    active: { name: 'heart' as const, color: COLOR_LIGHT_TEXT },
-    inactive: { name: 'heart-outline' as const, color: COLOR_LIGHT_TEXT }
-  }
+    active: { name: "heart" as const, color: COLOR_LIGHT_TEXT },
+    inactive: { name: "heart-outline" as const, color: COLOR_LIGHT_TEXT },
+  },
 } as const;
 
-// Helper function para íconos con estados
-const getIconConfig = (type: 'favorite' | 'like', isActive: boolean) => {
+const getIconConfig = (type: "favorite" | "like", isActive: boolean) => {
   const config = ICON_CONFIG[type];
-  return 'active' in config ? (isActive ? config.active : config.inactive) : config;
+  return "active" in config
+    ? isActive
+      ? config.active
+      : config.inactive
+    : config;
 };
 
 interface ImagePostFooterProps {
@@ -43,6 +45,13 @@ interface ImagePostFooterProps {
   onRepostPress?: () => void;
   onFavoritePress?: () => void;
   onLikePress?: () => void;
+  // Nuevas props para la navegación a RepostScreen
+  postId?: string;
+  postContent?: string;
+  postAuthor?: string;
+  postImage?: string;
+  postTags?: string[];
+  postUserAvatar?: string;
 }
 
 export const ImagePostFooter: React.FC<ImagePostFooterProps> = ({
@@ -54,45 +63,85 @@ export const ImagePostFooter: React.FC<ImagePostFooterProps> = ({
   onRepostPress,
   onFavoritePress,
   onLikePress,
+  // Nuevas props
+  postId = "",
+  postContent = "",
+  postAuthor = "",
+  postImage = "",
+  postTags = [],
+  postUserAvatar = null,
 }) => {
-  // Estado unificado para mejor consistencia
+  const router = useRouter();
+
   const [interactions, setInteractions] = useState({
     liked: false,
     favorited: false,
     likes: initialLikes,
     favorites: initialFavorites,
-    reposts: initialReposts
+    reposts: initialReposts,
   });
 
   const [comments] = useState(initialComments);
   const totalNotes = comments;
 
-  // Handlers optimizados con useCallback
   const handleLike = useCallback(() => {
-    setInteractions(prev => ({
+    setInteractions((prev) => ({
       ...prev,
       liked: !prev.liked,
-      likes: prev.liked ? prev.likes - 1 : prev.likes + 1
+      likes: prev.liked ? prev.likes - 1 : prev.likes + 1,
     }));
     onLikePress?.();
   }, [onLikePress]);
 
   const handleFavorite = useCallback(() => {
-    setInteractions(prev => ({
+    setInteractions((prev) => ({
       ...prev,
       favorited: !prev.favorited,
-      favorites: prev.favorited ? prev.favorites - 1 : prev.favorites + 1
+      favorites: prev.favorited ? prev.favorites - 1 : prev.favorites + 1,
     }));
     onFavoritePress?.();
   }, [onFavoritePress]);
 
   const handleRepost = useCallback(() => {
-    setInteractions(prev => ({
+    setInteractions((prev) => ({
       ...prev,
-      reposts: prev.reposts + 1
+      reposts: prev.reposts + 1,
     }));
+
+    // Navegar a la pantalla de Repost
+    if (postId) {
+      router.push({
+        pathname: "/screens/create-repost",
+        params: {
+          postId,
+          postContent,
+          postAuthor,
+          postImage,
+          originalPost: JSON.stringify({
+            id: postId,
+            user: {
+              username: postAuthor,
+              avatarUrl: postUserAvatar,
+            },
+            content: postContent,
+            tags: postTags,
+            mainImage: postImage,
+          }),
+        },
+      });
+    }
+
     onRepostPress?.();
-  }, [onRepostPress]);
+  }, [
+    onRepostPress,
+    router,
+    postId,
+    postContent,
+    postAuthor,
+    postImage,
+    postTags,
+    postUserAvatar,
+  ]);
 
   return (
     <FooterContainer>
@@ -125,7 +174,7 @@ export const ImagePostFooter: React.FC<ImagePostFooterProps> = ({
         {/* Favorito (Estrella) */}
         <FooterIcon onPress={handleFavorite}>
           <Ionicons
-            {...getIconConfig('favorite', interactions.favorited)}
+            {...getIconConfig("favorite", interactions.favorited)}
             size={ICON_CONFIG.size}
           />
         </FooterIcon>
@@ -133,7 +182,7 @@ export const ImagePostFooter: React.FC<ImagePostFooterProps> = ({
         {/* Like (Corazón) */}
         <FooterIcon onPress={handleLike}>
           <Ionicons
-            {...getIconConfig('like', interactions.liked)}
+            {...getIconConfig("like", interactions.liked)}
             size={ICON_CONFIG.size}
           />
         </FooterIcon>
@@ -142,8 +191,7 @@ export const ImagePostFooter: React.FC<ImagePostFooterProps> = ({
   );
 };
 
-// 💅 Estilos (se mantienen igual - perfectos)
-
+// Estilos (se mantienen igual)
 const FooterContainer = styled.View`
   flex-direction: row;
   justify-content: space-between;
@@ -182,4 +230,4 @@ const IconsContainer = styled.View`
 
 const FooterIcon = styled.TouchableOpacity`
   padding: 6px;
-};
+`;
