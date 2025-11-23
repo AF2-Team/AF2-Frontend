@@ -2,10 +2,27 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, Easing, Text } from "react-native";
 import styled from "styled-components/native";
+import { Ionicons } from "@expo/vector-icons";
 import { ImagePostFooter } from "../../components/ImagePostFooter";
 import { UserInfoHeader } from "../../components/UserInfoHeader";
-import { PostData } from "../../types/PostTypes.ts";
-const backArrow = require("../../assets/images/back_arrow.png");
+import { PostData } from "../../types/PostTypes";
+
+const COLORS = {
+  background: "#918991",
+  white: "#FFFFFF",
+  semiTransparent: "rgba(255, 255, 255, 0.25)",
+} as const;
+
+const ANIMATION_CONFIG = {
+  fade: {
+    duration: 400,
+    easing: Easing.out(Easing.ease),
+  },
+  spring: {
+    friction: 6,
+    tension: 50,
+  },
+} as const;
 
 export default function ImageFullScreen() {
   const router = useRouter();
@@ -16,9 +33,7 @@ export default function ImageFullScreen() {
   if (!postString || typeof postString !== "string") {
     return (
       <Container>
-        <Text style={{ color: "white", textAlign: "center", marginTop: 100 }}>
-          No se pudo cargar la información del post.
-        </Text>
+        <ErrorText>No se pudo cargar la información del post.</ErrorText>
       </Container>
     );
   }
@@ -30,9 +45,7 @@ export default function ImageFullScreen() {
     console.error("Error parsing post JSON:", e);
     return (
       <Container>
-        <Text style={{ color: "white", textAlign: "center", marginTop: 100 }}>
-          Error: El formato de los datos es incorrecto.
-        </Text>
+        <ErrorText>Error: El formato de los datos es incorrecto.</ErrorText>
       </Container>
     );
   }
@@ -47,7 +60,6 @@ export default function ImageFullScreen() {
   const [isLiked, setIsLiked] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
 
-  /** 🔹 Animaciones **/
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
 
@@ -55,22 +67,35 @@ export default function ImageFullScreen() {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 400,
-        easing: Easing.out(Easing.ease),
+        duration: ANIMATION_CONFIG.fade.duration,
+        easing: ANIMATION_CONFIG.fade.easing,
         useNativeDriver: true,
       }),
       Animated.spring(scaleAnim, {
         toValue: 1,
-        friction: 6,
-        tension: 50,
+        friction: ANIMATION_CONFIG.spring.friction,
+        tension: ANIMATION_CONFIG.spring.tension,
         useNativeDriver: true,
       }),
     ]).start();
   }, []);
 
   const handleBack = useCallback(() => {
-    router.back();
-  }, [router]);
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 0.9,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      router.back();
+    });
+  }, [router, fadeAnim, scaleAnim]);
 
   const handleFollowChange = useCallback(
     (userId: string, isFollowing: boolean) => {
@@ -110,7 +135,7 @@ export default function ImageFullScreen() {
       {/* 🔹 Header con botón volver */}
       <Header>
         <BackButton activeOpacity={0.8} onPress={handleBack}>
-          <BackArrow source={backArrow} />
+          <Ionicons name="arrow-back" size={24} color={COLORS.white} />
         </BackButton>
       </Header>
 
@@ -137,7 +162,7 @@ export default function ImageFullScreen() {
               createdAt={post.createdAt}
               isFollowing={isFollowing}
               onFollowChange={handleFollowChange}
-              textColor="#FFFFFF"
+              textColor={COLORS.white}
             />
           </Animated.View>
         </UserInfoSection>
@@ -159,10 +184,9 @@ export default function ImageFullScreen() {
   );
 }
 
-/* 💅 Estilos (igual que los tuyos) */
 const Container = styled.View`
   flex: 1;
-  background-color: #918991;
+  background-color: ${COLORS.background};
 `;
 
 const Header = styled.View`
@@ -177,14 +201,8 @@ const BackButton = styled.TouchableOpacity`
   height: 40px;
   justify-content: center;
   align-items: center;
-  background-color: rgba(255, 255, 255, 0.25);
+  background-color: ${COLORS.semiTransparent};
   border-radius: 20px;
-`;
-
-const BackArrow = styled.Image`
-  width: 24px;
-  height: 24px;
-  tint-color: #ffffff;
 `;
 
 const ImageContainer = styled.View`
@@ -208,4 +226,12 @@ const AnimatedFooter = Animated.createAnimatedComponent(styled.View`
 const UserInfoSection = styled.View`
   padding: 16px;
   background-color: transparent;
+`;
+
+const ErrorText = styled.Text`
+  color: ${COLORS.white};
+  text-align: center;
+  margin-top: 100px;
+  font-size: 16px;
+  font-family: "OpenSans-Regular";
 `;
