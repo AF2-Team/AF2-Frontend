@@ -5,10 +5,8 @@ import { DiscardPostModal } from "../../components/DiscardPostModal";
 import { TagSelectorModal } from "../../components/TagSelectorModal";
 import { TextStyleModal } from "../../components/TextStyleModal";
 import { PostPublishedAlert } from "../../components/PostPublishedAlert";
+import { Ionicons } from "@expo/vector-icons"; // Importamos Ionicons
 
-// Importar íconos
-const textStyleIcon = require("../../assets/images/aa-icon.png");
-const galleryIcon = require("../../assets/images/photo.png");
 const defaultAvatar = require("../../assets/images/default_avatar.png");
 
 // Mock user data
@@ -39,21 +37,17 @@ export const CreatePostScreen = () => {
       media,
     });
 
-    // Mostrar alerta primero
     setShowPublishedAlert(true);
 
-    // Navegar después de un delay para que se vea la alerta
     setTimeout(() => {
       router.push("/");
     }, 800);
   };
 
   const handleDiscard = () => {
-    // Solo mostrar modal si hay contenido
     if (postContent.length > 0 || selectedTags.length > 0 || media !== null) {
       setShowDiscardModal(true);
     } else {
-      // Si no hay contenido, salir directamente
       router.back();
     }
   };
@@ -65,7 +59,6 @@ export const CreatePostScreen = () => {
 
   const handleAddMedia = () => {
     console.log("Abrir selector de medios");
-    // Aquí iría la lógica para abrir el selector de imágenes
   };
 
   const hasContent =
@@ -75,7 +68,8 @@ export const CreatePostScreen = () => {
     <Container>
       <Header>
         <HeaderButton onPress={handleDiscard}>
-          <HeaderButtonText>X</HeaderButtonText>
+          {/* Ícono vectorial para cerrar/descartar */}
+          <Ionicons name="close-sharp" size={28} color="#000000" />
         </HeaderButton>
 
         <PublishButton onPress={handlePublish} disabled={!hasContent}>
@@ -108,7 +102,9 @@ export const CreatePostScreen = () => {
                 ? "OpenSans-Bold"
                 : textStyle === "light"
                   ? "OpenSans-Light"
-                  : "OpenSans-Regular",
+                  : textStyle === "semibold"
+                    ? "OpenSans-SemiBold"
+                    : "OpenSans-Regular",
           }}
         />
 
@@ -119,16 +115,17 @@ export const CreatePostScreen = () => {
         {media && <MediaPreview source={{ uri: media }} />}
       </Content>
 
-      {/* Línea divisoria sutil */}
       <DividerLine />
 
       <BottomBar>
         <TextStyleButton onPress={() => setShowTextStyleModal(true)}>
-          <TextStyleIcon source={textStyleIcon} />
+          {/* Ícono vectorial para estilo de texto */}
+          <Ionicons name="text" size={24} color="#000000" />
         </TextStyleButton>
 
         <MediaButton onPress={handleAddMedia}>
-          <MediaIcon source={galleryIcon} />
+          {/* Ícono vectorial para añadir imagen */}
+          <Ionicons name="image" size={24} color="#000000" />
         </MediaButton>
       </BottomBar>
 
@@ -153,7 +150,6 @@ export const CreatePostScreen = () => {
         selectedStyle={textStyle}
       />
 
-      {/* Alerta de publicación exitosa */}
       <PostPublishedAlert
         visible={showPublishedAlert}
         username={`@${currentUser.username}`}
@@ -167,7 +163,7 @@ export const CreatePostScreen = () => {
 const Container = styled.View`
   flex: 1;
   background-color: #ffffff;
-  margin-top: 5%;
+  padding-top: 5%;
 `;
 
 const Header = styled.View`
@@ -180,13 +176,7 @@ const Header = styled.View`
 `;
 
 const HeaderButton = styled.TouchableOpacity`
-  padding: 8px;
-`;
-
-const HeaderButtonText = styled.Text`
-  font-size: 18px;
-  color: #000000;
-  font-weight: bold;
+  padding: 4px;
 `;
 
 const PublishButton = styled.TouchableOpacity<{ disabled: boolean }>`
@@ -200,7 +190,7 @@ const PublishButtonText = styled.Text<{ disabled: boolean }>`
   color: #ffffff;
   font-size: 14px;
   font-weight: 600;
-  font-family: Open Sans;
+  font-family: OpenSans-SemiBold;
 `;
 
 const Content = styled.View`
@@ -226,7 +216,7 @@ const Username = styled.Text`
   font-size: 16px;
   font-weight: 600;
   color: #000000;
-  font-family: OpenSans;
+  font-family: OpenSans-SemiBold;
 `;
 
 const TextInput = styled.TextInput`
@@ -238,7 +228,7 @@ const TextInput = styled.TextInput`
 `;
 
 const AddTagsButton = styled.TouchableOpacity`
-  background-color: rgba(75, 75, 75, 0.35);
+  background-color: rgba(75, 75, 75, 0.15);
   border-radius: 16px;
   align-self: flex-start;
   padding: 6px 14px;
@@ -262,34 +252,24 @@ const MediaPreview = styled.Image`
 
 const DividerLine = styled.View`
   height: 1px;
-  background-color: rgba(75, 75, 75, 0.5);
+  background-color: #e0e0e0;
   width: 100%;
 `;
 
 const BottomBar = styled.View`
   flex-direction: row;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
-  padding: 16px;
+  padding: 8px 16px;
   background-color: #ffffff;
   margin-bottom: 5%;
 `;
 
 const TextStyleButton = styled.TouchableOpacity`
   padding: 8px;
-`;
-
-const TextStyleIcon = styled.Image`
-  width: 24px;
-  height: 24px;
+  margin-right: 16px;
 `;
 
 const MediaButton = styled.TouchableOpacity`
   padding: 8px;
 `;
-
-const MediaIcon = styled.Image`
-  width: 24px;
-  height: 24px;
-`;
-export default CreatePostScreen;
