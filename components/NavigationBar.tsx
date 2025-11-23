@@ -1,15 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 import { useRouter, usePathname } from "expo-router";
 import styled from "styled-components/native";
 import { Dimensions, Pressable } from "react-native";
-
-const homeIconOutline = require("../assets/images/homeIcon_outline.png");
-const homeIconFilled = require("../assets/images/homeIcon_filled.png");
-const searchIconOutline = require("../assets/images/searchIcon_outline.png");
-const notificationIconOutline = require("../assets/images/notificationIcon_outline.png");
-const notificationIconFilled = require("../assets/images/notificationIcon_filled.png");
-const messagesIconOutline = require("../assets/images/messageIcon_outline.png");
-const messagesIconFilled = require("../assets/images/messageIcon_filled.png");
+// Importamos los íconos vectoriales de Expo
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -17,32 +11,67 @@ interface NavigationBarProps {
   style?: any;
 }
 
-// Altura ajustada para el nuevo diseño flotante
-const NAV_BAR_HEIGHT = 60; 
+// Altura fija de la barra
+const NAV_BAR_HEIGHT = 60;
 
 export const NavigationBar = ({ style }: NavigationBarProps) => {
   const router = useRouter();
   const pathname = usePathname();
 
+  // Función para manejar la navegación entre pestañas
   const navigateTo = (screen: string) => {
     router.push(`/(tabs)/${screen}`);
   };
 
-  const getIconSource = (screen: string) => {
+  // Componente interno para renderizar el ícono y su estado (activo/inactivo)
+  const NavIcon = ({ screen, pressed }) => {
+    // Comprobamos si la ruta actual coincide con la pantalla
     const isActive = pathname === `/(tabs)/${screen}`;
+
+    // El color activo es blanco, el inactivo es un gris claro para contrastar con el fondo oscuro
+    const iconColor = isActive ? "#FFFFFF" : "#D1D5DB";
+
+    let IconComponent;
+    let iconName;
 
     switch (screen) {
       case "home":
-        return isActive ? homeIconFilled : homeIconOutline;
+        // Ionicons: home (relleno) / home-outline (contorno)
+        iconName = isActive ? "home" : "home-outline";
+        IconComponent = Ionicons;
+        break;
       case "search":
-        return searchIconOutline;
+        // Ionicons: Mantenemos el icono de búsqueda siempre en contorno
+        iconName = "search-outline";
+        IconComponent = Ionicons;
+        break;
       case "notifications":
-        return isActive ? notificationIconFilled : notificationIconOutline;
+        // Ionicons: bell (relleno) / bell-outline (contorno)
+        iconName = isActive ? "bell" : "bell-outline";
+        IconComponent = Ionicons;
+        break;
       case "messages":
-        return isActive ? messagesIconFilled : messagesIconOutline;
+        // MaterialCommunityIcons: email (relleno) / email-outline (contorno)
+        iconName = isActive ? "email" : "email-outline";
+        IconComponent = MaterialCommunityIcons;
+        break;
       default:
-        return homeIconOutline;
+        iconName = "home-outline";
+        IconComponent = Ionicons;
+        break;
     }
+
+    // El estado pressed (al presionar) reduce ligeramente la opacidad
+    const iconOpacity = pressed ? 0.8 : 1;
+
+    return (
+      <IconComponent
+        name={iconName}
+        size={24}
+        color={iconColor}
+        style={{ opacity: iconOpacity }}
+      />
+    );
   };
 
   return (
@@ -50,7 +79,7 @@ export const NavigationBar = ({ style }: NavigationBarProps) => {
       <NavButton onPress={() => navigateTo("home")}>
         {({ pressed }) => (
           <ButtonContent pressed={pressed}>
-            <Icon source={getIconSource("home")} pressed={pressed} />
+            <NavIcon screen={"home"} pressed={pressed} />
           </ButtonContent>
         )}
       </NavButton>
@@ -58,7 +87,7 @@ export const NavigationBar = ({ style }: NavigationBarProps) => {
       <NavButton onPress={() => navigateTo("search")}>
         {({ pressed }) => (
           <ButtonContent pressed={pressed}>
-            <Icon source={getIconSource("search")} pressed={pressed} />
+            <NavIcon screen={"search"} pressed={pressed} />
           </ButtonContent>
         )}
       </NavButton>
@@ -66,7 +95,7 @@ export const NavigationBar = ({ style }: NavigationBarProps) => {
       <NavButton onPress={() => navigateTo("notifications")}>
         {({ pressed }) => (
           <ButtonContent pressed={pressed}>
-            <Icon source={getIconSource("notifications")} pressed={pressed} />
+            <NavIcon screen={"notifications"} pressed={pressed} />
           </ButtonContent>
         )}
       </NavButton>
@@ -74,7 +103,7 @@ export const NavigationBar = ({ style }: NavigationBarProps) => {
       <NavButton onPress={() => navigateTo("messages")}>
         {({ pressed }) => (
           <ButtonContent pressed={pressed}>
-            <Icon source={getIconSource("messages")} pressed={pressed} />
+            <NavIcon screen={"messages"} pressed={pressed} />
           </ButtonContent>
         )}
       </NavButton>
@@ -82,12 +111,13 @@ export const NavigationBar = ({ style }: NavigationBarProps) => {
   );
 };
 
-// Styled Components - SOLO CAMBIO ESTA LÍNEA:
+// Styled Components
 const Container = styled.View`
-  width: 100%; /* ← CAMBIADO: De screenWidth * 0.9 a 100% */
+  /* Configuración de ancho completo y color */
+  width: 100%;
   height: ${NAV_BAR_HEIGHT}px;
   background-color: #423646;
-  border-radius: 0px; /* ← OPCIONAL: Si quieres esquinas cuadradas */
+  border-radius: 0px;
   flex-direction: row;
   justify-content: space-around;
   align-items: center;
@@ -108,19 +138,13 @@ const NavButton = styled.Pressable`
   border-radius: 0px;
 `;
 
+// Estilo para el efecto visual al presionar
 const ButtonContent = styled.View<{ pressed: boolean }>`
   justify-content: center;
   align-items: center;
   width: 100%;
   height: 100%;
-  background-color: ${({ pressed }) => 
-    pressed ? 'rgba(255, 255, 255, 0.15)' : 'transparent'};
-  border-radius: 0px; /* ← OPCIONAL: Coherencia con diseño full-width */
-`;
-
-const Icon = styled.Image<{ pressed: boolean }>`
-  width: 24px;
-  height: 24px;
-  resize-mode: contain;
-  opacity: ${({ pressed }) => pressed ? 0.8 : 1};
+  background-color: ${({ pressed }) =>
+    pressed ? "rgba(255, 255, 255, 0.15)" : "transparent"};
+  border-radius: 0px;
 `;
