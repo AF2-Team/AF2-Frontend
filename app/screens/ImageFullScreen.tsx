@@ -177,6 +177,10 @@ export default function ImageFullScreen() {
             onRepostPress={handleRepostPress}
             onFavoritePress={handleFavoritePress}
             onLikePress={handleLikePress}
+            postId={post.id}
+            postContent={post.content}
+            postAuthor={post.user.username}
+            postImage={post.mediaUrl}
           />
         </Animated.View>
       </AnimatedFooter>
