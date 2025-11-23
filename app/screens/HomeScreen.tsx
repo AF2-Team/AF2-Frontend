@@ -8,8 +8,6 @@ import { Feed } from "../../components/Feed";
 import { TagsFeed } from "../../components/TagsFeed";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
-const NAV_BAR_WIDTH = 180;
-const NAV_BAR_HEIGHT = 87;
 
 const userData = {
   avatarUrl: undefined,
@@ -72,11 +70,9 @@ const styles = StyleSheet.create({
     zIndex: 12,
   },
   navigationBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0, 
-    right: 0,
+    position: "absolute",
+    bottom: 40,
+    left: 0,
     zIndex: 11,
   },
 });
-export default HomeScreen;

@@ -1,15 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
 import { useRouter, usePathname } from "expo-router";
 import styled from "styled-components/native";
 import { Dimensions, Pressable } from "react-native";
-
-const homeIconOutline = require("../assets/images/homeIcon_outline.png");
-const homeIconFilled = require("../assets/images/homeIcon_filled.png");
-const searchIconOutline = require("../assets/images/searchIcon_outline.png");
-const notificationIconOutline = require("../assets/images/notificationIcon_outline.png");
-const notificationIconFilled = require("../assets/images/notificationIcon_filled.png");
-const messagesIconOutline = require("../assets/images/messageIcon_outline.png");
-const messagesIconFilled = require("../assets/images/messageIcon_filled.png");
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -17,32 +10,57 @@ interface NavigationBarProps {
   style?: any;
 }
 
-// Altura ajustada para el nuevo diseño flotante
-const NAV_BAR_HEIGHT = 60; 
+// Altura fija de la barra
+const NAV_BAR_HEIGHT = 60;
 
 export const NavigationBar = ({ style }: NavigationBarProps) => {
   const router = useRouter();
   const pathname = usePathname();
 
+  // Función para manejar la navegación entre pestañas
   const navigateTo = (screen: string) => {
     router.push(`/(tabs)/${screen}`);
   };
 
-  const getIconSource = (screen: string) => {
+  const NavIcon = ({ screen, pressed }) => {
     const isActive = pathname === `/(tabs)/${screen}`;
+    const iconColor = isActive ? "#FFFFFF" : "#D1D5DB";
+
+    let IconComponent;
+    let iconName;
 
     switch (screen) {
       case "home":
-        return isActive ? homeIconFilled : homeIconOutline;
+        iconName = isActive ? "home" : "home-outline";
+        IconComponent = Ionicons;
+        break;
       case "search":
-        return searchIconOutline;
+        iconName = "search-outline";
+        IconComponent = Ionicons;
+        break;
       case "notifications":
-        return isActive ? notificationIconFilled : notificationIconOutline;
+        iconName = isActive ? "bell" : "bell-outline";
+        IconComponent = Ionicons;
+        break;
       case "messages":
-        return isActive ? messagesIconFilled : messagesIconOutline;
+        iconName = isActive ? "email" : "email-outline";
+        IconComponent = MaterialCommunityIcons;
+        break;
       default:
-        return homeIconOutline;
+        iconName = "home-outline";
+        IconComponent = Ionicons;
+        break;
     }
+    const iconOpacity = pressed ? 0.8 : 1;
+
+    return (
+      <IconComponent
+        name={iconName}
+        size={24}
+        color={iconColor}
+        style={{ opacity: iconOpacity }}
+      />
+    );
   };
 
   return (
@@ -50,7 +68,7 @@ export const NavigationBar = ({ style }: NavigationBarProps) => {
       <NavButton onPress={() => navigateTo("home")}>
         {({ pressed }) => (
           <ButtonContent pressed={pressed}>
-            <Icon source={getIconSource("home")} pressed={pressed} />
+            <NavIcon screen={"home"} pressed={pressed} />
           </ButtonContent>
         )}
       </NavButton>
@@ -58,7 +76,7 @@ export const NavigationBar = ({ style }: NavigationBarProps) => {
       <NavButton onPress={() => navigateTo("search")}>
         {({ pressed }) => (
           <ButtonContent pressed={pressed}>
-            <Icon source={getIconSource("search")} pressed={pressed} />
+            <NavIcon screen={"search"} pressed={pressed} />
           </ButtonContent>
         )}
       </NavButton>
@@ -66,7 +84,7 @@ export const NavigationBar = ({ style }: NavigationBarProps) => {
       <NavButton onPress={() => navigateTo("notifications")}>
         {({ pressed }) => (
           <ButtonContent pressed={pressed}>
-            <Icon source={getIconSource("notifications")} pressed={pressed} />
+            <NavIcon screen={"notifications"} pressed={pressed} />
           </ButtonContent>
         )}
       </NavButton>
@@ -74,7 +92,7 @@ export const NavigationBar = ({ style }: NavigationBarProps) => {
       <NavButton onPress={() => navigateTo("messages")}>
         {({ pressed }) => (
           <ButtonContent pressed={pressed}>
-            <Icon source={getIconSource("messages")} pressed={pressed} />
+            <NavIcon screen={"messages"} pressed={pressed} />
           </ButtonContent>
         )}
       </NavButton>
@@ -82,12 +100,13 @@ export const NavigationBar = ({ style }: NavigationBarProps) => {
   );
 };
 
-// Styled Components - SOLO CAMBIO ESTA LÍNEA:
+// Styled Components
 const Container = styled.View`
-  width: 100%; /* ← CAMBIADO: De screenWidth * 0.9 a 100% */
+  /* Configuración de ancho completo y color */
+  width: 100%;
   height: ${NAV_BAR_HEIGHT}px;
   background-color: #423646;
-  border-radius: 0px; /* ← OPCIONAL: Si quieres esquinas cuadradas */
+  border-radius: 0px;
   flex-direction: row;
   justify-content: space-around;
   align-items: center;
@@ -113,14 +132,7 @@ const ButtonContent = styled.View<{ pressed: boolean }>`
   align-items: center;
   width: 100%;
   height: 100%;
-  background-color: ${({ pressed }) => 
-    pressed ? 'rgba(255, 255, 255, 0.15)' : 'transparent'};
-  border-radius: 0px; /* ← OPCIONAL: Coherencia con diseño full-width */
-`;
-
-const Icon = styled.Image<{ pressed: boolean }>`
-  width: 24px;
-  height: 24px;
-  resize-mode: contain;
-  opacity: ${({ pressed }) => pressed ? 0.8 : 1};
+  background-color: ${({ pressed }) =>
+    pressed ? "rgba(255, 255, 255, 0.15)" : "transparent"};
+  border-radius: 0px;
 `;

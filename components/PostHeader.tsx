@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { useRouter } from "expo-router";
 import styled from "styled-components/native";
-import { PostOptionsModal } from "./PostOptionsModal";
+import { Ionicons } from "@expo/vector-icons";
+import { ImageSourcePropType } from "react-native";
 
+import { PostOptionsModal } from "./PostOptionsModal";
 const defaultAvatar = require("../assets/images/default_avatar.png");
-const followButton = require("../assets/images/follow_button.png");
-const moveVertIcon = require("../assets/images/more_vert.png");
 
 interface PostHeaderProps {
   user: {
@@ -22,6 +22,11 @@ interface PostHeaderProps {
   postContent?: string;
   onNotInterested?: (postId: string) => void;
 }
+
+const PRIMARY_COLOR = "#1291EB";
+const WHITE_COLOR = "#FFFFFF";
+const TEXT_PRIMARY_COLOR = "#423646";
+const TEXT_SECONDARY_COLOR = "#687076";
 
 export const PostHeader = ({
   user,
@@ -47,7 +52,7 @@ export const PostHeader = ({
   };
 
   const handleUserPress = () => {
-    router.push(`/screens/profile/${user.id}`);
+    console.log(`Navegar al perfil de ${user.username}`);
   };
 
   const handleOptionsPress = () => {
@@ -88,7 +93,6 @@ export const PostHeader = ({
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
-    const years = Math.floor(days / 365);
 
     if (seconds < 60) {
       return `${seconds} seg`;
@@ -117,7 +121,11 @@ export const PostHeader = ({
       <Container>
         <AvatarContainer onPress={handleUserPress}>
           <Avatar
-            source={user.avatarUrl ? { uri: user.avatarUrl } : defaultAvatar}
+            source={
+              user.avatarUrl
+                ? ({ uri: user.avatarUrl } as ImageSourcePropType)
+                : defaultAvatar
+            }
             avatarShape={user.avatarShape || "circle"}
           />
         </AvatarContainer>
@@ -128,13 +136,26 @@ export const PostHeader = ({
         </UserInfo>
 
         <ActionsContainer>
+          {/* Botón de Seguir (solo visible si no se está siguiendo) */}
           {!following && (
             <FollowButton onPress={handleFollowPress}>
-              <FollowButtonImage source={followButton} />
+              {/* Usamos el ícono de persona con signo más para "Seguir" */}
+              <Ionicons
+                name="person-add-outline"
+                size={20}
+                color={PRIMARY_COLOR}
+              />
             </FollowButton>
           )}
+
+          {/* Botón de Opciones */}
           <OptionsButton onPress={handleOptionsPress}>
-            <OptionsIcon source={moveVertIcon} />
+            {/* Usamos el ícono de tres puntos verticales para opciones */}
+            <Ionicons
+              name="ellipsis-vertical"
+              size={20}
+              color={TEXT_SECONDARY_COLOR}
+            />
           </OptionsButton>
         </ActionsContainer>
       </Container>
@@ -154,7 +175,7 @@ const Container = styled.View`
   flex-direction: row;
   align-items: center;
   padding: 12px 15px;
-  background-color: #fff;
+  background-color: ${WHITE_COLOR};
 `;
 
 const AvatarContainer = styled.TouchableOpacity`
@@ -165,7 +186,7 @@ const Avatar = styled.Image<{ avatarShape: "circle" | "square" }>`
   width: 48px;
   height: 48px;
   border-radius: ${({ avatarShape }) =>
-    avatarShape === "circle" ? "24px" : "0px"};
+    avatarShape === "circle" ? "24px" : "8px"};
 `;
 
 const UserInfo = styled.TouchableOpacity`
@@ -174,15 +195,15 @@ const UserInfo = styled.TouchableOpacity`
 
 const Username = styled.Text`
   font-family: "OpenSans-SemiBold";
-  font-size: 12px;
-  color: #423646;
+  font-size: 14px;
+  color: ${TEXT_PRIMARY_COLOR};
   margin-bottom: 2px;
 `;
 
 const DateText = styled.Text`
   font-family: "OpenSans-Light";
   font-size: 12px;
-  color: #687076;
+  color: ${TEXT_SECONDARY_COLOR};
 `;
 
 const ActionsContainer = styled.View`
@@ -191,11 +212,10 @@ const ActionsContainer = styled.View`
 `;
 
 const FollowButton = styled.TouchableOpacity`
-  margin-right: 8px;
+  margin-right: 12px;
+  padding: 4px;
 `;
 
-const FollowButtonImage = styled.Image``;
-
-const OptionsButton = styled.TouchableOpacity``;
-
-const OptionsIcon = styled.Image``;
+const OptionsButton = styled.TouchableOpacity`
+  padding: 4px;
+`;
