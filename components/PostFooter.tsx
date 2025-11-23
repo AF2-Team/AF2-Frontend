@@ -3,36 +3,40 @@ import { useRouter } from "expo-router";
 import styled from "styled-components/native";
 import { Ionicons } from "@expo/vector-icons";
 
-// Definición de colores locales para evitar dependencias externas
-const COLOR_DARK_PRIMARY = '#423646';
-const COLOR_TEXT_SECONDARY = '#687076';
-const COLOR_WHITE = '#fff';
+const COLOR_DARK_PRIMARY = "#423646";
+const COLOR_TEXT_SECONDARY = "#687076";
+const COLOR_WHITE = "#fff";
 
-// Configuración centralizada de íconos
 const ICON_CONFIG = {
   size: 24,
   like: {
-    active: { name: 'heart' as const, color: COLOR_DARK_PRIMARY },
-    inactive: { name: 'heart-outline' as const, color: COLOR_TEXT_SECONDARY }
+    active: { name: "heart" as const, color: COLOR_DARK_PRIMARY },
+    inactive: { name: "heart-outline" as const, color: COLOR_TEXT_SECONDARY },
   },
   comment: {
-    name: 'chatbox-outline' as const,
-    color: COLOR_TEXT_SECONDARY
+    name: "chatbox-outline" as const,
+    color: COLOR_TEXT_SECONDARY,
   },
   repost: {
-    name: 'repeat' as const, 
-    color: COLOR_TEXT_SECONDARY
+    name: "repeat" as const,
+    color: COLOR_TEXT_SECONDARY,
   },
   favorite: {
-    active: { name: 'bookmark' as const, color: COLOR_DARK_PRIMARY },
-    inactive: { name: 'bookmark-outline' as const, color: COLOR_TEXT_SECONDARY }
-  }
+    active: { name: "bookmark" as const, color: COLOR_DARK_PRIMARY },
+    inactive: {
+      name: "bookmark-outline" as const,
+      color: COLOR_TEXT_SECONDARY,
+    },
+  },
 } as const;
 
-// Helper function para obtener configuración de íconos
-const getIconConfig = (type: 'like' | 'favorite', isActive: boolean) => {
+const getIconConfig = (type: "like" | "favorite", isActive: boolean) => {
   const config = ICON_CONFIG[type];
-  return 'active' in config ? (isActive ? config.active : config.inactive) : config;
+  return "active" in config
+    ? isActive
+      ? config.active
+      : config.inactive
+    : config;
 };
 
 interface PostFooterProps {
@@ -45,6 +49,8 @@ interface PostFooterProps {
   postContent?: string;
   postAuthor?: string;
   postImage?: string;
+  postTags?: string[]; // Nuevo prop para los tags
+  postUserAvatar?: string; // Nuevo prop para el avatar del autor
 }
 
 export const PostFooter = ({
@@ -57,6 +63,8 @@ export const PostFooter = ({
   postContent,
   postAuthor,
   postImage,
+  postTags = [], // Valor por defecto
+  postUserAvatar = null, // Valor por defecto
 }: PostFooterProps) => {
   const router = useRouter();
   const [isLiked, setIsLiked] = useState(false);
@@ -91,7 +99,8 @@ export const PostFooter = ({
 
   const handleRepostPress = () => {
     setRepostsCount((prev) => prev + 1);
-    // Aquí iría la lógica de API para registrar el repost
+
+    // Navegar a la pantalla de Repost con todos los datos del post
     router.push({
       pathname: "/screens/create-repost",
       params: {
@@ -99,6 +108,16 @@ export const PostFooter = ({
         postContent,
         postAuthor,
         postImage,
+        originalPost: JSON.stringify({
+          id: postId,
+          user: {
+            username: postAuthor,
+            avatarUrl: postUserAvatar,
+          },
+          content: postContent,
+          tags: postTags,
+          mainImage: postImage,
+        }),
       },
     });
   };
@@ -122,7 +141,7 @@ export const PostFooter = ({
         {/* Botón de Like */}
         <IconButton onPress={handleLikePress}>
           <Ionicons
-            {...getIconConfig('like', isLiked)}
+            {...getIconConfig("like", isLiked)}
             size={ICON_CONFIG.size}
           />
           <CountText>{likesCount}</CountText>
@@ -151,7 +170,7 @@ export const PostFooter = ({
         {/* Botón de Favorito */}
         <IconButton onPress={handleFavoritePress}>
           <Ionicons
-            {...getIconConfig('favorite', isFavorite)}
+            {...getIconConfig("favorite", isFavorite)}
             size={ICON_CONFIG.size}
           />
           <CountText>{favoritesCount}</CountText>
@@ -160,8 +179,6 @@ export const PostFooter = ({
     </Container>
   );
 };
-
-// --- Styled Components ---
 
 const Container = styled.View`
   flex-direction: row;
