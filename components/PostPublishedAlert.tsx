@@ -1,9 +1,9 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, Dimensions } from "react-native";
 import styled from "styled-components/native";
+import { Ionicons } from "@expo/vector-icons";
 
 const { height: screenHeight } = Dimensions.get("window");
-const checkIcon = require("../assets/images/check-icon.png");
 
 interface PostPublishedAlertProps {
   visible: boolean;
@@ -19,9 +19,10 @@ export const PostPublishedAlert: React.FC<PostPublishedAlertProps> = ({
   const slideAnim = useRef(new Animated.Value(screenHeight)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
 
+  const OUT_OF_VIEW_OFFSET = screenHeight * 0.15;
+
   useEffect(() => {
     if (visible) {
-      // Animar aparición
       Animated.parallel([
         Animated.timing(slideAnim, {
           toValue: 0,
@@ -35,7 +36,6 @@ export const PostPublishedAlert: React.FC<PostPublishedAlertProps> = ({
         }),
       ]).start();
 
-      // Ocultar automáticamente tras 2.5 segundos
       const timer = setTimeout(() => {
         Animated.parallel([
           Animated.timing(opacityAnim, {
@@ -44,23 +44,22 @@ export const PostPublishedAlert: React.FC<PostPublishedAlertProps> = ({
             useNativeDriver: true,
           }),
           Animated.timing(slideAnim, {
-            toValue: screenHeight * 0.15,
+            toValue: OUT_OF_VIEW_OFFSET,
             duration: 300,
             useNativeDriver: true,
           }),
         ]).start(() => {
+          slideAnim.setValue(screenHeight);
           onHide?.();
         });
       }, 2500);
 
       return () => {
         clearTimeout(timer);
-        // Limpiar animaciones si el componente se desmonta
         slideAnim.stopAnimation();
         opacityAnim.stopAnimation();
       };
     } else {
-      // Resetear animaciones cuando no es visible
       slideAnim.setValue(screenHeight);
       opacityAnim.setValue(0);
     }
@@ -76,17 +75,19 @@ export const PostPublishedAlert: React.FC<PostPublishedAlertProps> = ({
       }}
     >
       <AlertBox>
-        <Icon source={checkIcon} />
+        {/* Reemplazado el Image component por Ionicons */}
+        <IconContainer>
+          <Ionicons name="checkmark-circle" size={20} color="#1291eb" />
+        </IconContainer>
         <MessageText>Publicado en {username}</MessageText>
       </AlertBox>
     </AnimatedContainer>
   );
 };
 
-// Estilos
 const AnimatedContainer = styled(Animated.View)`
   position: absolute;
-  bottom: 120px; /* Posición ajustada sobre la NavigationBar */
+  bottom: 120px;
   align-self: center;
   z-index: 1000;
 `;
@@ -100,6 +101,7 @@ const AlertBox = styled.View`
   padding: 12px 16px;
   min-width: 250px;
   justify-content: center;
+
   shadow-color: #000;
   shadow-offset: 0px 2px;
   shadow-opacity: 0.1;
@@ -107,9 +109,7 @@ const AlertBox = styled.View`
   elevation: 3;
 `;
 
-const Icon = styled.Image`
-  width: 20px;
-  height: 20px;
+const IconContainer = styled.View`
   margin-right: 8px;
 `;
 
@@ -117,5 +117,4 @@ const MessageText = styled.Text`
   color: #1291eb;
   font-size: 14px;
   font-weight: 600;
-  font-family: OpenSans-SemiBold;
 `;
