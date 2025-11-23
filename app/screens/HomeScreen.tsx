@@ -1,22 +1,20 @@
-import React, { useState, useRef } from "react";
-import { View, StyleSheet, Dimensions } from "react-native";
+import React, { useRef, useState } from "react";
+import { Dimensions, StyleSheet, View } from "react-native";
 import PagerView from "react-native-pager-view";
-import { Header } from "../../components/Header";
-import { FloatingActionButton } from "../../components/FloatingActionButton";
-import { NavigationBar } from "../../components/NavigationBar";
 import { Feed } from "../../components/Feed";
+import { FloatingActionButton } from "../../components/FloatingActionButton";
+import { Header } from "../../components/Header";
+import { NavigationBar } from "../../components/NavigationBar";
 import { TagsFeed } from "../../components/TagsFeed";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
-const NAV_BAR_WIDTH = 180;
-const NAV_BAR_HEIGHT = 87;
 
 const userData = {
   avatarUrl: undefined,
   username: "usuario123",
 };
 
-export const HomeScreen = () => {
+export default function HomeScreen() {
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const pagerRef = useRef<PagerView>(null);
 
@@ -72,11 +70,9 @@ const styles = StyleSheet.create({
     zIndex: 12,
   },
   navigationBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0, 
-    right: 0,
+    position: "absolute",
+    bottom: 40,
+    left: 0,
     zIndex: 11,
   },
 });
-export default HomeScreen;

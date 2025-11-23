@@ -1,126 +1,102 @@
-import React, { useState } from "react";
-import { useRouter, usePathname } from "expo-router";
-import styled from "styled-components/native";
-import { Dimensions, Pressable } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { Href, usePathname, useRouter } from "expo-router";
+import { Pressable, StyleSheet, View } from "react-native";
 
-const homeIconOutline = require("../assets/images/homeIcon_outline.png");
-const homeIconFilled = require("../assets/images/homeIcon_filled.png");
-const searchIconOutline = require("../assets/images/searchIcon_outline.png");
-const notificationIconOutline = require("../assets/images/notificationIcon_outline.png");
-const notificationIconFilled = require("../assets/images/notificationIcon_filled.png");
-const messagesIconOutline = require("../assets/images/messageIcon_outline.png");
-const messagesIconFilled = require("../assets/images/messageIcon_filled.png");
-
-const { width: screenWidth } = Dimensions.get("window");
-
+type IoniconsName = keyof typeof Ionicons.glyphMap;
 interface NavigationBarProps {
   style?: any;
 }
+interface Route {
+  path: Href;
+  icon: (isActive: boolean) => IoniconsName;
+}
+interface INavIcon {
+  icon: IoniconsName; 
+  pressed: boolean;
+  isActive: boolean;
+}
+const routes: Route[] = [
+  { path: "/screens/HomeScreen", icon: (isActive) => isActive ? "home" : "home-outline" },
+  { path: "/screens/Search", icon: (isActive) => isActive ? "search" : "search-outline" },
+  //{ path: "/screens/Notifications", icon: (isActive) => isActive ? "notifications" : "notifications-outline" },
+  //{ path: "/screens/Messages", icon: (isActive) => isActive ? "chatbubble" : "chatbubble-outline" }
+];
+// Altura fija de la barra
+const NAV_BAR_HEIGHT = 60;
 
-// Altura ajustada para el nuevo diseño flotante
-const NAV_BAR_HEIGHT = 60; 
+const NavIcon = ({ icon, pressed, isActive }: INavIcon) => {
+  const iconColor = isActive ? "#FFFFFF" : "#D1D5DB";
+  const iconOpacity = pressed ? 0.8 : 1;
+
+  return (
+    <Ionicons
+      name={icon}
+      size={24}
+      color={iconColor}
+      style={{ opacity: iconOpacity }}
+    />
+  );
+};
 
 export const NavigationBar = ({ style }: NavigationBarProps) => {
   const router = useRouter();
   const pathname = usePathname();
 
-  const navigateTo = (screen: string) => {
-    router.push(`/(tabs)/${screen}`);
-  };
-
-  const getIconSource = (screen: string) => {
-    const isActive = pathname === `/(tabs)/${screen}`;
-
-    switch (screen) {
-      case "home":
-        return isActive ? homeIconFilled : homeIconOutline;
-      case "search":
-        return searchIconOutline;
-      case "notifications":
-        return isActive ? notificationIconFilled : notificationIconOutline;
-      case "messages":
-        return isActive ? messagesIconFilled : messagesIconOutline;
-      default:
-        return homeIconOutline;
-    }
-  };
-
   return (
-    <Container style={style}>
-      <NavButton onPress={() => navigateTo("home")}>
-        {({ pressed }) => (
-          <ButtonContent pressed={pressed}>
-            <Icon source={getIconSource("home")} pressed={pressed} />
-          </ButtonContent>
-        )}
-      </NavButton>
-
-      <NavButton onPress={() => navigateTo("search")}>
-        {({ pressed }) => (
-          <ButtonContent pressed={pressed}>
-            <Icon source={getIconSource("search")} pressed={pressed} />
-          </ButtonContent>
-        )}
-      </NavButton>
-
-      <NavButton onPress={() => navigateTo("notifications")}>
-        {({ pressed }) => (
-          <ButtonContent pressed={pressed}>
-            <Icon source={getIconSource("notifications")} pressed={pressed} />
-          </ButtonContent>
-        )}
-      </NavButton>
-
-      <NavButton onPress={() => navigateTo("messages")}>
-        {({ pressed }) => (
-          <ButtonContent pressed={pressed}>
-            <Icon source={getIconSource("messages")} pressed={pressed} />
-          </ButtonContent>
-        )}
-      </NavButton>
-    </Container>
+    <View style={[styles.container, style]}>
+      {routes.map(({ path, icon }) => {
+        const isActive = pathname === `/(tabs)/${path}`;
+        
+        return (
+          <Pressable 
+            key={String(path)}
+            onPress={() => router.navigate(path)}
+          >
+            {({ pressed }) => (
+              <View style={[
+                styles.buttonContent,
+                pressed && styles.buttonContentPressed
+              ]}>
+                <NavIcon 
+                  icon={icon(isActive)}
+                  pressed={pressed}
+                  isActive={isActive}
+                />
+              </View>
+            )}
+          </Pressable>
+        );
+      })}
+    </View>
   );
 };
 
-// Styled Components - SOLO CAMBIO ESTA LÍNEA:
-const Container = styled.View`
-  width: 100%; /* ← CAMBIADO: De screenWidth * 0.9 a 100% */
-  height: ${NAV_BAR_HEIGHT}px;
-  background-color: #423646;
-  border-radius: 0px; /* ← OPCIONAL: Si quieres esquinas cuadradas */
-  flex-direction: row;
-  justify-content: space-around;
-  align-items: center;
-  padding-horizontal: 0px;
-  shadow-color: #000;
-  shadow-offset: 0px 2px;
-  shadow-opacity: 0.25;
-  shadow-radius: 3.84px;
-  elevation: 5;
-`;
-
-const NavButton = styled.Pressable`
-  flex: 1;
-  height: 100%;
-  justify-content: center;
-  align-items: center;
-  background-color: transparent;
-  border-radius: 0px;
-`;
-
-const ButtonContent = styled.View<{ pressed: boolean }>`
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: 100%;
-  background-color: ${({ pressed }) => 
-    pressed ? 'rgba(255, 255, 255, 0.15)' : 'transparent'};
-  border-radius: 0px; /* ← OPCIONAL: Coherencia con diseño full-width */
-`;
-
-const Icon = styled.Image<{ pressed: boolean }>`
-  width: 24px;
-  height: 24px;
-  resize-mode: contain;
-  opacity: ${({ pressed }) => pressed ? 0.8 : 1};
-`;
+// Styled Components
+const styles = StyleSheet.create({
+  container: {
+    width: "100%",
+    height: NAV_BAR_HEIGHT,
+    backgroundColor: "#423646",
+    borderRadius: "0px",
+    gap: 30,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 15,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  buttonContent: {
+    justifyContent: "center",
+    alignItems: "center",
+    alignSelf: 'flex-start',
+    height: "100%",
+    backgroundColor: "transparent",
+    borderRadius: 0,
+  },
+  buttonContentPressed: {
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+  }
+});

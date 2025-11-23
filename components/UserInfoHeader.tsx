@@ -1,11 +1,16 @@
-// components/UserInfoHeader.tsx
 import React, { useState } from "react";
+import { Ionicons } from "@expo/vector-icons"; 
 import { useRouter } from "expo-router";
 import styled from "styled-components/native";
+import { ImageSourcePropType } from "react-native";
 
 const defaultAvatar = require("../assets/images/default_avatar.png");
-const followButton = require("../assets/images/followButton.png");
-const followingButton = require("../assets/images/followingButton.png");
+
+const COLORS = {
+  primary: '#1291EB',
+  white: '#FFFFFF',
+  transparent: 'transparent',
+};
 
 interface UserInfoHeaderProps {
   user: {
@@ -33,7 +38,6 @@ export const UserInfoHeader: React.FC<UserInfoHeaderProps> = ({
   const handleFollowPress = () => {
     const newFollowState = !following;
     setFollowing(newFollowState);
-
     if (onFollowChange) {
       onFollowChange(user.id, newFollowState);
     }
@@ -73,7 +77,7 @@ export const UserInfoHeader: React.FC<UserInfoHeaderProps> = ({
     <Container>
       <AvatarContainer onPress={handleUserPress}>
         <Avatar
-          source={user.avatarUrl ? { uri: user.avatarUrl } : defaultAvatar}
+          source={user.avatarUrl ? { uri: user.avatarUrl } as ImageSourcePropType : defaultAvatar}
           avatarShape={user.avatarShape || "circle"}
         />
       </AvatarContainer>
@@ -85,9 +89,20 @@ export const UserInfoHeader: React.FC<UserInfoHeaderProps> = ({
         </DateText>
       </UserInfo>
 
-      <FollowIconButton onPress={handleFollowPress}>
-        <FollowIcon source={following ? followingButton : followButton} />
-      </FollowIconButton>
+      <FollowButtonStyled onPress={handleFollowPress} isFollowing={following}>
+        {following ? (
+          <FollowText isFollowing={following}>
+            Siguiendo
+          </FollowText>
+        ) : (
+          <FollowContent>
+            <Ionicons name="person-add-outline" size={14} color={COLORS.white} />
+            <FollowText isFollowing={following} style={{ marginLeft: 4 }}>
+              Seguir
+            </FollowText>
+          </FollowContent>
+        )}
+      </FollowButtonStyled>
     </Container>
   );
 };
@@ -114,24 +129,39 @@ const UserInfo = styled.TouchableOpacity`
 `;
 
 const Username = styled.Text<{ textColor: string }>`
-  font-family: "OpenSans-SemiBold";
   font-size: 16px;
+  font-weight: 600;
   color: ${({ textColor }) => textColor};
   margin-bottom: 2px;
+  font-family: 'OpenSans-SemiBold', 'System';
 `;
 
 const DateText = styled.Text<{ textColor: string }>`
-  font-family: "OpenSans-Light";
   font-size: 14px;
+  font-weight: 300;
   color: ${({ textColor }) => textColor};
+  font-family: 'OpenSans-Light', 'System';
 `;
 
-const FollowIconButton = styled.TouchableOpacity`
-  padding: 4px;
+const FollowButtonStyled = styled.TouchableOpacity<{ isFollowing: boolean }>`
+  padding: 6px 14px;
+  border-radius: 20px;
+  margin-left: 10px;
+  background-color: ${({ isFollowing }) =>
+    isFollowing ? COLORS.transparent : COLORS.primary};
+  border: 1px solid ${({ isFollowing }) =>
+    isFollowing ? COLORS.primary : COLORS.transparent};
 `;
 
-const FollowIcon = styled.Image`
-  width: 24px;
-  height: 24px;
-  resize-mode: contain;
+const FollowContent = styled.View`
+  flex-direction: row;
+  align-items: center;
+`;
+
+const FollowText = styled.Text<{ isFollowing: boolean }>`
+  font-size: 14px;
+  font-weight: 700;
+  color: ${({ isFollowing }) =>
+    isFollowing ? COLORS.primary : COLORS.white};
+  font-family: 'OpenSans-Bold', 'System';
 `;

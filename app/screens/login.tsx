@@ -1,68 +1,67 @@
+import {
+  Alegreya_400Regular_Italic,
+  useFonts,
+} from "@expo-google-fonts/alegreya";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React from "react";
 import {
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  Alert,
 } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Logo from "../../assets/images/logotipo.svg";
-import {
-  useFonts,
-  Alegreya_400Regular_Italic,
-} from "@expo-google-fonts/alegreya";
+
+interface IHandleChange {
+  (name: string, value: any): void;
+}
+interface IFormField {
+  email?: string;
+  password?: string;
+}
 
 const LoginScreen = () => {
+  const router = useRouter();
   const [passwordVisible, setPasswordVisible] = React.useState(false);
-  const [errors, setErrors] = React.useState({});
+  const [errors, setErrors] = React.useState<IFormField>({});
   const [fontsLoaded] = useFonts({
     Alegreya_400Regular_Italic,
   });
-
-  const [formData, setFormData] = React.useState({
+  const [formData, setFormData] = React.useState<IFormField>({
     email: "",
     password: "",
   });
 
-  if (!fontsLoaded) {
-    return null;
-  }
+  if (!fontsLoaded) return null;
 
-  const handleChange = (name, value) => {
-    setFormData({ ...formData, [name]: value });
-  };
+  const handleChange: IHandleChange = (name, value) => (setFormData({ ...formData, [name]: value }));
 
   const handleLogin = () => {
-    const newErrors = {};
+    const newErrors: IFormField = {};
 
-    if (!formData.email) {
+    if (!formData.email)
       newErrors.email = "El correo es obligatorio";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    else if (!/\S+@\S+\.\S+/.test(formData.email))
       newErrors.email = "El formato del correo no es válido";
-    }
-
-    if (formData.password.length < 8) {
+    if (formData.password && formData.password.length < 8)
       newErrors.password = "La contraseña debe tener al menos 8 caracteres";
-    }
 
-    setErrors(newErrors);
-
-    if (Object.keys(newErrors).length === 0) {
-      Alert.alert("Inicio de Sesión Exitoso", `Bienvenido, ${formData.email}`);
-      console.log("Formulario enviado:", formData);
-    }
+    //if (Object.keys(newErrors).length > 0) return setErrors(newErrors);
+    
+    Alert.alert("Inicio de Sesión Exitoso", `Bienvenido, ${formData.email}`);
+    console.log("Formulario enviado:", formData);
+    
+    router.push("/screens/HomeScreen")
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Logo style={styles.logo} />
-      {/* El texto del logo "A fun site for you" ya viene en el SVG,
-          así que no es necesario añadirlo aquí */}
       <Text style={styles.header}>Iniciar sesión</Text>
-
       <View style={styles.formGroup}>
         <Text style={styles.label}>Dirección de correo</Text>
         <TextInput
@@ -74,9 +73,8 @@ const LoginScreen = () => {
           placeholder="correo@dominio.com"
           placeholderTextColor="#888"
         />
-        {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+        {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}        
       </View>
-
       <View style={styles.formGroup}>
         <Text style={styles.label}>Contraseña</Text>
         <View>

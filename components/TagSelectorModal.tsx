@@ -1,15 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Modal, 
-  TouchableWithoutFeedback, 
+import React, { useState, useEffect, useRef } from "react";
+import {
+  Modal,
+  TouchableWithoutFeedback,
   Animated,
   Dimensions,
   Keyboard,
-  FlatList
-} from 'react-native';
-import styled from 'styled-components/native';
+  FlatList,
+  ScrollView,
+  TextInput as RNTextInput,
+} from "react-native";
+import styled from "styled-components/native";
+import { Ionicons } from "@expo/vector-icons";
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
 interface TagSelectorModalProps {
   visible: boolean;
@@ -20,43 +23,56 @@ interface TagSelectorModalProps {
 
 // Etiquetas de ejemplo
 const suggestedTags = [
-  'spn', 'annihilation', 'the southern reach', 'web weaving',
-  'authority', 'horror cosmic', 'sci-fi', 'book'
+  "spn",
+  "annihilation",
+  "the southern reach",
+  "web weaving",
+  "authority",
+  "horror cosmic",
+  "sci-fi",
+  "book",
+  "fantasy",
+  "thriller",
+  "mystery",
+  "adventure",
+  "technology",
+  "programming",
+  "reactnative",
+  "design",
 ];
 
 export const TagSelectorModal: React.FC<TagSelectorModalProps> = ({
   visible,
   onClose,
   onTagsSelected,
-  selectedTags: initiallySelectedTags
+  selectedTags: initiallySelectedTags,
 }) => {
-  const [selectedTags, setSelectedTags] = useState<string[]>(initiallySelectedTags);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>(
+    initiallySelectedTags,
+  );
+  const [searchQuery, setSearchQuery] = useState("");
   const [slideAnim] = useState(new Animated.Value(screenHeight));
   const [fadeAnim] = useState(new Animated.Value(0));
-  const inputRef = useRef<any>(null);
+  const inputRef = useRef<RNTextInput>(null); //
 
   useEffect(() => {
     if (visible) {
       setSelectedTags(initiallySelectedTags);
-      setSearchQuery('');
+      setSearchQuery("");
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 1,
-          duration: 200, // ✅ Consistente: 200ms
+          duration: 200,
           useNativeDriver: true,
         }),
         Animated.timing(slideAnim, {
           toValue: 0,
-          duration: 200, // ✅ Consistente: 200ms
+          duration: 200,
           useNativeDriver: true,
         }),
-      ]).start();
-
-      // ✅ Auto-focus con delay para que la animación termine primero
-      setTimeout(() => {
+      ]).start(() => {
         inputRef.current?.focus();
-      }, 250);
+      });
     } else {
       Animated.parallel([
         Animated.timing(fadeAnim, {
@@ -69,18 +85,42 @@ export const TagSelectorModal: React.FC<TagSelectorModalProps> = ({
           duration: 200,
           useNativeDriver: true,
         }),
-      ]).start();
+      ]).start(() => {
+        if (onClose) onClose();
+      });
     }
   }, [visible, initiallySelectedTags]);
 
   const handleTagPress = (tag: string) => {
-    setSelectedTags(prev => {
-      if (prev.includes(tag)) {
-        return prev.filter(t => t !== tag);
+    const normalizedTag = tag.toLowerCase().trim();
+
+    setSelectedTags((prev) => {
+      const isSelected = prev.includes(normalizedTag);
+      if (isSelected) {
+        return prev.filter((t) => t !== normalizedTag);
       } else {
-        return [...prev, tag];
+        return [...prev, normalizedTag];
       }
     });
+    if (searchQuery.toLowerCase().trim() === normalizedTag) {
+      setSearchQuery("");
+    }
+  };
+
+  const handleSearchInputSubmit = () => {
+    if (searchQuery.trim() !== "") {
+      const normalizedQuery = searchQuery.toLowerCase().trim();
+
+      if (
+        !selectedTags.includes(normalizedQuery) &&
+        !suggestedTags.includes(normalizedQuery)
+      ) {
+        handleTagPress(normalizedQuery);
+      } else if (selectedTags.includes(normalizedQuery)) {
+        handleTagPress(normalizedQuery);
+      }
+      setSearchQuery("");
+    }
   };
 
   const handleDone = () => {
@@ -91,11 +131,11 @@ export const TagSelectorModal: React.FC<TagSelectorModalProps> = ({
 
   const handleClose = () => {
     Keyboard.dismiss();
-    onClose();
+    if (onClose) onClose();
   };
 
-  const filteredTags = suggestedTags.filter(tag =>
-    tag.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredTags = suggestedTags.filter((tag) =>
+    tag.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const renderTagItem = ({ item }: { item: string }) => (
@@ -121,15 +161,14 @@ export const TagSelectorModal: React.FC<TagSelectorModalProps> = ({
           <OverlayBackground />
         </TouchableWithoutFeedback>
 
-        <ModalContainer 
+        <ModalContainer
           as={Animated.View}
           style={{
-            transform: [{ translateY: slideAnim }]
+            transform: [{ translateY: slideAnim }],
           }}
         >
-          {/* ✅ Handle bar para indicar que es arrastrable */}
           <HandleBar />
-          
+
           <Header>
             <Title>Añadir etiquetas</Title>
             <DoneButton onPress={handleDone}>
@@ -141,21 +180,23 @@ export const TagSelectorModal: React.FC<TagSelectorModalProps> = ({
             {/* Etiquetas seleccionadas */}
             {selectedTags.length > 0 && (
               <SelectedTagsContainer>
-                <SelectedTagsScrollView 
-                  horizontal 
+                <SelectedTagsScrollView
+                  horizontal
                   showsHorizontalScrollIndicator={false}
+                  keyboardShouldPersistTaps="handled"
                 >
-                  {selectedTags.map(tag => (
+                  {selectedTags.map((tag) => (
                     <SelectedTag key={tag}>
                       <SelectedTagText>#{tag}</SelectedTagText>
                       <RemoveTagButton onPress={() => handleTagPress(tag)}>
-                        <RemoveTagText>×</RemoveTagText>
+                        <Ionicons
+                          name="close-circle"
+                          size={20}
+                          color="#ffffff"
+                        />
                       </RemoveTagButton>
                     </SelectedTag>
                   ))}
-                  <AddMoreButton>
-                    <AddMoreText>+</AddMoreText>
-                  </AddMoreButton>
                 </SelectedTagsScrollView>
               </SelectedTagsContainer>
             )}
@@ -164,12 +205,14 @@ export const TagSelectorModal: React.FC<TagSelectorModalProps> = ({
             <SearchContainer>
               <HashSymbol>#</HashSymbol>
               <SearchInput
-                ref={inputRef} // ✅ Ref para auto-focus
-                placeholder="Añadir etiquetas..."
+                ref={inputRef}
+                placeholder="Añadir etiquetas o buscar sugerencias..."
                 placeholderTextColor="#4B4B4B"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
+                onSubmitEditing={handleSearchInputSubmit}
                 returnKeyType="done"
+                autoCapitalize="none"
               />
             </SearchContainer>
 
@@ -182,6 +225,7 @@ export const TagSelectorModal: React.FC<TagSelectorModalProps> = ({
               numColumns={2}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{ paddingBottom: 20 }}
+              keyboardShouldPersistTaps="always"
             />
           </Content>
         </ModalContainer>
@@ -190,7 +234,7 @@ export const TagSelectorModal: React.FC<TagSelectorModalProps> = ({
   );
 };
 
-// Estilos mejorados
+// Estilos
 const Overlay = styled.View`
   flex: 1;
   background-color: rgba(0, 0, 0, 0.5);
@@ -205,10 +249,10 @@ const ModalContainer = styled(Animated.View)`
   background-color: #ffffff;
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
-  max-height: 75%; // ✅ Mejor ergonomía en pantallas pequeñas
+  max-height: 75%;
+  width: ${screenWidth}px;
 `;
 
-// ✅ Handle bar para indicador de arrastre
 const HandleBar = styled.View`
   width: 40px;
   height: 4px;
@@ -232,7 +276,7 @@ const Title = styled.Text`
   font-size: 16px;
   font-weight: 600;
   color: #000000;
-  font-family: 'OpenSans-SemiBold', 'System';
+  font-family: "OpenSans-SemiBold";
 `;
 
 const DoneButton = styled.TouchableOpacity`
@@ -240,10 +284,10 @@ const DoneButton = styled.TouchableOpacity`
 `;
 
 const DoneText = styled.Text`
-  color: #1291EB;
+  color: #1291eb;
   font-size: 16px;
   font-weight: 600;
-  font-family: 'OpenSans-SemiBold', 'System';
+  font-family: "OpenSans-SemiBold";
 `;
 
 const Content = styled.View`
@@ -255,15 +299,21 @@ const SelectedTagsContainer = styled.View`
   margin-bottom: 24px;
 `;
 
-const SelectedTagsScrollView = styled.ScrollView`
+const SelectedTagsScrollView = styled(ScrollView).attrs({
+  contentContainerStyle: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+  },
+})`
   flex-grow: 0;
+  max-height: 100px;
 `;
 
 const SelectedTag = styled.View`
   flex-direction: row;
   align-items: center;
-  background-color: #1291EB;
-  padding: 8px 12px;
+  background-color: #1291eb;
+  padding: 6px 10px;
   border-radius: 16px;
   margin-right: 8px;
   margin-bottom: 8px;
@@ -273,46 +323,28 @@ const SelectedTagText = styled.Text`
   color: #ffffff;
   font-size: 14px;
   font-weight: 500;
-  font-family: 'OpenSans-Medium', 'System';
+  font-family: "OpenSans-Medium";
   margin-right: 6px;
 `;
 
 const RemoveTagButton = styled.TouchableOpacity`
   padding: 2px;
-`;
-
-const RemoveTagText = styled.Text`
-  color: #ffffff;
-  font-size: 16px;
-  font-weight: bold;
-`;
-
-const AddMoreButton = styled.TouchableOpacity`
-  background-color: #f0f0f0;
-  width: 32px;
-  height: 32px;
-  border-radius: 16px;
-  justify-content: center;
-  align-items: center;
-  margin-left: 8px;
-`;
-
-const AddMoreText = styled.Text`
-  color: #4B4B4B;
-  font-size: 18px;
-  font-weight: bold;
+  margin-left: 2px;
 `;
 
 const SearchContainer = styled.View`
   flex-direction: row;
   align-items: center;
+  padding-bottom: 12px;
+  border-bottom-width: 1px;
+  border-bottom-color: #e0e0e0;
   margin-bottom: 24px;
 `;
 
 const HashSymbol = styled.Text`
-  font-size: 40px;
+  font-size: 24px;
   font-weight: bold;
-  color: #4B4B4B;
+  color: #4b4b4b;
   margin-right: 12px;
 `;
 
@@ -320,24 +352,28 @@ const SearchInput = styled.TextInput`
   flex: 1;
   font-size: 18px;
   color: #000000;
-  font-family: 'OpenSans-Regular', 'System';
+  font-family: "OpenSans-Regular";
   padding-vertical: 8px;
 `;
 
 const SuggestedTagsTitle = styled.Text`
   font-size: 14px;
-  color: #4B4B4B;
+  color: #4b4b4b;
   margin-bottom: 12px;
-  font-family: 'OpenSans-Medium', 'System';
+  font-family: "OpenSans-Medium";
 `;
 
-const SuggestedTagsList = styled.FlatList`
+const SuggestedTagsList = styled(
+  FlatList as new (props: any) => FlatList<string>,
+)`
   flex: 1;
+  margin-horizontal: -6px;
 `;
 
 const SuggestedTag = styled.TouchableOpacity<{ isSelected: boolean }>`
-  background-color: ${({ isSelected }) => isSelected ? '#1291EB' : '#FFFFFF'};
-  border: 1.5px solid ${({ isSelected }) => isSelected ? '#1291EB' : '#4B4B4B'};
+  background-color: ${({ isSelected }) => (isSelected ? "#1291EB" : "#FFFFFF")};
+  border: 1.5px solid
+    ${({ isSelected }) => (isSelected ? "#1291EB" : "#D0D0D0")};
   padding: 10px 14px;
   border-radius: 16px;
   margin: 6px;
@@ -348,8 +384,8 @@ const SuggestedTag = styled.TouchableOpacity<{ isSelected: boolean }>`
 `;
 
 const SuggestedTagText = styled.Text<{ isSelected: boolean }>`
-  color: ${({ isSelected }) => isSelected ? '#FFFFFF' : '#4B4B4B'};
+  color: ${({ isSelected }) => (isSelected ? "#FFFFFF" : "#4B4B4B")};
   font-size: 14px;
   font-weight: 500;
-  font-family: 'OpenSans-Medium', 'System';
+  font-family: "OpenSans-Medium";
 `;
