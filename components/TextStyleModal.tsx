@@ -4,11 +4,12 @@ import {
   TouchableWithoutFeedback,
   Animated,
   Dimensions,
+  StyleSheet, // Importamos StyleSheet para hairlineWidth
 } from "react-native";
 import styled from "styled-components/native";
+import { Ionicons } from "@expo/vector-icons";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
-const checkIcon = require("../assets/images/check-icon.png");
 
 interface TextStyleModalProps {
   visible: boolean;
@@ -26,7 +27,7 @@ export const TextStyleModal: React.FC<TextStyleModalProps> = ({
   selectedStyle,
 }) => {
   const [fadeAnim] = useState(new Animated.Value(0));
-  const [slideAnim] = useState(new Animated.Value(20)); // ✅ Animación más sutil
+  const [slideAnim] = useState(new Animated.Value(20));
 
   const textStyles: {
     key: TextStyleOption;
@@ -44,25 +45,26 @@ export const TextStyleModal: React.FC<TextStyleModalProps> = ({
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 1,
-          duration: 200,
+          duration: 250,
           useNativeDriver: true,
         }),
         Animated.timing(slideAnim, {
-          toValue: 0, // ✅ Flota hacia arriba suavemente
-          duration: 200,
+          toValue: 0,
+          duration: 250,
           useNativeDriver: true,
+          delay: 50,
         }),
       ]).start();
     } else {
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 0,
-          duration: 200,
+          duration: 250,
           useNativeDriver: true,
         }),
         Animated.timing(slideAnim, {
           toValue: 20,
-          duration: 200,
+          duration: 250,
           useNativeDriver: true,
         }),
       ]).start();
@@ -94,7 +96,7 @@ export const TextStyleModal: React.FC<TextStyleModalProps> = ({
           as={Animated.View}
           style={{
             transform: [{ translateY: slideAnim }],
-            opacity: fadeAnim, // ✅ Fade simultáneo para mayor suavidad
+            opacity: fadeAnim,
           }}
         >
           <ModalContent>
@@ -102,13 +104,13 @@ export const TextStyleModal: React.FC<TextStyleModalProps> = ({
               <StyleOption
                 key={style.key}
                 onPress={() => handleStyleSelect(style.key)}
-                isLast={index === textStyles.length - 1} // ✅ Para quitar borde del último
+                isLast={index === textStyles.length - 1}
               >
                 <StyleText style={{ fontFamily: style.fontFamily }}>
                   {style.label}
                 </StyleText>
                 {selectedStyle === style.key && (
-                  <CheckIcon source={checkIcon} />
+                  <Ionicons name="checkmark-sharp" size={20} color="#1291eb" />
                 )}
               </StyleOption>
             ))}
@@ -119,7 +121,7 @@ export const TextStyleModal: React.FC<TextStyleModalProps> = ({
   );
 };
 
-// Estilos mejorados
+// Estilos
 const Overlay = styled.View`
   flex: 1;
   background-color: rgba(0, 0, 0, 0.5);
@@ -130,42 +132,39 @@ const OverlayBackground = styled.View`
   flex: 1;
 `;
 
+const BOTTOM_BAR_HEIGHT = 60; // Altura asumida de la barra inferior
+const BOTTOM_PADDING = 30; // Margen extra sobre la barra inferior
+
 const ModalContainer = styled(Animated.View)`
   position: absolute;
-  bottom: 90px; /* ✅ Justo encima del BottomBar */
-  left: 24px; /* ✅ Alineado con el botón Aa */
+  bottom: ${BOTTOM_BAR_HEIGHT + BOTTOM_PADDING}px;
+  left: 24px;
   background-color: #ffffff;
-  border-radius: 10px;
-  width: 160px;
+  border-radius: 12px;
+  width: 180px;
   shadow-color: #000;
-  shadow-offset: 0px 2px;
-  shadow-opacity: 0.2;
-  shadow-radius: 4px;
-  elevation: 4;
+  shadow-offset: 0px 4px;
+  shadow-opacity: 0.15;
+  shadow-radius: 8px;
+  elevation: 6;
 `;
 
 const ModalContent = styled.View`
-  padding: 4px 0; /* ✅ Padding más compacto */
+  padding: 4px 0;
 `;
 
 const StyleOption = styled.TouchableOpacity<{ isLast?: boolean }>`
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
+  padding: 14px 18px;
   border-bottom-width: ${({ isLast }) =>
-    isLast ? "0px" : "1px"}; /* ✅ Líneas divisorias */
+    isLast ? "0px" : StyleSheet.hairlineWidth};
   border-bottom-color: #e5e5e5;
 `;
 
 const StyleText = styled.Text`
-  font-size: 16px;
+  font-size: 17px;
   color: #000000;
   flex: 1;
-`;
-
-const CheckIcon = styled.Image`
-  width: 16px;
-  height: 16px;
-  tint-color: #1291eb;
 `;
