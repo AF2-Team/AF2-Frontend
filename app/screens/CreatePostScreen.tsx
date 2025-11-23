@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import { Ionicons } from "@expo/vector-icons"; // Importamos Ionicons
 import { useRouter } from "expo-router";
+import React, { useState } from "react";
 import styled from "styled-components/native";
 import { DiscardPostModal } from "../../components/DiscardPostModal";
+import { PostPublishedAlert } from "../../components/PostPublishedAlert";
 import { TagSelectorModal } from "../../components/TagSelectorModal";
 import { TextStyleModal } from "../../components/TextStyleModal";
-import { PostPublishedAlert } from "../../components/PostPublishedAlert";
-import { Ionicons } from "@expo/vector-icons"; // Importamos Ionicons
 
 const defaultAvatar = require("../../assets/images/default_avatar.png");
 
@@ -16,7 +16,7 @@ const currentUser = {
   avatarUrl: null,
 };
 
-export const CreatePostScreen = () => {
+export default function CreatePostScreen() {
   const router = useRouter();
   const [postContent, setPostContent] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);

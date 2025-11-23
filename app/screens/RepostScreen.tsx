@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { useRouter } from "expo-router";
-import styled from "styled-components/native";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { Alert, KeyboardAvoidingView, Platform, TextInput as RNTextInput, ScrollView } from "react-native";
+import styled from "styled-components/native";
 import { DiscardPostModal } from "../../components/DiscardPostModal";
+import { OriginalPostView } from "../../components/OriginalPostView";
 import { TagSelectorModal } from "../../components/TagSelectorModal";
 import { TextStyleModal } from "../../components/TextStyleModal";
-import { OriginalPostView } from "../../components/OriginalPostView";
-import { KeyboardAvoidingView, Platform, ScrollView, Alert, TextInput as RNTextInput } from "react-native";
 
 const COLORS = {
   primary: '#1291EB',
@@ -69,7 +69,7 @@ const currentUser = {
   avatarUrl: null,
 };
 
-export const RepostScreen = () => {
+export default function RepostScreen() {
   const router = useRouter();
   const [repostComment, setRepostComment] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);

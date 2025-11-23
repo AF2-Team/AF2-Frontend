@@ -1,10 +1,10 @@
-import React, { useState, useRef } from "react";
-import { View, StyleSheet, Dimensions } from "react-native";
+import React, { useRef, useState } from "react";
+import { Dimensions, StyleSheet, View } from "react-native";
 import PagerView from "react-native-pager-view";
-import { Header } from "../../components/Header";
-import { FloatingActionButton } from "../../components/FloatingActionButton";
-import { NavigationBar } from "../../components/NavigationBar";
 import { Feed } from "../../components/Feed";
+import { FloatingActionButton } from "../../components/FloatingActionButton";
+import { Header } from "../../components/Header";
+import { NavigationBar } from "../../components/NavigationBar";
 import { TagsFeed } from "../../components/TagsFeed";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
@@ -14,7 +14,7 @@ const userData = {
   username: "usuario123",
 };
 
-export const HomeScreen = () => {
+export default function HomeScreen() {
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const pagerRef = useRef<PagerView>(null);
 
