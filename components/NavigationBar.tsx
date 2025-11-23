@@ -2,7 +2,6 @@ import React from "react";
 import { useRouter, usePathname } from "expo-router";
 import styled from "styled-components/native";
 import { Dimensions, Pressable } from "react-native";
-// Importamos los íconos vectoriales de Expo
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
 const { width: screenWidth } = Dimensions.get("window");
@@ -23,12 +22,8 @@ export const NavigationBar = ({ style }: NavigationBarProps) => {
     router.push(`/(tabs)/${screen}`);
   };
 
-  // Componente interno para renderizar el ícono y su estado (activo/inactivo)
   const NavIcon = ({ screen, pressed }) => {
-    // Comprobamos si la ruta actual coincide con la pantalla
     const isActive = pathname === `/(tabs)/${screen}`;
-
-    // El color activo es blanco, el inactivo es un gris claro para contrastar con el fondo oscuro
     const iconColor = isActive ? "#FFFFFF" : "#D1D5DB";
 
     let IconComponent;
@@ -36,22 +31,18 @@ export const NavigationBar = ({ style }: NavigationBarProps) => {
 
     switch (screen) {
       case "home":
-        // Ionicons: home (relleno) / home-outline (contorno)
         iconName = isActive ? "home" : "home-outline";
         IconComponent = Ionicons;
         break;
       case "search":
-        // Ionicons: Mantenemos el icono de búsqueda siempre en contorno
         iconName = "search-outline";
         IconComponent = Ionicons;
         break;
       case "notifications":
-        // Ionicons: bell (relleno) / bell-outline (contorno)
         iconName = isActive ? "bell" : "bell-outline";
         IconComponent = Ionicons;
         break;
       case "messages":
-        // MaterialCommunityIcons: email (relleno) / email-outline (contorno)
         iconName = isActive ? "email" : "email-outline";
         IconComponent = MaterialCommunityIcons;
         break;
@@ -60,8 +51,6 @@ export const NavigationBar = ({ style }: NavigationBarProps) => {
         IconComponent = Ionicons;
         break;
     }
-
-    // El estado pressed (al presionar) reduce ligeramente la opacidad
     const iconOpacity = pressed ? 0.8 : 1;
 
     return (
@@ -138,7 +127,6 @@ const NavButton = styled.Pressable`
   border-radius: 0px;
 `;
 
-// Estilo para el efecto visual al presionar
 const ButtonContent = styled.View<{ pressed: boolean }>`
   justify-content: center;
   align-items: center;
