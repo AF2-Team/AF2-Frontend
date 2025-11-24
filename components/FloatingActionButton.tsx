@@ -2,11 +2,7 @@ import React from "react";
 import { useRouter } from "expo-router";
 import styled from "styled-components/native";
 import { Ionicons } from "@expo/vector-icons";
-
-const COLOR_PRIMARY = "#1291EB";
-const COLOR_LIGHT_TEXT = "#faf7f7";
-const BUTTON_SIZE = 54;
-const ICON_SIZE = 28;
+import { Colors, THEME } from "@/constants";
 
 interface FloatingActionButtonProps {
   onPress?: () => void;
@@ -16,7 +12,7 @@ interface FloatingActionButtonProps {
 
 export const FloatingActionButton = ({
   onPress,
-  navigateTo = "/screens/create-post",
+  navigateTo = "/screens/CreatePostScreen",
   style,
 }: FloatingActionButtonProps) => {
   const router = useRouter();
@@ -31,16 +27,19 @@ export const FloatingActionButton = ({
 
   return (
     <ButtonContainer style={style} onPress={handlePress} activeOpacity={0.8}>
-      <Ionicons name="create" size={ICON_SIZE} color={COLOR_LIGHT_TEXT} />
+      <CenteredIcon name="create" size={ICON_SIZE} color={Colors.textLight} />
     </ButtonContainer>
   );
 };
+
+const BUTTON_SIZE = 60;
+const ICON_SIZE = 28;
 
 const ButtonContainer = styled.TouchableOpacity`
   width: ${BUTTON_SIZE}px;
   height: ${BUTTON_SIZE}px;
   border-radius: ${BUTTON_SIZE / 2}px;
-  background-color: ${COLOR_PRIMARY};
+  background-color: ${Colors.action};
   justify-content: center;
   align-items: center;
   z-index: 1000;
@@ -50,4 +49,8 @@ const ButtonContainer = styled.TouchableOpacity`
   shadow-opacity: 0.3;
   shadow-radius: 8px;
   elevation: 8;
+`;
+
+const CenteredIcon = styled(Ionicons)`
+  transform: translateX(0.5px) translateY(0.5px);
 `;
