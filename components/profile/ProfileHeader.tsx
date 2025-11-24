@@ -22,6 +22,7 @@ export interface HeaderProfileProps {
   coverSource?: ImageSourcePropType | null;
   //Si es true, fuerza el uso de la imagen local por defecto, ignorando coverImageUrl
   useDefaultCover?: boolean; 
+  onEditCoverPress?: () => void;
   onPressBack?: () => void;
   onPressSettings?: () => void;
   style?: StyleProp<ViewStyle>;

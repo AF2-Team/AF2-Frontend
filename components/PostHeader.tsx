@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useRouter } from "expo-router";
 import styled from "styled-components/native";
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { PostOptionsModal } from "./PostOptionsModal";
 
 const defaultAvatar = require("../assets/images/default_avatar.png");
@@ -134,7 +135,7 @@ export const PostHeader = ({
             </FollowButton>
           )}
           <OptionsButton onPress={handleOptionsPress}>
-            <OptionsIcon source={moveVertIcon} />
+            <OptionsIcon name ="more-vert" />
           </OptionsButton>
         </ActionsContainer>
       </Container>

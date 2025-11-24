@@ -28,6 +28,7 @@ export interface ProfilePictureProps {
   size?: number;
   borderWidth?: number;
   style?: StyleProp<ViewStyle>;
+  isCircular?: boolean;
 }
 
 const ProfilePicture = ({ 
@@ -35,17 +36,20 @@ const ProfilePicture = ({
   source,
   size = LOCAL_SIZES.AVATAR_SIZE, 
   borderWidth = LOCAL_SIZES.AVATAR_BORDER,
-  style 
+  style, 
+  isCircular = true
 }: ProfilePictureProps) => { 
   
   const imageSize = size - (borderWidth * 2); 
+  const borderRadius = isCircular ? size / 2 : 10;
+  const imageBorderRadius = isCircular ? imageSize / 2 : 8;
   //const isDefault = !imageUrl;
   const isDefaultIconFallback = !source;
 
   const containerDynamicStyle = { 
     width: size, 
     height: size, 
-    borderRadius: size / 2,
+    borderRadius: borderRadius,
     borderWidth: borderWidth,
   };
 
@@ -74,7 +78,7 @@ const ProfilePicture = ({
           style={[styles.image, { 
             width: imageSize, 
             height: imageSize, 
-            borderRadius: imageSize / 2, 
+            borderRadius: imageBorderRadius //imageSize / 2, 
           }]}
           resizeMode="cover"
         />

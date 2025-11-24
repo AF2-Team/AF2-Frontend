@@ -1,6 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, StyleProp, ViewStyle, ImageSourcePropType } from 'react-native';
+import { View, Text, StyleSheet, StyleProp, ViewStyle, ImageSourcePropType, TouchableOpacity } from 'react-native';
 import ProfilePicture from './ProfilePicture'; 
+import { AvatarShape } from '../../types/ImagePickerTypes';
+
 
 const LOCAL_COLORS = {
   WHITE: '#FFFFFF',
@@ -12,41 +14,62 @@ const LOCAL_SIZES = {
   SPACING_SM: 8,
   SPACING_MD: 12,
   AVATAR_SIZE: 100,
+  AVATAR_BORDER: 3,
   AVATAR_OFFSET: 50, 
 } as const;
 
 export interface ProfileCardProps {
   username: string;
-  displayName: string;
+  //displayName: string;
   bio: string;
   //profileImageUrl?: ProfilePictureProps['imageUrl']; 
   avatarSource?: ImageSourcePropType | null;
+  isAvatarCircular?: boolean;
   style?: StyleProp<ViewStyle>;
+  onEditAvatarPress: (currentShape: AvatarShape) => void;
 }
 
 const ProfileCard = ({
   username,
-  displayName,
+  //displayName,
   bio,
   //profileImageUrl ,
   avatarSource,
+   isAvatarCircular = true, 
   style,
+  onEditAvatarPress,
 }: ProfileCardProps) => {
 
   const negativeMarginTop = LOCAL_SIZES.AVATAR_SIZE / 2;
+  const avatarSizeWithBorder = LOCAL_SIZES.AVATAR_SIZE + (LOCAL_SIZES.AVATAR_BORDER * 2);
+
+  //Determinar la forma actual para enviarla al handler
+  const currentShape: AvatarShape = isAvatarCircular ? 'circle' : 'square';
+
+  const handlePress = () => {
+      onEditAvatarPress(currentShape);
+  };
 
   return (
     <View style={[styles.cardContainer, style, { marginTop: -negativeMarginTop }]}>
-      
+      <TouchableOpacity 
+      onPress={handlePress} 
+      style={styles.profilePictureWrapper}
+      >
       <ProfilePicture 
         //imageUrl={profileImageUrl}
         source={avatarSource}
-        style={styles.profilePicturePosition} // Aplica un margen superior para bajarlo en la tarjeta 
+        isCircular={isAvatarCircular}
+        size={LOCAL_SIZES.AVATAR_SIZE}
+        borderWidth={LOCAL_SIZES.AVATAR_BORDER}
       />
 
-      <View style={styles.displayNameContainer}>
+
+      </TouchableOpacity>
+      
+      {/*<View style={styles.displayNameContainer}>
         <Text style={styles.displayNameText}>{displayName}</Text>
-      </View>
+      </View>*/}
 
 
       <View style={styles.usernameContainer}>
@@ -62,6 +85,7 @@ const ProfileCard = ({
   );
 };
 
+
 const styles = StyleSheet.create({
   cardContainer: {
     width: '100%',
@@ -76,15 +100,24 @@ const styles = StyleSheet.create({
     backgroundColor: LOCAL_COLORS.WHITE, 
   },
   
-  profilePicturePosition: {
+  profilePictureWrapper: {
     marginTop: -LOCAL_SIZES.AVATAR_SIZE / 2, 
+    width: LOCAL_SIZES.AVATAR_SIZE + (LOCAL_SIZES.AVATAR_BORDER * 2),
+    height: LOCAL_SIZES.AVATAR_SIZE + (LOCAL_SIZES.AVATAR_BORDER * 2),
+    borderRadius: (LOCAL_SIZES.AVATAR_SIZE + (LOCAL_SIZES.AVATAR_BORDER * 2)) / 2,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
+
+  /*profilePicturePosition: {
+    marginTop: -LOCAL_SIZES.AVATAR_SIZE / 2, 
+  },*/
   
   usernameContainer: {
     justifyContent: 'center',
     alignItems: 'center',
   },
-  displayNameContainer: {
+  /*displayNameContainer: {
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 2, 
@@ -95,7 +128,7 @@ const styles = StyleSheet.create({
     fontSize: 20, 
     fontWeight: '600',
     lineHeight: 24, 
-  },
+  },*/
   usernameText: {
     color: '#616161',
     textAlign: 'center',
