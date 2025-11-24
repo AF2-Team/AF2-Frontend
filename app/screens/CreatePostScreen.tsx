@@ -1,13 +1,16 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
   Platform,
   TextInput as RNTextInput,
   ScrollView,
-  Keyboard,
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
 } from "react-native";
 import styled from "styled-components/native";
 import { DiscardPostModal } from "../../components/DiscardPostModal";
@@ -29,32 +32,10 @@ export default function CreatePostScreen() {
   const [postContent, setPostContent] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [textStyle, setTextStyle] = useState("regular");
-  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   const [showDiscardModal, setShowDiscardModal] = useState(false);
   const [showTagModal, setShowTagModal] = useState(false);
   const [showTextStyleModal, setShowTextStyleModal] = useState(false);
-
-  // CORREGIDO: Efecto para detectar cuando el teclado se muestra/oculta
-  useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener(
-      "keyboardDidShow",
-      () => {
-        setIsKeyboardVisible(true);
-      },
-    );
-    const keyboardDidHideListener = Keyboard.addListener(
-      "keyboardDidHide",
-      () => {
-        setIsKeyboardVisible(false);
-      },
-    );
-
-    return () => {
-      keyboardDidShowListener.remove();
-      keyboardDidHideListener.remove();
-    };
-  }, []);
 
   const handleClose = () => {
     if (postContent.trim() !== "" || selectedTags.length > 0) {
@@ -76,7 +57,22 @@ export default function CreatePostScreen() {
     router.push("/");
   };
 
-  // CORREGIDO: Validación mejorada que se actualiza en cada cambio
+  const getFontFamily = (style: string) => {
+    switch (style) {
+      case "light":
+        return THEME.FONTS.LIGHT;
+      case "regular":
+        return THEME.FONTS.REGULAR;
+      case "semibold":
+        return THEME.FONTS.SEMI_BOLD;
+      case "bold":
+        return THEME.FONTS.BOLD;
+      default:
+        return THEME.FONTS.REGULAR;
+    }
+  };
+
+  // ⭕ SIMPLE Y DIRECTO - igual que en LoginScreen
   const isReadyToPublish = postContent.trim().length > 0;
 
   return (
@@ -90,10 +86,7 @@ export default function CreatePostScreen() {
       >
         <Container>
           <Header>
-            <CloseButton
-              onPress={handleClose}
-              accessibilityLabel="Cerrar y descartar"
-            >
+            <CloseButton onPress={handleClose}>
               <Ionicons name="close-outline" size={32} color={Colors.text} />
             </CloseButton>
 
@@ -113,10 +106,31 @@ export default function CreatePostScreen() {
               />
             </UserHeaderContainer>
 
-            {/* CORREGIDO: Botón con estado correcto que se actualiza al borrar */}
-            <PublishButton onPress={handlePublish} disabled={!isReadyToPublish}>
-              <PublishText disabled={!isReadyToPublish}>Publicar</PublishText>
-            </PublishButton>
+            {/* ⭕ BOTÓN SIMPLIFICADO - igual que en LoginScreen */}
+            <TouchableOpacity
+              onPress={handlePublish}
+              disabled={!isReadyToPublish}
+              style={{
+                backgroundColor: isReadyToPublish
+                  ? Colors.action // AZUL CUANDO HAY TEXTO
+                  : Colors.grayLight, // GRIS CLARO SIN TEXTO
+                paddingHorizontal: THEME.SPACING.MD,
+                paddingVertical: THEME.SPACING.SM,
+                borderRadius: 20,
+              }}
+            >
+              <Text
+                style={{
+                  color: isReadyToPublish
+                    ? Colors.textLight // BLANCO CUANDO ACTIVO
+                    : Colors.grayMedium, // GRIS OSCURO CUANDO VACÍO
+                  fontSize: 16,
+                  fontFamily: THEME.FONTS.BOLD,
+                }}
+              >
+                Publicar
+              </Text>
+            </TouchableOpacity>
           </Header>
 
           <ScrollView
@@ -135,16 +149,7 @@ export default function CreatePostScreen() {
                 value={postContent}
                 onChangeText={setPostContent}
                 style={{
-                  fontFamily:
-                    textStyle === "light"
-                      ? THEME.FONTS.LIGHT
-                      : textStyle === "regular"
-                        ? THEME.FONTS.REGULAR
-                        : textStyle === "semibold"
-                          ? THEME.FONTS.SEMI_BOLD
-                          : textStyle === "bold"
-                            ? THEME.FONTS.BOLD
-                            : THEME.FONTS.REGULAR,
+                  fontFamily: getFontFamily(textStyle),
                   fontSize: THEME.TYPOGRAPHY.BODY,
                   color: Colors.text,
                   minHeight: 180,
@@ -156,10 +161,7 @@ export default function CreatePostScreen() {
           </ScrollView>
 
           <TagBar>
-            <TagAddButton
-              onPress={() => setShowTagModal(true)}
-              accessibilityLabel="Añadir etiquetas"
-            >
+            <TagAddButton onPress={() => setShowTagModal(true)}>
               <TagAddText>+ Añadir Etiqueta</TagAddText>
             </TagAddButton>
 
@@ -170,40 +172,34 @@ export default function CreatePostScreen() {
             ))}
           </TagBar>
 
-          {/* CORREGIDO: Barra morada que se oculta con teclado y reaparece */}
-          {!isKeyboardVisible && (
-            <BottomBar>
-              <LeftIcons>
-                <ToolButton
-                  onPress={() => setShowTextStyleModal(true)}
-                  accessibilityLabel="Seleccionar estilo de texto"
-                >
-                  <Ionicons
-                    name="text-outline"
-                    size={26}
-                    color={Colors.textLight}
-                  />
-                </ToolButton>
-              </LeftIcons>
+          <BottomBar>
+            <LeftIcons>
+              <ToolButton onPress={() => setShowTextStyleModal(true)}>
+                <Ionicons
+                  name="text-outline"
+                  size={26}
+                  color={Colors.textLight}
+                />
+              </ToolButton>
+            </LeftIcons>
 
-              <RightIcons>
-                <ToolButton
-                  onPress={() =>
-                    Alert.alert(
-                      "Función no implementada",
-                      "Añadir imagen a la publicación",
-                    )
-                  }
-                >
-                  <Ionicons
-                    name="image-outline"
-                    size={26}
-                    color={Colors.textLight}
-                  />
-                </ToolButton>
-              </RightIcons>
-            </BottomBar>
-          )}
+            <RightIcons>
+              <ToolButton
+                onPress={() =>
+                  Alert.alert(
+                    "Función no implementada",
+                    "Añadir imagen a la publicación",
+                  )
+                }
+              >
+                <Ionicons
+                  name="image-outline"
+                  size={26}
+                  color={Colors.textLight}
+                />
+              </ToolButton>
+            </RightIcons>
+          </BottomBar>
         </Container>
 
         <DiscardPostModal
@@ -227,6 +223,32 @@ export default function CreatePostScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = {
+  publishButton: {
+    paddingHorizontal: THEME.SPACING.MD,
+    paddingVertical: THEME.SPACING.SM,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  publishButtonActive: {
+    backgroundColor: Colors.action, // AZUL
+  },
+  publishButtonDisabled: {
+    backgroundColor: Colors.grayLight, // GRIS CLARO
+  },
+  publishButtonText: {
+    fontSize: 16,
+    fontFamily: THEME.FONTS.BOLD,
+  },
+  publishButtonTextActive: {
+    color: Colors.textLight, // BLANCO
+  },
+  publishButtonTextDisabled: {
+    color: Colors.grayMedium, // GRIS OSCURO
+  },
+};
 
 const Container = styled.View`
   flex: 1;
@@ -265,20 +287,6 @@ const Username = styled.Text`
   color: ${Colors.text};
   font-family: ${THEME.FONTS.SEMI_BOLD};
   margin-right: ${THEME.SPACING.XS}px;
-`;
-
-// CORREGIDO: Botón que cambia correctamente al borrar texto
-const PublishButton = styled.TouchableOpacity<{ disabled: boolean }>`
-  background-color: ${(props) =>
-    props.disabled ? Colors.grayLight : Colors.action};
-  padding: ${THEME.SPACING.SM}px ${THEME.SPACING.MD}px;
-  border-radius: 20px;
-`;
-
-const PublishText = styled.Text<{ disabled?: boolean }>`
-  color: ${(props) => (props.disabled ? Colors.grayMedium : Colors.textLight)};
-  font-size: 16px;
-  font-family: ${THEME.FONTS.BOLD};
 `;
 
 const Content = styled.View`
