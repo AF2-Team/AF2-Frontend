@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { ImageSourcePropType } from "react-native";
 
 import { PostOptionsModal } from "./PostOptionsModal";
+import { Colors, THEME } from "@/constants";
 const defaultAvatar = require("../assets/images/default_avatar.png");
 
 interface PostHeaderProps {
@@ -22,11 +23,6 @@ interface PostHeaderProps {
   postContent?: string;
   onNotInterested?: (postId: string) => void;
 }
-
-const PRIMARY_COLOR = "#1291EB";
-const WHITE_COLOR = "#FFFFFF";
-const TEXT_PRIMARY_COLOR = "#423646";
-const TEXT_SECONDARY_COLOR = "#687076";
 
 export const PostHeader = ({
   user,
@@ -76,6 +72,16 @@ export const PostHeader = ({
 
   const handleFollowFromModal = () => {
     const newFollowState = true;
+    setFollowing(newFollowState);
+
+    if (onFollowChange) {
+      onFollowChange(user.id, newFollowState);
+    }
+    setShowOptionsModal(false);
+  };
+
+  const handleUnfollow = () => {
+    const newFollowState = false;
     setFollowing(newFollowState);
 
     if (onFollowChange) {
@@ -139,22 +145,16 @@ export const PostHeader = ({
           {/* Botón de Seguir (solo visible si no se está siguiendo) */}
           {!following && (
             <FollowButton onPress={handleFollowPress}>
-              {/* Usamos el ícono de persona con signo más para "Seguir" */}
-              <Ionicons
-                name="person-add-outline"
-                size={20}
-                color={PRIMARY_COLOR}
-              />
+              <FollowButtonText>Seguir</FollowButtonText>
             </FollowButton>
           )}
 
           {/* Botón de Opciones */}
           <OptionsButton onPress={handleOptionsPress}>
-            {/* Usamos el ícono de tres puntos verticales para opciones */}
             <Ionicons
               name="ellipsis-vertical"
               size={20}
-              color={TEXT_SECONDARY_COLOR}
+              color={Colors.textMuted}
             />
           </OptionsButton>
         </ActionsContainer>
@@ -165,6 +165,7 @@ export const PostHeader = ({
         onClose={handleCloseModal}
         onNotInterested={handleNotInterested}
         onFollow={handleFollowFromModal}
+        onUnfollow={handleUnfollow}
         isFollowing={following}
       />
     </>
@@ -174,12 +175,12 @@ export const PostHeader = ({
 const Container = styled.View`
   flex-direction: row;
   align-items: center;
-  padding: 12px 15px;
-  background-color: ${WHITE_COLOR};
+  padding: ${THEME.SPACING.MD}px ${THEME.SPACING.SCREEN_HORIZONTAL}px;
+  background-color: ${Colors.background};
 `;
 
 const AvatarContainer = styled.TouchableOpacity`
-  margin-right: 12px;
+  margin-right: ${THEME.SPACING.MD}px;
 `;
 
 const Avatar = styled.Image<{ avatarShape: "circle" | "square" }>`
@@ -194,16 +195,16 @@ const UserInfo = styled.TouchableOpacity`
 `;
 
 const Username = styled.Text`
-  font-family: "OpenSans-SemiBold";
-  font-size: 14px;
-  color: ${TEXT_PRIMARY_COLOR};
-  margin-bottom: 2px;
+  font-family: ${THEME.FONTS.SEMI_BOLD};
+  font-size: ${THEME.TYPOGRAPHY.BODY}px;
+  color: ${Colors.text};
+  margin-bottom: ${THEME.SPACING.XS}px;
 `;
 
 const DateText = styled.Text`
-  font-family: "OpenSans-Light";
-  font-size: 12px;
-  color: ${TEXT_SECONDARY_COLOR};
+  font-family: ${THEME.FONTS.LIGHT};
+  font-size: ${THEME.TYPOGRAPHY.CAPTION}px;
+  color: ${Colors.textMuted};
 `;
 
 const ActionsContainer = styled.View`
@@ -212,10 +213,18 @@ const ActionsContainer = styled.View`
 `;
 
 const FollowButton = styled.TouchableOpacity`
-  margin-right: 12px;
-  padding: 4px;
+  margin-right: ${THEME.SPACING.MD}px;
+  padding: ${THEME.SPACING.XS}px ${THEME.SPACING.SM}px;
+  background-color: ${Colors.action};
+  border-radius: 20px;
+`;
+
+const FollowButtonText = styled.Text`
+  font-family: ${THEME.FONTS.SEMI_BOLD};
+  font-size: ${THEME.TYPOGRAPHY.CAPTION}px;
+  color: ${Colors.textLight};
 `;
 
 const OptionsButton = styled.TouchableOpacity`
-  padding: 4px;
+  padding: ${THEME.SPACING.XS}px;
 `;
