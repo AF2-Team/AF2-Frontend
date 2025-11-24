@@ -1,7 +1,7 @@
+import { Colors, THEME } from "@/constants";
 import { Ionicons } from "@expo/vector-icons";
 import { Href, usePathname, useRouter } from "expo-router";
 import { Pressable, StyleSheet, View } from "react-native";
-import { Colors, THEME } from "@/constants";
 
 type IoniconsName = keyof typeof Ionicons.glyphMap;
 
@@ -38,7 +38,7 @@ const routes: Route[] = [
     label: "Notifications",
   },
   {
-    path: "/screens/MessageScreen",
+    path: "/screens/MessageListScreen",
     icon: (isActive) => (isActive ? "chatbubble" : "chatbubble-outline"),
     label: "Messages",
   },

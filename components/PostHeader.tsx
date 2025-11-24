@@ -1,20 +1,14 @@
-<<<<<<< HEAD
-import { Colors, THEME } from "@/constants";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import React, { useState } from "react";
-import styled from "styled-components/native";
-=======
-import React, { useState } from "react";
-import { useRouter } from "expo-router";
-import styled from "styled-components/native";
-import { Ionicons } from "@expo/vector-icons";
-import { ImageSourcePropType } from "react-native";
 
-import { PostOptionsModal } from "./PostOptionsModal";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
+import { ImageSourcePropType } from "react-native";
+import styled from "styled-components/native";
+
 import { Colors, THEME } from "@/constants";
+import { PostOptionsModal } from "./PostOptionsModal";
 const defaultAvatar = require("../assets/images/default_avatar.png");
->>>>>>> 4628101ce7a21196167b907c8cd979c8f939c0b4
+
 
 interface PostHeaderProps {
   user: {
@@ -33,19 +27,13 @@ interface PostHeaderProps {
 }
 
 export const PostHeader = ({
-<<<<<<< HEAD
-  onCommentPress,
-  initialLikes,
-  initialFavorites,
-  initialReposts,
-  initialComments,
-=======
+
   user,
   createdAt,
   isFollowing = false,
   onFollowChange,
   onOptionsPress,
->>>>>>> 4628101ce7a21196167b907c8cd979c8f939c0b4
+
   postId,
   postContent,
   onNotInterested,
