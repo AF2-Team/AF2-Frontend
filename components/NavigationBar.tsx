@@ -1,31 +1,51 @@
+import { Colors, THEME } from "@/constants";
 import { Ionicons } from "@expo/vector-icons";
 import { Href, usePathname, useRouter } from "expo-router";
 import { Pressable, StyleSheet, View } from "react-native";
 
 type IoniconsName = keyof typeof Ionicons.glyphMap;
+
 interface NavigationBarProps {
   style?: any;
 }
+
 interface Route {
   path: Href;
   icon: (isActive: boolean) => IoniconsName;
+  label: string;
 }
+
 interface INavIcon {
-  icon: IoniconsName; 
+  icon: IoniconsName;
   pressed: boolean;
   isActive: boolean;
 }
+
 const routes: Route[] = [
-  { path: "/screens/HomeScreen", icon: (isActive) => isActive ? "home" : "home-outline" },
-  { path: "/screens/Search", icon: (isActive) => isActive ? "search" : "search-outline" },
-  //{ path: "/screens/Notifications", icon: (isActive) => isActive ? "notifications" : "notifications-outline" },
-  //{ path: "/screens/Messages", icon: (isActive) => isActive ? "chatbubble" : "chatbubble-outline" }
+  {
+    path: "/screens/HomeScreen",
+    icon: (isActive) => (isActive ? "home" : "home-outline"),
+    label: "Home",
+  },
+  {
+    path: "/screens/SearchScreen",
+    icon: (isActive) => (isActive ? "search" : "search-outline"),
+    label: "Search",
+  },
+  {
+    path: "/screens/NotificationScreen",
+    icon: (isActive) => (isActive ? "notifications" : "notifications-outline"),
+    label: "Notifications",
+  },
+  {
+    path: "/screens/MessageListScreen",
+    icon: (isActive) => (isActive ? "chatbubble" : "chatbubble-outline"),
+    label: "Messages",
+  },
 ];
-// Altura fija de la barra
-const NAV_BAR_HEIGHT = 60;
 
 const NavIcon = ({ icon, pressed, isActive }: INavIcon) => {
-  const iconColor = isActive ? "#FFFFFF" : "#D1D5DB";
+  const iconColor = isActive ? Colors.tabIconSelected : Colors.navIconInactive;
   const iconOpacity = pressed ? 0.8 : 1;
 
   return (
@@ -44,20 +64,25 @@ export const NavigationBar = ({ style }: NavigationBarProps) => {
 
   return (
     <View style={[styles.container, style]}>
-      {routes.map(({ path, icon }) => {
-        const isActive = pathname === `/(tabs)/${path}`;
-        
+      {routes.map(({ path, icon, label }) => {
+        const isActive =
+          pathname === path || pathname.startsWith(path as string);
+
         return (
-          <Pressable 
+          <Pressable
             key={String(path)}
-            onPress={() => router.navigate(path)}
+            onPress={() => router.push(path)}
+            style={styles.pressable}
           >
             {({ pressed }) => (
-              <View style={[
-                styles.buttonContent,
-                pressed && styles.buttonContentPressed
-              ]}>
-                <NavIcon 
+              <View
+                style={[
+                  styles.buttonContent,
+                  isActive && styles.buttonContentActive,
+                  pressed && styles.buttonContentPressed,
+                ]}
+              >
+                <NavIcon
                   icon={icon(isActive)}
                   pressed={pressed}
                   isActive={isActive}
@@ -71,32 +96,33 @@ export const NavigationBar = ({ style }: NavigationBarProps) => {
   );
 };
 
-// Styled Components
 const styles = StyleSheet.create({
   container: {
     width: "100%",
-    height: NAV_BAR_HEIGHT,
-    backgroundColor: "#423646",
-    borderRadius: "0px",
-    gap: 30,
+    height: THEME.SPACING.NAV_BAR_HEIGHT,
+    backgroundColor: Colors.tabBarBackground,
+    borderRadius: 0,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 15,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    justifyContent: "space-around",
+    paddingHorizontal: THEME.SPACING.SM,
+  },
+  pressable: {
+    flex: 1,
+    alignItems: "center",
   },
   buttonContent: {
     justifyContent: "center",
     alignItems: "center",
-    alignSelf: 'flex-start',
-    height: "100%",
-    backgroundColor: "transparent",
-    borderRadius: 0,
+    height: 44,
+    width: 44,
+    borderRadius: THEME.COMMON.BORDER_RADIUS.FULL,
+    backgroundColor: Colors.transparent,
+  },
+  buttonContentActive: {
+    backgroundColor: Colors.pressedOverlay,
   },
   buttonContentPressed: {
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
-  }
+    backgroundColor: Colors.pressedOverlay,
+  },
 });

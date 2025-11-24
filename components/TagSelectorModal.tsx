@@ -5,12 +5,12 @@ import {
   Animated,
   Dimensions,
   Keyboard,
-  FlatList,
   ScrollView,
   TextInput as RNTextInput,
 } from "react-native";
 import styled from "styled-components/native";
 import { Ionicons } from "@expo/vector-icons";
+import { Colors, THEME } from "@/constants";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -53,7 +53,7 @@ export const TagSelectorModal: React.FC<TagSelectorModalProps> = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [slideAnim] = useState(new Animated.Value(screenHeight));
   const [fadeAnim] = useState(new Animated.Value(0));
-  const inputRef = useRef<RNTextInput>(null); //
+  const inputRef = useRef<RNTextInput>(null);
 
   useEffect(() => {
     if (visible) {
@@ -62,32 +62,30 @@ export const TagSelectorModal: React.FC<TagSelectorModalProps> = ({
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 1,
-          duration: 200,
+          duration: 300,
           useNativeDriver: true,
         }),
         Animated.timing(slideAnim, {
           toValue: 0,
-          duration: 200,
+          duration: 300,
           useNativeDriver: true,
         }),
       ]).start(() => {
-        inputRef.current?.focus();
+        setTimeout(() => inputRef.current?.focus(), 100);
       });
     } else {
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 0,
-          duration: 200,
+          duration: 300,
           useNativeDriver: true,
         }),
         Animated.timing(slideAnim, {
           toValue: screenHeight,
-          duration: 200,
+          duration: 300,
           useNativeDriver: true,
         }),
-      ]).start(() => {
-        if (onClose) onClose();
-      });
+      ]).start();
     }
   }, [visible, initiallySelectedTags]);
 
@@ -131,22 +129,11 @@ export const TagSelectorModal: React.FC<TagSelectorModalProps> = ({
 
   const handleClose = () => {
     Keyboard.dismiss();
-    if (onClose) onClose();
+    onClose();
   };
 
   const filteredTags = suggestedTags.filter((tag) =>
     tag.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
-
-  const renderTagItem = ({ item }: { item: string }) => (
-    <SuggestedTag
-      onPress={() => handleTagPress(item)}
-      isSelected={selectedTags.includes(item)}
-    >
-      <SuggestedTagText isSelected={selectedTags.includes(item)}>
-        #{item}
-      </SuggestedTagText>
-    </SuggestedTag>
   );
 
   return (
@@ -155,6 +142,7 @@ export const TagSelectorModal: React.FC<TagSelectorModalProps> = ({
       transparent
       animationType="none"
       onRequestClose={handleClose}
+      statusBarTranslucent
     >
       <Overlay as={Animated.View} style={{ opacity: fadeAnim }}>
         <TouchableWithoutFeedback onPress={handleClose}>
@@ -167,8 +155,6 @@ export const TagSelectorModal: React.FC<TagSelectorModalProps> = ({
             transform: [{ translateY: slideAnim }],
           }}
         >
-          <HandleBar />
-
           <Header>
             <Title>Añadir etiquetas</Title>
             <DoneButton onPress={handleDone}>
@@ -177,13 +163,29 @@ export const TagSelectorModal: React.FC<TagSelectorModalProps> = ({
           </Header>
 
           <Content>
-            {/* Etiquetas seleccionadas */}
+            {/* Campo de búsqueda */}
+            <SearchContainer>
+              <HashSymbol>#</HashSymbol>
+              <SearchInput
+                ref={inputRef}
+                placeholder="Buscar o crear etiquetas..."
+                placeholderTextColor={Colors.textPlaceholder}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                onSubmitEditing={handleSearchInputSubmit}
+                returnKeyType="done"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </SearchContainer>
+
+            {/* Etiquetas seleccionadas - Scroll horizontal */}
             {selectedTags.length > 0 && (
-              <SelectedTagsContainer>
+              <SelectedTagsSection>
+                <SectionTitle>Tus etiquetas</SectionTitle>
                 <SelectedTagsScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
-                  keyboardShouldPersistTaps="handled"
                 >
                   {selectedTags.map((tag) => (
                     <SelectedTag key={tag}>
@@ -191,42 +193,36 @@ export const TagSelectorModal: React.FC<TagSelectorModalProps> = ({
                       <RemoveTagButton onPress={() => handleTagPress(tag)}>
                         <Ionicons
                           name="close-circle"
-                          size={20}
-                          color="#ffffff"
+                          size={14}
+                          color={Colors.textLight}
                         />
                       </RemoveTagButton>
                     </SelectedTag>
                   ))}
                 </SelectedTagsScrollView>
-              </SelectedTagsContainer>
+              </SelectedTagsSection>
             )}
 
-            {/* Campo de búsqueda */}
-            <SearchContainer>
-              <HashSymbol>#</HashSymbol>
-              <SearchInput
-                ref={inputRef}
-                placeholder="Añadir etiquetas o buscar sugerencias..."
-                placeholderTextColor="#4B4B4B"
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                onSubmitEditing={handleSearchInputSubmit}
-                returnKeyType="done"
-                autoCapitalize="none"
-              />
-            </SearchContainer>
-
-            {/* Etiquetas sugeridas */}
-            <SuggestedTagsTitle>Etiquetas sugeridas</SuggestedTagsTitle>
-            <SuggestedTagsList
-              data={filteredTags}
-              keyExtractor={(item) => item}
-              renderItem={renderTagItem}
-              numColumns={2}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingBottom: 20 }}
-              keyboardShouldPersistTaps="always"
-            />
+            {/* Etiquetas sugeridas - Scroll horizontal */}
+            <SuggestedTagsSection>
+              <SectionTitle>Etiquetas sugeridas</SectionTitle>
+              <SuggestedTagsScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+              >
+                {filteredTags.map((tag) => (
+                  <SuggestedTag
+                    key={tag}
+                    onPress={() => handleTagPress(tag)}
+                    isSelected={selectedTags.includes(tag)}
+                  >
+                    <SuggestedTagText isSelected={selectedTags.includes(tag)}>
+                      #{tag}
+                    </SuggestedTagText>
+                  </SuggestedTag>
+                ))}
+              </SuggestedTagsScrollView>
+            </SuggestedTagsSection>
           </Content>
         </ModalContainer>
       </Overlay>
@@ -234,10 +230,10 @@ export const TagSelectorModal: React.FC<TagSelectorModalProps> = ({
   );
 };
 
-// Estilos
+// Estilos corregidos con botones más compactos
 const Overlay = styled.View`
   flex: 1;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: ${Colors.modalOverlay};
   justify-content: flex-end;
 `;
 
@@ -246,146 +242,138 @@ const OverlayBackground = styled.View`
 `;
 
 const ModalContainer = styled(Animated.View)`
-  background-color: #ffffff;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
-  max-height: 75%;
-  width: ${screenWidth}px;
-`;
-
-const HandleBar = styled.View`
-  width: 40px;
-  height: 4px;
-  background-color: #d9d9d9;
-  border-radius: 2px;
-  align-self: center;
-  margin-top: 8px;
-  margin-bottom: 8px;
+  background-color: ${Colors.background};
+  border-top-left-radius: ${THEME.COMMON.BORDER_RADIUS.LG}px;
+  border-top-right-radius: ${THEME.COMMON.BORDER_RADIUS.LG}px;
+  height: 30%;
+  width: 100%;
+  shadow-color: #000;
+  shadow-offset: 0px -4px;
+  shadow-opacity: 0.25;
+  shadow-radius: 12px;
+  elevation: 3;
 `;
 
 const Header = styled.View`
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
+  padding: ${THEME.SPACING.MD}px ${THEME.SPACING.LG}px;
   border-bottom-width: 1px;
-  border-bottom-color: #f0f0f0;
+  border-bottom-color: ${Colors.border};
 `;
 
 const Title = styled.Text`
-  font-size: 16px;
-  font-weight: 600;
-  color: #000000;
-  font-family: "OpenSans-SemiBold";
+  font-size: ${THEME.TYPOGRAPHY.SUBTITLE}px;
+  color: ${Colors.text};
+  font-family: ${THEME.FONTS.BOLD};
 `;
 
 const DoneButton = styled.TouchableOpacity`
-  padding: 8px 16px;
+  padding: ${THEME.SPACING.XS}px ${THEME.SPACING.SM}px;
 `;
 
 const DoneText = styled.Text`
-  color: #1291eb;
-  font-size: 16px;
-  font-weight: 600;
-  font-family: "OpenSans-SemiBold";
+  color: ${Colors.action};
+  font-size: ${THEME.TYPOGRAPHY.SUBTITLE}px;
+  font-family: ${THEME.FONTS.BOLD};
 `;
 
 const Content = styled.View`
   flex: 1;
-  padding: 20px;
-`;
-
-const SelectedTagsContainer = styled.View`
-  margin-bottom: 24px;
-`;
-
-const SelectedTagsScrollView = styled(ScrollView).attrs({
-  contentContainerStyle: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-  },
-})`
-  flex-grow: 0;
-  max-height: 100px;
-`;
-
-const SelectedTag = styled.View`
-  flex-direction: row;
-  align-items: center;
-  background-color: #1291eb;
-  padding: 6px 10px;
-  border-radius: 16px;
-  margin-right: 8px;
-  margin-bottom: 8px;
-`;
-
-const SelectedTagText = styled.Text`
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 500;
-  font-family: "OpenSans-Medium";
-  margin-right: 6px;
-`;
-
-const RemoveTagButton = styled.TouchableOpacity`
-  padding: 2px;
-  margin-left: 2px;
+  padding: ${THEME.SPACING.MD}px ${THEME.SPACING.LG}px;
 `;
 
 const SearchContainer = styled.View`
   flex-direction: row;
   align-items: center;
-  padding-bottom: 12px;
-  border-bottom-width: 1px;
-  border-bottom-color: #e0e0e0;
-  margin-bottom: 24px;
+  background-color: ${Colors.backgroundAlt};
+  border-radius: ${THEME.COMMON.BORDER_RADIUS.MD}px;
+  padding: ${THEME.SPACING.SM}px ${THEME.SPACING.MD}px;
+  margin-bottom: ${THEME.SPACING.MD}px;
+  border-width: 1px;
+  border-color: ${Colors.border};
 `;
 
 const HashSymbol = styled.Text`
-  font-size: 24px;
-  font-weight: bold;
-  color: #4b4b4b;
-  margin-right: 12px;
+  font-size: ${THEME.TYPOGRAPHY.SUBTITLE}px;
+  color: ${Colors.text};
+  font-family: ${THEME.FONTS.BOLD};
+  margin-right: ${THEME.SPACING.SM}px;
 `;
 
 const SearchInput = styled.TextInput`
   flex: 1;
-  font-size: 18px;
-  color: #000000;
-  font-family: "OpenSans-Regular";
-  padding-vertical: 8px;
+  font-size: ${THEME.TYPOGRAPHY.BODY}px;
+  color: ${Colors.text};
+  font-family: ${THEME.FONTS.REGULAR};
+  padding: 0;
 `;
 
-const SuggestedTagsTitle = styled.Text`
-  font-size: 14px;
-  color: #4b4b4b;
-  margin-bottom: 12px;
-  font-family: "OpenSans-Medium";
+const SelectedTagsSection = styled.View`
+  margin-bottom: ${THEME.SPACING.MD}px;
 `;
 
-const SuggestedTagsList = styled(
-  FlatList as new (props: any) => FlatList<string>,
-)`
+const SuggestedTagsSection = styled.View`
   flex: 1;
-  margin-horizontal: -6px;
+`;
+
+const SectionTitle = styled.Text`
+  font-size: ${THEME.TYPOGRAPHY.CAPTION}px;
+  color: ${Colors.text};
+  font-family: ${THEME.FONTS.SEMI_BOLD};
+  margin-bottom: ${THEME.SPACING.SM}px;
+`;
+
+const SelectedTagsScrollView = styled.ScrollView.attrs({
+  horizontal: true,
+  showsHorizontalScrollIndicator: false,
+})`
+  flex-grow: 0;
+`;
+
+// Botones seleccionados - más compactos y redondeados
+const SelectedTag = styled.View`
+  flex-direction: row;
+  align-items: center;
+  background-color: ${Colors.action};
+  padding: ${THEME.SPACING.XS}px ${THEME.SPACING.SM}px;
+  border-radius: ${THEME.COMMON.BORDER_RADIUS.XL}px; /* Más redondeado */
+  margin-right: ${THEME.SPACING.SM}px;
+`;
+
+const SelectedTagText = styled.Text`
+  color: ${Colors.textLight};
+  font-size: ${THEME.TYPOGRAPHY.SMALL}px;
+  font-family: ${THEME.FONTS.SEMI_BOLD};
+  margin-right: ${THEME.SPACING.XS}px;
+`;
+
+const RemoveTagButton = styled.TouchableOpacity`
+  padding: 1px;
+`;
+
+const SuggestedTagsScrollView = styled.ScrollView.attrs({
+  horizontal: true,
+  showsHorizontalScrollIndicator: false,
+})`
+  flex: 1;
 `;
 
 const SuggestedTag = styled.TouchableOpacity<{ isSelected: boolean }>`
-  background-color: ${({ isSelected }) => (isSelected ? "#1291EB" : "#FFFFFF")};
-  border: 1.5px solid
-    ${({ isSelected }) => (isSelected ? "#1291EB" : "#D0D0D0")};
-  padding: 10px 14px;
-  border-radius: 16px;
-  margin: 6px;
-  flex: 1;
-  min-width: 45%;
+  background-color: ${({ isSelected }) =>
+    isSelected ? Colors.action : Colors.backgroundTag};
+  /* QUITAMOS el borde: border: 1px solid ${Colors.border}; */
+  padding: ${THEME.SPACING.XS}px ${THEME.SPACING.MD}px; /* Menos padding vertical */
+  border-radius: ${THEME.COMMON.BORDER_RADIUS.XL}px; /* Más redondeado */
+  margin-right: ${THEME.SPACING.SM}px;
   align-items: center;
   justify-content: center;
+  min-height: 32px; /* Altura fija más compacta */
 `;
 
 const SuggestedTagText = styled.Text<{ isSelected: boolean }>`
-  color: ${({ isSelected }) => (isSelected ? "#FFFFFF" : "#4B4B4B")};
-  font-size: 14px;
-  font-weight: 500;
-  font-family: "OpenSans-Medium";
+  color: ${({ isSelected }) => (isSelected ? Colors.textLight : Colors.text)};
+  font-size: ${THEME.TYPOGRAPHY.SMALL}px;
+  font-family: ${THEME.FONTS.SEMI_BOLD};
 `;

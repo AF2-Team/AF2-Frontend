@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  Modal,
-  TouchableWithoutFeedback,
   Animated,
   Dimensions,
+  Modal,
+  TouchableWithoutFeedback,
 } from "react-native";
 import styled from "styled-components/native";
 
@@ -28,12 +28,12 @@ export const DiscardPostModal: React.FC<DiscardPostModalProps> = ({
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 1,
-          duration: 200, // ✅ Consistente con otros modales (200ms)
+          duration: 200,
           useNativeDriver: true,
         }),
         Animated.timing(scaleAnim, {
           toValue: 1,
-          duration: 200, // ✅ Consistente con otros modales (200ms)
+          duration: 200,
           useNativeDriver: true,
         }),
       ]).start();

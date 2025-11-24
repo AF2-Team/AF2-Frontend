@@ -4,10 +4,11 @@ import {
   TouchableWithoutFeedback,
   Animated,
   Dimensions,
-  StyleSheet, // Importamos StyleSheet para hairlineWidth
+  StyleSheet,
 } from "react-native";
 import styled from "styled-components/native";
 import { Ionicons } from "@expo/vector-icons";
+import { Colors, THEME } from "@/constants";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -34,10 +35,10 @@ export const TextStyleModal: React.FC<TextStyleModalProps> = ({
     label: string;
     fontFamily: string;
   }[] = [
-    { key: "light", label: "Light", fontFamily: "OpenSans-Light" },
-    { key: "regular", label: "Regular", fontFamily: "OpenSans-Regular" },
-    { key: "semibold", label: "SemiBold", fontFamily: "OpenSans-SemiBold" },
-    { key: "bold", label: "Bold", fontFamily: "OpenSans-Bold" },
+    { key: "light", label: "Light", fontFamily: THEME.FONTS.LIGHT },
+    { key: "regular", label: "Regular", fontFamily: THEME.FONTS.REGULAR },
+    { key: "semibold", label: "SemiBold", fontFamily: THEME.FONTS.SEMI_BOLD },
+    { key: "bold", label: "Bold", fontFamily: THEME.FONTS.BOLD },
   ];
 
   useEffect(() => {
@@ -110,7 +111,11 @@ export const TextStyleModal: React.FC<TextStyleModalProps> = ({
                   {style.label}
                 </StyleText>
                 {selectedStyle === style.key && (
-                  <Ionicons name="checkmark-sharp" size={20} color="#1291eb" />
+                  <Ionicons
+                    name="checkmark-sharp"
+                    size={20}
+                    color={Colors.action}
+                  />
                 )}
               </StyleOption>
             ))}
@@ -121,10 +126,10 @@ export const TextStyleModal: React.FC<TextStyleModalProps> = ({
   );
 };
 
-// Estilos
+// Estilos actualizados con tus constantes
 const Overlay = styled.View`
   flex: 1;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: ${Colors.modalOverlay};
   justify-content: flex-end;
 `;
 
@@ -132,15 +137,12 @@ const OverlayBackground = styled.View`
   flex: 1;
 `;
 
-const BOTTOM_BAR_HEIGHT = 60; // Altura asumida de la barra inferior
-const BOTTOM_PADDING = 30; // Margen extra sobre la barra inferior
-
 const ModalContainer = styled(Animated.View)`
   position: absolute;
-  bottom: ${BOTTOM_BAR_HEIGHT + BOTTOM_PADDING}px;
-  left: 24px;
-  background-color: #ffffff;
-  border-radius: 12px;
+  bottom: ${THEME.SPACING.NAV_BAR_HEIGHT + THEME.SPACING.LG}px;
+  left: ${THEME.SPACING.LG}px;
+  background-color: ${Colors.background};
+  border-radius: ${THEME.COMMON.BORDER_RADIUS.LG}px;
   width: 180px;
   shadow-color: #000;
   shadow-offset: 0px 4px;
@@ -150,21 +152,22 @@ const ModalContainer = styled(Animated.View)`
 `;
 
 const ModalContent = styled.View`
-  padding: 4px 0;
+  padding: ${THEME.SPACING.XS}px 0;
 `;
 
 const StyleOption = styled.TouchableOpacity<{ isLast?: boolean }>`
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 18px;
+  padding: ${THEME.SPACING.MD}px ${THEME.SPACING.LG}px;
   border-bottom-width: ${({ isLast }) =>
     isLast ? "0px" : StyleSheet.hairlineWidth};
-  border-bottom-color: #e5e5e5;
+  border-bottom-color: ${Colors.border};
 `;
 
 const StyleText = styled.Text`
-  font-size: 17px;
-  color: #000000;
+  font-size: ${THEME.TYPOGRAPHY.SUBTITLE}px;
+  color: ${Colors.text};
   flex: 1;
+  font-family: ${THEME.FONTS.REGULAR};
 `;
