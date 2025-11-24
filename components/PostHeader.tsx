@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import { useRouter } from "expo-router";
-import styled from "styled-components/native";
-import { Ionicons } from "@expo/vector-icons";
 import { Colors, THEME } from "@/constants";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
+import styled from "styled-components/native";
 
 const ICON_CONFIG = {
   size: 24,
@@ -50,7 +50,7 @@ interface PostFooterProps {
   postUserAvatar?: string;
 }
 
-export const PostFooter = ({
+export const PostHeader = ({
   onCommentPress,
   initialLikes,
   initialFavorites,

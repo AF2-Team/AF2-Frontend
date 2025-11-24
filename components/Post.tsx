@@ -1,7 +1,7 @@
 import { useRouter } from "expo-router";
 import React from "react";
 import styled from "styled-components/native";
-import { PostData } from "../types/PostTypes.ts";
+import { PostData } from "../types/PostTypes";
 import { PostFooter } from "./PostFooter";
 import { PostHeader } from "./PostHeader";
 
