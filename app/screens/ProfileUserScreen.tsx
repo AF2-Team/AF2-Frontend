@@ -11,29 +11,22 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import styled from 'styled-components/native';
-
-// Importaciones de Componentes (Asumiendo Rutas)
 import ProfileHeader from '../../components/profile/ProfileHeader';
 import ProfileCard from '../../components/profile/ProfileCard';
 import ProfileTabs from '../../components/profile/ProfileTabs'; 
 import ImageEditOptionsSheet from '../../components/ImageEditOptionsSheet';
 import ImageEditHeader from '../../components/ImageEditHeader';
-
-// Importaciones de Tipos (Asumiendo Rutas y Contenido)
 import { AvatarShape, ImageCropType, ImagePickerState } from '@/types/ImagePickerTypes';
 import { PostUser } from '@/types/PostTypes';
 
-// --- CONFIGURACIÓN DE TIPOS Y MOCKS ---
 
-// Paso 1: Usar Omit para limpiar la interfaz base de las propiedades que tendrán un tipo más amplio (ImageSourcePropType)
+// Usar Omit para limpiar la interfaz base de las propiedades para pasar props con ImageSourcePropType
 type PostUserWithoutAvatar = Omit<PostUser, 'avatarUrl' | 'isFollowing'>;
 
 interface ProfileData extends PostUserWithoutAvatar {
   // Asumo displayName es necesario para el perfil completo.
   displayName: string;
   bio: string;
-  
-  // Reintroducimos las propiedades con el tipo que acepta require() (number) y URI (string)
   coverUrl: ImageSourcePropType | null; 
   avatarUrl: ImageSourcePropType | null; 
 }
@@ -49,7 +42,7 @@ const APP_COLORS = {
 
 const { width, height } = Dimensions.get('window');
 
-// --- COMPONENTE PRINCIPAL ---
+
 
 const ProfileUserScreen: React.FC = () => {
 
@@ -72,9 +65,6 @@ const ProfileUserScreen: React.FC = () => {
     selectedImageUri: null, 
     avatarShape: userProfile.avatarShape,
   });
-
-
-  // --- HANDLERS DE ESTADO Y LÓGICA DE EDICIÓN ---
 
   const handleClose = () => {
     // Cierra el modal y resetea la imagen temporal seleccionada
@@ -117,13 +107,13 @@ const ProfileUserScreen: React.FC = () => {
             avatarShape: avatarShape 
         }));
     } else if (type === 'cover') {
-        // 🔑 CORRECCIÓN: Usar 'coverUrl' para actualizar la imagen de cabecera
+        // Usar 'coverUrl' para actualizar la imagen de cabecera
         setUserProfile(prev => ({ ...prev, coverUrl: newImageSource })); 
     }
     handleClose(); 
   };
   
-  // Handlers para ABRIR el Modal
+  // Handlers para el Modal
 
   const handleEditCoverOpen = () => {
     // 🔑 CORRECCIÓN: Si el valor es 'number' (require()), no es una URI, usamos null
@@ -139,7 +129,7 @@ const ProfileUserScreen: React.FC = () => {
   };
 
   const handleEditAvatarOpen = (currentShape: AvatarShape) => {
-    // 🔑 CORRECCIÓN: Si el valor es 'number' (require()), no es una URI, usamos null
+    // Si el valor es 'number' (require()), no es una URI, usamos null
     const uriString = typeof userProfile.avatarUrl === 'string' ? userProfile.avatarUrl : null;
 
     setImagePickerState({
@@ -191,7 +181,7 @@ const ProfileUserScreen: React.FC = () => {
        
      </ScrollView>
 
-     {/* 🔑 MODAL DE EDICIÓN COMPLETO */}
+     {/* Edicion de las imagenes*/}
      <Modal
         animationType="fade"
         transparent={true}
@@ -200,7 +190,7 @@ const ProfileUserScreen: React.FC = () => {
       >
         <PreviewOverlayBackground>
             
-            {/* 1. HEADER REUTILIZABLE (Botón Guardar/Cerrar) */}
+            {/* header con el titulo de la imagen y opcion de guardar el cambio */}
             {imagePickerState.type && (
               <HeaderContainer>
                 <ImageEditHeader
@@ -211,14 +201,14 @@ const ProfileUserScreen: React.FC = () => {
               </HeaderContainer>
             )}
 
-            {/* 2. OVERLAY Y BLOQUEO DE CLIC FUERA */}
+            
             <TouchableWithoutFeedback onPress={handleClose}>
                
                     <ModalBlocker />
                 
             </TouchableWithoutFeedback>
 
-            {/* 3. IMAGEN DE PREVISUALIZACIÓN */}
+            {/*Previsualizacion de la imagen */}
             <PreviewContainer>
                 {/* Renderiza el placeholder (o la imagen seleccionada) SOLO si hay una URI válida */}
                 {displayUri && typeof displayUri === 'string' && imagePickerState.type === 'avatar' ? (
