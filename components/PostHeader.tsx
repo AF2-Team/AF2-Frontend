@@ -2,229 +2,224 @@ import React, { useState } from "react";
 import { useRouter } from "expo-router";
 import styled from "styled-components/native";
 import { Ionicons } from "@expo/vector-icons";
-import { ImageSourcePropType } from "react-native";
-
-import { PostOptionsModal } from "./PostOptionsModal";
 import { Colors, THEME } from "@/constants";
-const defaultAvatar = require("../assets/images/default_avatar.png");
 
-interface PostHeaderProps {
-  user: {
-    id: string;
-    username: string;
-    avatarUrl?: string;
-    avatarShape?: "circle" | "square";
-  };
-  createdAt: string;
-  isFollowing?: boolean;
-  onFollowChange?: (userId: string, isFollowing: boolean) => void;
-  onOptionsPress?: () => void;
+const ICON_CONFIG = {
+  size: 24,
+  like: {
+    active: { name: "heart" as const, color: Colors.error },
+    inactive: { name: "heart-outline" as const, color: Colors.textMuted },
+  },
+  comment: {
+    name: "chatbox-outline" as const,
+    color: Colors.textMuted,
+  },
+  repost: {
+    name: "repeat" as const,
+    color: Colors.textMuted,
+  },
+  favorite: {
+    active: { name: "bookmark" as const, color: Colors.primary },
+    inactive: {
+      name: "bookmark-outline" as const,
+      color: Colors.textMuted,
+    },
+  },
+} as const;
+
+const getIconConfig = (type: "like" | "favorite", isActive: boolean) => {
+  const config = ICON_CONFIG[type];
+  return "active" in config
+    ? isActive
+      ? config.active
+      : config.inactive
+    : config;
+};
+
+interface PostFooterProps {
+  onCommentPress?: () => void;
+  initialLikes: number;
+  initialFavorites: number;
+  initialReposts: number;
+  initialComments: number;
   postId: string;
   postContent?: string;
-  onNotInterested?: (postId: string) => void;
+  postAuthor?: string;
+  postImage?: string;
+  postTags?: string[];
+  postUserAvatar?: string;
 }
 
-export const PostHeader = ({
-  user,
-  createdAt,
-  isFollowing = false,
-  onFollowChange,
-  onOptionsPress,
+export const PostFooter = ({
+  onCommentPress,
+  initialLikes,
+  initialFavorites,
+  initialReposts,
+  initialComments,
   postId,
   postContent,
-  onNotInterested,
-}: PostHeaderProps) => {
+  postAuthor,
+  postImage,
+  postTags = [],
+  postUserAvatar = null,
+}: PostFooterProps) => {
   const router = useRouter();
-  const [following, setFollowing] = useState(isFollowing);
-  const [showOptionsModal, setShowOptionsModal] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [likesCount, setLikesCount] = useState(initialLikes);
+  const [favoritesCount, setFavoritesCount] = useState(initialFavorites);
+  const [repostsCount, setRepostsCount] = useState(initialReposts);
+  const [commentsCount, setCommentsCount] = useState(initialComments);
 
-  const handleFollowPress = () => {
-    const newFollowState = !following;
-    setFollowing(newFollowState);
+  const totalInteractions =
+    likesCount + favoritesCount + repostsCount + commentsCount;
 
-    if (onFollowChange) {
-      onFollowChange(user.id, newFollowState);
-    }
+  const handleLikePress = () => {
+    setIsLiked((prev) => {
+      const newState = !prev;
+      setLikesCount((prevCount) => (newState ? prevCount + 1 : prevCount - 1));
+      return newState;
+    });
   };
 
-  const handleUserPress = () => {
-    console.log(`Navegar al perfil de ${user.username}`);
+  const handleFavoritePress = () => {
+    setIsFavorite((prev) => {
+      const newState = !prev;
+      setFavoritesCount((prevCount) =>
+        newState ? prevCount + 1 : prevCount - 1,
+      );
+
+      console.log(
+        `Post ${postId} ${newState ? "agregado a" : "eliminado de"} favoritos`,
+      );
+
+      return newState;
+    });
   };
 
-  const handleOptionsPress = () => {
-    setShowOptionsModal(true);
-    if (onOptionsPress) {
-      onOptionsPress();
-    }
+  const handleRepostPress = () => {
+    setRepostsCount((prev) => prev + 1);
+    router.push({
+      pathname: "/screens/RepostScreen",
+      params: {
+        postId,
+        postContent,
+        postAuthor,
+        postImage,
+        originalPost: JSON.stringify({
+          id: postId,
+          user: {
+            username: postAuthor,
+            avatarUrl: postUserAvatar,
+          },
+          content: postContent,
+          tags: postTags,
+          mainImage: postImage,
+        }),
+      },
+    });
   };
 
-  const handleCloseModal = () => {
-    setShowOptionsModal(false);
-  };
+  const handleCommentPress = () => {
+    setCommentsCount((prev) => prev + 1);
 
-  const handleNotInterested = () => {
-    console.log("No me interesa el post:", postId);
-    if (onNotInterested) {
-      onNotInterested(postId);
-    }
-    setShowOptionsModal(false);
-  };
+    router.push("/screens/CommentScreen");
 
-  const handleFollowFromModal = () => {
-    const newFollowState = true;
-    setFollowing(newFollowState);
-
-    if (onFollowChange) {
-      onFollowChange(user.id, newFollowState);
-    }
-    setShowOptionsModal(false);
-  };
-
-  const handleUnfollow = () => {
-    const newFollowState = false;
-    setFollowing(newFollowState);
-
-    if (onFollowChange) {
-      onFollowChange(user.id, newFollowState);
-    }
-    setShowOptionsModal(false);
-  };
-
-  const formatRelativeTime = (dateString: string): string => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMs = now.getTime() - date.getTime();
-
-    const seconds = Math.floor(diffInMs / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
-
-    if (seconds < 60) {
-      return `${seconds} seg`;
-    } else if (minutes < 60) {
-      return `${minutes} min`;
-    } else if (hours < 24) {
-      return `${hours} hr`;
-    } else if (days === 1) {
-      return "ayer";
-    } else if (days < 365) {
-      return date.toLocaleDateString("es-ES", {
-        day: "numeric",
-        month: "short",
-      });
-    } else {
-      return date.toLocaleDateString("es-ES", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      });
+    if (onCommentPress) {
+      onCommentPress();
     }
   };
 
   return (
-    <>
-      <Container>
-        <AvatarContainer onPress={handleUserPress}>
-          <Avatar
-            source={
-              user.avatarUrl
-                ? ({ uri: user.avatarUrl } as ImageSourcePropType)
-                : defaultAvatar
-            }
-            avatarShape={user.avatarShape || "circle"}
+    <Container>
+      <NotesContainer>
+        <NotesText>
+          {totalInteractions} {totalInteractions === 1 ? "nota" : "notas"}
+        </NotesText>
+      </NotesContainer>
+
+      <InteractionsContainer>
+        <IconButton onPress={handleLikePress}>
+          <Ionicons
+            {...getIconConfig("like", isLiked)}
+            size={ICON_CONFIG.size}
           />
-        </AvatarContainer>
+          <CountText active={isLiked}>{likesCount}</CountText>
+        </IconButton>
 
-        <UserInfo onPress={handleUserPress}>
-          <Username>{user.username}</Username>
-          <DateText>{formatRelativeTime(createdAt)}</DateText>
-        </UserInfo>
+        <IconButton onPress={handleCommentPress}>
+          <Ionicons
+            name={ICON_CONFIG.comment.name}
+            color={ICON_CONFIG.comment.color}
+            size={ICON_CONFIG.size}
+          />
+          <CountText>{commentsCount}</CountText>
+        </IconButton>
 
-        <ActionsContainer>
-          {/* Botón de Seguir (solo visible si no se está siguiendo) */}
-          {!following && (
-            <FollowButton onPress={handleFollowPress}>
-              <FollowButtonText>Seguir</FollowButtonText>
-            </FollowButton>
-          )}
+        <IconButton onPress={handleRepostPress}>
+          <Ionicons
+            name={ICON_CONFIG.repost.name}
+            color={ICON_CONFIG.repost.color}
+            size={ICON_CONFIG.size}
+          />
+          <CountText>{repostsCount}</CountText>
+        </IconButton>
 
-          {/* Botón de Opciones */}
-          <OptionsButton onPress={handleOptionsPress}>
-            <Ionicons
-              name="ellipsis-vertical"
-              size={20}
-              color={Colors.textMuted}
-            />
-          </OptionsButton>
-        </ActionsContainer>
-      </Container>
-
-      <PostOptionsModal
-        visible={showOptionsModal}
-        onClose={handleCloseModal}
-        onNotInterested={handleNotInterested}
-        onFollow={handleFollowFromModal}
-        onUnfollow={handleUnfollow}
-        isFollowing={following}
-      />
-    </>
+        <IconButton onPress={handleFavoritePress}>
+          <Ionicons
+            {...getIconConfig("favorite", isFavorite)}
+            size={ICON_CONFIG.size}
+          />
+          <CountText active={isFavorite}>{favoritesCount}</CountText>
+        </IconButton>
+      </InteractionsContainer>
+    </Container>
   );
 };
 
 const Container = styled.View`
   flex-direction: row;
+  justify-content: space-between;
   align-items: center;
-  padding: ${THEME.SPACING.MD}px ${THEME.SPACING.SCREEN_HORIZONTAL}px;
+  padding-horizontal: ${THEME.SPACING.SCREEN_HORIZONTAL}px;
+  padding-vertical: ${THEME.SPACING.SM}px;
+  background-color: ${Colors.background};
+  border-top-width: 1px;
+  border-top-color: ${Colors.primary};
+`;
+
+const NotesContainer = styled.View`
+  width: 89px;
+  height: 31px;
+  border-width: 1px;
+  border-color: ${Colors.primary};
+  border-radius: 20px;
+  justify-content: center;
+  align-items: center;
   background-color: ${Colors.background};
 `;
 
-const AvatarContainer = styled.TouchableOpacity`
-  margin-right: ${THEME.SPACING.MD}px;
-`;
-
-const Avatar = styled.Image<{ avatarShape: "circle" | "square" }>`
-  width: 48px;
-  height: 48px;
-  border-radius: ${({ avatarShape }) =>
-    avatarShape === "circle" ? "24px" : "8px"};
-`;
-
-const UserInfo = styled.TouchableOpacity`
-  flex: 1;
-`;
-
-const Username = styled.Text`
-  font-family: ${THEME.FONTS.SEMI_BOLD};
-  font-size: ${THEME.TYPOGRAPHY.BODY}px;
-  color: ${Colors.text};
-  margin-bottom: ${THEME.SPACING.XS}px;
-`;
-
-const DateText = styled.Text`
-  font-family: ${THEME.FONTS.LIGHT};
+const NotesText = styled.Text`
   font-size: ${THEME.TYPOGRAPHY.CAPTION}px;
-  color: ${Colors.textMuted};
+  color: ${Colors.text};
+  font-family: ${THEME.FONTS.SEMI_BOLD};
 `;
 
-const ActionsContainer = styled.View`
+const InteractionsContainer = styled.View`
   flex-direction: row;
   align-items: center;
 `;
 
-const FollowButton = styled.TouchableOpacity`
-  margin-right: ${THEME.SPACING.MD}px;
-  padding: ${THEME.SPACING.XS}px ${THEME.SPACING.SM}px;
-  background-color: ${Colors.action};
-  border-radius: 20px;
-`;
-
-const FollowButtonText = styled.Text`
-  font-family: ${THEME.FONTS.SEMI_BOLD};
-  font-size: ${THEME.TYPOGRAPHY.CAPTION}px;
-  color: ${Colors.textLight};
-`;
-
-const OptionsButton = styled.TouchableOpacity`
+const IconButton = styled.TouchableOpacity`
+  flex-direction: row;
+  align-items: center;
+  margin-left: ${THEME.SPACING.MD}px;
   padding: ${THEME.SPACING.XS}px;
+`;
+
+const CountText = styled.Text<{ active?: boolean }>`
+  margin-left: ${THEME.SPACING.XS}px;
+  font-size: ${THEME.TYPOGRAPHY.SMALL}px;
+  color: ${({ active }) => (active ? Colors.error : Colors.textMuted)};
+  font-family: ${THEME.FONTS.REGULAR};
 `;
