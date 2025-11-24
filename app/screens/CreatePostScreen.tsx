@@ -1,275 +1,358 @@
-import React, { useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import React, { useState, useEffect } from "react";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  TextInput as RNTextInput,
+  ScrollView,
+  Keyboard,
+} from "react-native";
 import styled from "styled-components/native";
 import { DiscardPostModal } from "../../components/DiscardPostModal";
 import { TagSelectorModal } from "../../components/TagSelectorModal";
 import { TextStyleModal } from "../../components/TextStyleModal";
-import { PostPublishedAlert } from "../../components/PostPublishedAlert";
-import { Ionicons } from "@expo/vector-icons"; // Importamos Ionicons
+import { Colors, THEME } from "../../constants";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const defaultAvatar = require("../../assets/images/default_avatar.png");
 
-// Mock user data
 const currentUser = {
-  id: "1",
-  username: "ceaomaoenour",
+  id: "u456",
+  username: "broken-hours",
   avatarUrl: null,
 };
 
-export const CreatePostScreen = () => {
+export default function CreatePostScreen() {
   const router = useRouter();
   const [postContent, setPostContent] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [textStyle, setTextStyle] = useState("regular");
-  const [media, setMedia] = useState<string | null>(null);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
-  // Estados modales
   const [showDiscardModal, setShowDiscardModal] = useState(false);
   const [showTagModal, setShowTagModal] = useState(false);
   const [showTextStyleModal, setShowTextStyleModal] = useState(false);
-  const [showPublishedAlert, setShowPublishedAlert] = useState(false);
 
-  const handlePublish = () => {
-    console.log("Publicando post:", {
-      postContent,
-      selectedTags,
-      textStyle,
-      media,
-    });
+  // CORREGIDO: Efecto para detectar cuando el teclado se muestra/oculta
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      () => {
+        setIsKeyboardVisible(true);
+      },
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      "keyboardDidHide",
+      () => {
+        setIsKeyboardVisible(false);
+      },
+    );
 
-    setShowPublishedAlert(true);
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
 
-    setTimeout(() => {
-      router.push("/");
-    }, 800);
-  };
-
-  const handleDiscard = () => {
-    if (postContent.length > 0 || selectedTags.length > 0 || media !== null) {
+  const handleClose = () => {
+    if (postContent.trim() !== "" || selectedTags.length > 0) {
       setShowDiscardModal(true);
     } else {
       router.back();
     }
   };
 
-  const confirmDiscard = () => {
-    setShowDiscardModal(false);
+  const handleDiscard = () => {
     router.back();
   };
 
-  const handleAddMedia = () => {
-    console.log("Abrir selector de medios");
+  const handlePublish = () => {
+    Alert.alert(
+      "Publicación Exitosa",
+      `Post publicado por @${currentUser.username} con tags: ${selectedTags.join(", ")}`,
+    );
+    router.push("/");
   };
 
-  const hasContent =
-    postContent.length > 0 || selectedTags.length > 0 || media !== null;
+  // CORREGIDO: Validación mejorada que se actualiza en cada cambio
+  const isReadyToPublish = postContent.trim().length > 0;
 
   return (
-    <Container>
-      <Header>
-        <HeaderButton onPress={handleDiscard}>
-          {/* Ícono vectorial para cerrar/descartar */}
-          <Ionicons name="close-sharp" size={28} color="#000000" />
-        </HeaderButton>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: Colors.background }}
+      edges={["top"]}
+    >
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <Container>
+          <Header>
+            <CloseButton
+              onPress={handleClose}
+              accessibilityLabel="Cerrar y descartar"
+            >
+              <Ionicons name="close-outline" size={32} color={Colors.text} />
+            </CloseButton>
 
-        <PublishButton onPress={handlePublish} disabled={!hasContent}>
-          <PublishButtonText disabled={!hasContent}>Publicar</PublishButtonText>
-        </PublishButton>
-      </Header>
+            <UserHeaderContainer>
+              <UserAvatar
+                source={
+                  currentUser.avatarUrl
+                    ? { uri: currentUser.avatarUrl }
+                    : defaultAvatar
+                }
+              />
+              <Username>{currentUser.username}</Username>
+              <Ionicons
+                name="chevron-down-outline"
+                size={18}
+                color={Colors.text}
+              />
+            </UserHeaderContainer>
 
-      <Content>
-        <UserInfo>
-          <UserAvatar
-            source={
-              currentUser.avatarUrl
-                ? { uri: currentUser.avatarUrl }
-                : defaultAvatar
-            }
-          />
-          <Username>@{currentUser.username}</Username>
-        </UserInfo>
+            {/* CORREGIDO: Botón con estado correcto que se actualiza al borrar */}
+            <PublishButton onPress={handlePublish} disabled={!isReadyToPublish}>
+              <PublishText disabled={!isReadyToPublish}>Publicar</PublishText>
+            </PublishButton>
+          </Header>
 
-        <TextInput
-          value={postContent}
-          onChangeText={setPostContent}
-          placeholder="Puedes añadir un comentario"
-          placeholderTextColor="#4B4B4B"
-          multiline
-          textAlignVertical="top"
-          style={{
-            fontFamily:
-              textStyle === "bold"
-                ? "OpenSans-Bold"
-                : textStyle === "light"
-                  ? "OpenSans-Light"
-                  : textStyle === "semibold"
-                    ? "OpenSans-SemiBold"
-                    : "OpenSans-Regular",
-          }}
+          <ScrollView
+            contentContainerStyle={{
+              paddingHorizontal: THEME.SPACING.SCREEN_HORIZONTAL,
+              paddingVertical: 10,
+              flexGrow: 1,
+            }}
+          >
+            <Content>
+              <TextInput
+                key={textStyle}
+                placeholder="¿Qué estás pensando?"
+                placeholderTextColor={Colors.textPlaceholder}
+                multiline
+                value={postContent}
+                onChangeText={setPostContent}
+                style={{
+                  fontFamily:
+                    textStyle === "light"
+                      ? THEME.FONTS.LIGHT
+                      : textStyle === "regular"
+                        ? THEME.FONTS.REGULAR
+                        : textStyle === "semibold"
+                          ? THEME.FONTS.SEMI_BOLD
+                          : textStyle === "bold"
+                            ? THEME.FONTS.BOLD
+                            : THEME.FONTS.REGULAR,
+                  fontSize: THEME.TYPOGRAPHY.BODY,
+                  color: Colors.text,
+                  minHeight: 180,
+                  padding: 0,
+                  marginBottom: THEME.SPACING.MD,
+                }}
+              />
+            </Content>
+          </ScrollView>
+
+          <TagBar>
+            <TagAddButton
+              onPress={() => setShowTagModal(true)}
+              accessibilityLabel="Añadir etiquetas"
+            >
+              <TagAddText>+ Añadir Etiqueta</TagAddText>
+            </TagAddButton>
+
+            {selectedTags.map((tag) => (
+              <TagChip key={tag}>
+                <TagText>#{tag}</TagText>
+              </TagChip>
+            ))}
+          </TagBar>
+
+          {/* CORREGIDO: Barra morada que se oculta con teclado y reaparece */}
+          {!isKeyboardVisible && (
+            <BottomBar>
+              <LeftIcons>
+                <ToolButton
+                  onPress={() => setShowTextStyleModal(true)}
+                  accessibilityLabel="Seleccionar estilo de texto"
+                >
+                  <Ionicons
+                    name="text-outline"
+                    size={26}
+                    color={Colors.textLight}
+                  />
+                </ToolButton>
+              </LeftIcons>
+
+              <RightIcons>
+                <ToolButton
+                  onPress={() =>
+                    Alert.alert(
+                      "Función no implementada",
+                      "Añadir imagen a la publicación",
+                    )
+                  }
+                >
+                  <Ionicons
+                    name="image-outline"
+                    size={26}
+                    color={Colors.textLight}
+                  />
+                </ToolButton>
+              </RightIcons>
+            </BottomBar>
+          )}
+        </Container>
+
+        <DiscardPostModal
+          visible={showDiscardModal}
+          onDiscard={handleDiscard}
+          onContinueEditing={() => setShowDiscardModal(false)}
         />
-
-        <AddTagsButton onPress={() => setShowTagModal(true)}>
-          <AddTagsText># Añade algunas etiquetas</AddTagsText>
-        </AddTagsButton>
-
-        {media && <MediaPreview source={{ uri: media }} />}
-      </Content>
-
-      <DividerLine />
-
-      <BottomBar>
-        <TextStyleButton onPress={() => setShowTextStyleModal(true)}>
-          {/* Ícono vectorial para estilo de texto */}
-          <Ionicons name="text" size={24} color="#000000" />
-        </TextStyleButton>
-
-        <MediaButton onPress={handleAddMedia}>
-          {/* Ícono vectorial para añadir imagen */}
-          <Ionicons name="image" size={24} color="#000000" />
-        </MediaButton>
-      </BottomBar>
-
-      {/* Modales */}
-      <DiscardPostModal
-        visible={showDiscardModal}
-        onDiscard={confirmDiscard}
-        onContinueEditing={() => setShowDiscardModal(false)}
-      />
-
-      <TagSelectorModal
-        visible={showTagModal}
-        onClose={() => setShowTagModal(false)}
-        onTagsSelected={setSelectedTags}
-        selectedTags={selectedTags}
-      />
-
-      <TextStyleModal
-        visible={showTextStyleModal}
-        onClose={() => setShowTextStyleModal(false)}
-        onStyleSelected={setTextStyle}
-        selectedStyle={textStyle}
-      />
-
-      <PostPublishedAlert
-        visible={showPublishedAlert}
-        username={`@${currentUser.username}`}
-        onHide={() => setShowPublishedAlert(false)}
-      />
-    </Container>
+        <TagSelectorModal
+          visible={showTagModal}
+          onClose={() => setShowTagModal(false)}
+          onTagsSelected={setSelectedTags}
+          selectedTags={selectedTags}
+        />
+        <TextStyleModal
+          visible={showTextStyleModal}
+          onClose={() => setShowTextStyleModal(false)}
+          onStyleSelected={setTextStyle}
+          selectedStyle={textStyle}
+        />
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
-};
+}
 
-// Estilos
 const Container = styled.View`
   flex: 1;
-  background-color: #ffffff;
-  padding-top: 5%;
+  background-color: ${Colors.background};
 `;
 
 const Header = styled.View`
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 16px;
+  padding: ${THEME.SPACING.MD}px ${THEME.SPACING.SCREEN_HORIZONTAL}px
+    ${THEME.SPACING.SM}px;
   border-bottom-width: 1px;
-  border-bottom-color: #f0f0f0;
+  border-bottom-color: ${Colors.border};
 `;
 
-const HeaderButton = styled.TouchableOpacity`
-  padding: 4px;
+const CloseButton = styled.TouchableOpacity`
+  padding: ${THEME.SPACING.XS}px;
 `;
 
-const PublishButton = styled.TouchableOpacity<{ disabled: boolean }>`
-  background-color: ${({ disabled }) => (disabled ? "#CCCCCC" : "#1291EB")};
-  padding: 8px 16px;
+const UserHeaderContainer = styled.View`
+  flex-direction: row;
+  align-items: center;
+`;
+
+const UserAvatar = styled.Image`
+  width: 32px;
+  height: 32px;
   border-radius: 16px;
-  opacity: ${({ disabled }) => (disabled ? 0.6 : 1)};
+  background-color: ${Colors.grayLight};
+  margin-right: ${THEME.SPACING.SM}px;
 `;
 
-const PublishButtonText = styled.Text<{ disabled: boolean }>`
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 600;
-  font-family: OpenSans-SemiBold;
+const Username = styled.Text`
+  font-size: 15px;
+  color: ${Colors.text};
+  font-family: ${THEME.FONTS.SEMI_BOLD};
+  margin-right: ${THEME.SPACING.XS}px;
+`;
+
+// CORREGIDO: Botón que cambia correctamente al borrar texto
+const PublishButton = styled.TouchableOpacity<{ disabled: boolean }>`
+  background-color: ${(props) =>
+    props.disabled ? Colors.grayLight : Colors.action};
+  padding: ${THEME.SPACING.SM}px ${THEME.SPACING.MD}px;
+  border-radius: 20px;
+`;
+
+const PublishText = styled.Text<{ disabled?: boolean }>`
+  color: ${(props) => (props.disabled ? Colors.grayMedium : Colors.textLight)};
+  font-size: 16px;
+  font-family: ${THEME.FONTS.BOLD};
 `;
 
 const Content = styled.View`
   flex: 1;
-  padding: 16px;
 `;
 
-const UserInfo = styled.View`
+const TextInput = styled(RNTextInput)`
+  min-height: 180px;
+  font-size: 16px;
+  color: ${Colors.text};
+  padding: 0;
+  margin-bottom: ${THEME.SPACING.MD}px;
+  font-family: ${THEME.FONTS.REGULAR};
+`;
+
+const TagBar = styled.View`
   flex-direction: row;
   align-items: center;
-  margin-bottom: 16px;
+  flex-wrap: wrap;
+  padding: ${THEME.SPACING.SM}px ${THEME.SPACING.SCREEN_HORIZONTAL}px;
+  border-top-width: 1px;
+  border-top-color: ${Colors.border};
 `;
 
-const UserAvatar = styled.Image`
-  width: 40px;
-  height: 40px;
+const TagAddButton = styled.TouchableOpacity`
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
   border-radius: 20px;
-  background-color: #f0f0f0;
+  border-width: 1px;
+  border-color: ${Colors.action};
+  padding: 6px 12px;
   margin-right: 12px;
 `;
 
-const Username = styled.Text`
-  font-size: 16px;
-  font-weight: 600;
-  color: #000000;
-  font-family: OpenSans-SemiBold;
+const TagAddText = styled.Text`
+  font-size: 14px;
+  color: ${Colors.action};
+  font-family: ${THEME.FONTS.SEMI_BOLD};
 `;
 
-const TextInput = styled.TextInput`
-  flex: 1;
-  font-size: 16px;
-  color: #000000;
-  min-height: 200px;
-  font-family: OpenSans-Regular;
+const TagChip = styled.View`
+  border-radius: 12px;
+  padding: ${THEME.SPACING.XS}px 10px;
+  margin-right: ${THEME.SPACING.SM}px;
+  margin-bottom: ${THEME.SPACING.XS}px;
+  background-color: ${Colors.backgroundTag};
 `;
 
-const AddTagsButton = styled.TouchableOpacity`
-  background-color: rgba(75, 75, 75, 0.15);
-  border-radius: 16px;
-  align-self: flex-start;
-  padding: 6px 14px;
-  margin-top: 16px;
-`;
-
-const AddTagsText = styled.Text`
-  color: #000000;
-  font-size: 13px;
-  font-weight: 500;
-  font-family: OpenSans-Medium;
-`;
-
-const MediaPreview = styled.Image`
-  width: 100%;
-  height: 200px;
-  border-radius: 8px;
-  margin-top: 16px;
-  background-color: #f0f0f0;
-`;
-
-const DividerLine = styled.View`
-  height: 1px;
-  background-color: #e0e0e0;
-  width: 100%;
+const TagText = styled.Text`
+  color: ${Colors.text};
+  font-size: 12px;
+  font-family: ${THEME.FONTS.SEMI_BOLD};
 `;
 
 const BottomBar = styled.View`
   flex-direction: row;
-  justify-content: flex-start;
   align-items: center;
-  padding: 8px 16px;
-  background-color: #ffffff;
-  margin-bottom: 5%;
+  justify-content: space-between;
+  padding: ${THEME.SPACING.MD}px ${THEME.SPACING.SCREEN_HORIZONTAL}px;
+  background-color: ${Colors.primary};
+  min-height: ${THEME.SPACING.NAV_BAR_HEIGHT}px;
 `;
 
-const TextStyleButton = styled.TouchableOpacity`
-  padding: 8px;
-  margin-right: 16px;
+const LeftIcons = styled.View`
+  flex-direction: row;
+  align-items: center;
 `;
 
-const MediaButton = styled.TouchableOpacity`
-  padding: 8px;
+const RightIcons = styled.View`
+  flex-direction: row;
+  align-items: center;
+`;
+
+const ToolButton = styled.TouchableOpacity`
+  padding: ${THEME.SPACING.SM}px;
 `;
