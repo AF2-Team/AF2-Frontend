@@ -49,7 +49,7 @@ const ProfileTabs = ({ style, onTabChange }: ProfileTabsProps) => {
   };
 
   const renderContent = () => {
-    // Nota: Aquí se implementaría el componente de contenido real
+    // Aquí se implementaría el componente de contenido real
     switch (activeTab) {
       case 'posts':
         return <Feed scrollEnabled={false}/>;

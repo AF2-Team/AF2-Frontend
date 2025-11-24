@@ -213,19 +213,19 @@ const ProfileUserScreen: React.FC = () => {
                 {/* Renderiza el placeholder (o la imagen seleccionada) SOLO si hay una URI válida */}
                 {displayUri && typeof displayUri === 'string' && imagePickerState.type === 'avatar' ? (
                     <PreviewAvatar
-                        source={{ uri: displayUri }} // source está correctamente tipado
+                        source={{ uri: displayUri }} 
                         isCircle={imagePickerState.avatarShape === 'circle'}
                     />
                 ) : (
                     displayUri && typeof displayUri === 'string' && (
                      <PreviewHeaderImage
-                        source={{ uri: displayUri }} // source está correctamente tipado
+                        source={{ uri: displayUri }} 
                      />
                     )
                 )}
             </PreviewContainer>
 
-            {/* 4. BOTTOM SHEET DE OPCIONES */}
+            {/*Opciones de edicion de imagenes */}
             <ImageEditOptionsSheet
                 isVisible={imagePickerState.isVisible}
                 type={imagePickerState.type}
@@ -243,7 +243,7 @@ const ProfileUserScreen: React.FC = () => {
   );
 };
 
-// --- STYLES Y STYLED COMPONENTS DEL MODAL ---
+
 
 const PreviewOverlayBackground = styled.View`
   flex: 1;
