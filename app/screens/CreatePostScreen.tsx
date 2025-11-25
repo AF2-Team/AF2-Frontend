@@ -1,23 +1,21 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useKeyboard } from '@react-native-community/hooks';
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   TextInput as RNTextInput,
   ScrollView,
-  View,
   Text,
   TouchableOpacity,
-  Image,
+  View
 } from "react-native";
-import styled from "styled-components/native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { default as styled } from "styled-components/native";
 import { DiscardPostModal } from "../../components/DiscardPostModal";
 import { TagSelectorModal } from "../../components/TagSelectorModal";
 import { TextStyleModal } from "../../components/TextStyleModal";
 import { Colors, THEME } from "../../constants";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 const defaultAvatar = require("../../assets/images/default_avatar.png");
 
@@ -29,6 +27,8 @@ const currentUser = {
 
 export default function CreatePostScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const keyboard = useKeyboard();
   const [postContent, setPostContent] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [textStyle, setTextStyle] = useState("regular");
@@ -38,23 +38,18 @@ export default function CreatePostScreen() {
   const [showTextStyleModal, setShowTextStyleModal] = useState(false);
 
   const handleClose = () => {
-    if (postContent.trim() !== "" || selectedTags.length > 0) {
-      setShowDiscardModal(true);
-    } else {
-      router.back();
-    }
+    if (postContent.trim() !== "" || selectedTags.length > 0) setShowDiscardModal(true);
+    else router.back();
   };
 
-  const handleDiscard = () => {
-    router.back();
-  };
+  const handleDiscard = () => router.back();
 
   const handlePublish = () => {
     Alert.alert(
       "Publicación Exitosa",
       `Post publicado por @${currentUser.username} con tags: ${selectedTags.join(", ")}`,
     );
-    router.push("/");
+    router.push("/screens/HomeScreen");
   };
 
   const getFontFamily = (style: string) => {
@@ -72,184 +67,159 @@ export default function CreatePostScreen() {
     }
   };
 
-  // ⭕ SIMPLE Y DIRECTO - igual que en LoginScreen
   const isReadyToPublish = postContent.trim().length > 0;
+
+  // Calculamos el margen inferior dinámicamente
+  const bottomMargin = keyboard.keyboardShown ? keyboard.keyboardHeight : 0;
 
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: Colors.background }}
       edges={["top"]}
     >
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-      >
-        <Container>
-          <Header>
-            <CloseButton onPress={handleClose}>
-              <Ionicons name="close-outline" size={32} color={Colors.text} />
-            </CloseButton>
-
-            <UserHeaderContainer>
-              <UserAvatar
-                source={
-                  currentUser.avatarUrl
-                    ? { uri: currentUser.avatarUrl }
-                    : defaultAvatar
-                }
-              />
-              <Username>{currentUser.username}</Username>
-              <Ionicons
-                name="chevron-down-outline"
-                size={18}
-                color={Colors.text}
-              />
-            </UserHeaderContainer>
-
-            {/* ⭕ BOTÓN SIMPLIFICADO - igual que en LoginScreen */}
-            <TouchableOpacity
-              onPress={handlePublish}
-              disabled={!isReadyToPublish}
-              style={{
-                backgroundColor: isReadyToPublish
-                  ? Colors.action // AZUL CUANDO HAY TEXTO
-                  : Colors.grayLight, // GRIS CLARO SIN TEXTO
-                paddingHorizontal: THEME.SPACING.MD,
-                paddingVertical: THEME.SPACING.SM,
-                borderRadius: 20,
-              }}
-            >
-              <Text
-                style={{
-                  color: isReadyToPublish
-                    ? Colors.textLight // BLANCO CUANDO ACTIVO
-                    : Colors.grayMedium, // GRIS OSCURO CUANDO VACÍO
-                  fontSize: 16,
-                  fontFamily: THEME.FONTS.BOLD,
-                }}
-              >
-                Publicar
-              </Text>
-            </TouchableOpacity>
-          </Header>
-
-          <ScrollView
-            contentContainerStyle={{
-              paddingHorizontal: THEME.SPACING.SCREEN_HORIZONTAL,
-              paddingVertical: 10,
-              flexGrow: 1,
+      {/* Contenido principal */}
+      <View style={{ flex: 1 }}>
+        <Header>
+          <CloseButton onPress={handleClose}>
+            <Ionicons name="close-outline" size={32} color={Colors.text} />
+          </CloseButton>
+          <UserHeaderContainer>
+            <UserAvatar
+              source={
+                currentUser.avatarUrl
+                  ? { uri: currentUser.avatarUrl }
+                  : defaultAvatar
+              }
+            />
+            <Username>{currentUser.username}</Username>
+            <Ionicons
+              name="chevron-down-outline"
+              size={18}
+              color={Colors.text}
+            />
+          </UserHeaderContainer>
+          <TouchableOpacity
+            onPress={handlePublish}
+            disabled={!isReadyToPublish}
+            style={{
+              backgroundColor: isReadyToPublish
+                ? Colors.action
+                : Colors.textLight,
+              paddingHorizontal: THEME.SPACING.MD,
+              paddingVertical: THEME.SPACING.SM,
+              borderRadius: 20,
             }}
           >
-            <Content>
-              <TextInput
-                key={textStyle}
-                placeholder="¿Qué estás pensando?"
-                placeholderTextColor={Colors.textPlaceholder}
-                multiline
-                value={postContent}
-                onChangeText={setPostContent}
-                style={{
-                  fontFamily: getFontFamily(textStyle),
-                  fontSize: THEME.TYPOGRAPHY.BODY,
-                  color: Colors.text,
-                  minHeight: 180,
-                  padding: 0,
-                  marginBottom: THEME.SPACING.MD,
-                }}
-              />
-            </Content>
-          </ScrollView>
+            <Text
+              style={{
+                color: isReadyToPublish
+                  ? Colors.textLight
+                  : Colors.textMuted,
+                fontSize: 16,
+                fontFamily: THEME.FONTS.BOLD,
+              }}
+            >
+              Publicar
+            </Text>
+          </TouchableOpacity>
+        </Header>
 
-          <TagBar>
-            <TagAddButton onPress={() => setShowTagModal(true)}>
-              <TagAddText>+ Añadir Etiqueta</TagAddText>
-            </TagAddButton>
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{
+            paddingHorizontal: THEME.SPACING.SCREEN_HORIZONTAL,
+            paddingVertical: 10,
+            flexGrow: 1,
+          }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Content>
+            <TextInput
+              key={textStyle}
+              placeholder="¿Qué estás pensando?"
+              placeholderTextColor={Colors.textPlaceholder}
+              multiline
+              value={postContent}
+              onChangeText={setPostContent}
+              style={{
+                fontFamily: getFontFamily(textStyle),
+                fontSize: THEME.TYPOGRAPHY.BODY,
+                color: Colors.text,
+                minHeight: 180,
+                padding: 0,
+                marginBottom: THEME.SPACING.MD,
+              }}
+            />
+          </Content>
+        </ScrollView>
 
-            {selectedTags.map((tag) => (
-              <TagChip key={tag}>
-                <TagText>#{tag}</TagText>
-              </TagChip>
-            ))}
-          </TagBar>
+        <TagBar>
+          <TagAddButton onPress={() => setShowTagModal(true)}>
+            <TagAddText>+ Añadir Etiqueta</TagAddText>
+          </TagAddButton>
+          {selectedTags.map((tag) => (
+            <TagChip key={tag}>
+              <TagText>#{tag}</TagText>
+            </TagChip>
+          ))}
+        </TagBar>
+      </View>
 
-          <BottomBar>
-            <LeftIcons>
-              <ToolButton onPress={() => setShowTextStyleModal(true)}>
-                <Ionicons
-                  name="text-outline"
-                  size={26}
-                  color={Colors.textLight}
-                />
-              </ToolButton>
-            </LeftIcons>
-
-            <RightIcons>
-              <ToolButton
-                onPress={() =>
-                  Alert.alert(
-                    "Función no implementada",
-                    "Añadir imagen a la publicación",
-                  )
-                }
-              >
-                <Ionicons
-                  name="image-outline"
-                  size={26}
-                  color={Colors.textLight}
-                />
-              </ToolButton>
-            </RightIcons>
-          </BottomBar>
-        </Container>
-
-        <DiscardPostModal
-          visible={showDiscardModal}
-          onDiscard={handleDiscard}
-          onContinueEditing={() => setShowDiscardModal(false)}
-        />
-        <TagSelectorModal
-          visible={showTagModal}
-          onClose={() => setShowTagModal(false)}
-          onTagsSelected={setSelectedTags}
-          selectedTags={selectedTags}
-        />
-        <TextStyleModal
-          visible={showTextStyleModal}
-          onClose={() => setShowTextStyleModal(false)}
-          onStyleSelected={setTextStyle}
-          selectedStyle={textStyle}
-        />
-      </KeyboardAvoidingView>
+      {/* BottomBar con posición absoluta y margen dinámico */}
+      <BottomBar 
+        style={{ 
+          paddingBottom: Math.max(insets.bottom, 10),
+          marginBottom: bottomMargin,
+        }}
+      >
+        <LeftIcons>
+          <ToolButton onPress={() => setShowTextStyleModal(true)}>
+            <Ionicons
+              name="text-outline"
+              size={26}
+              color={Colors.textLight}
+            />
+          </ToolButton>
+        </LeftIcons>
+        <RightIcons>
+          <ToolButton
+            onPress={() =>
+              Alert.alert(
+                "Función no implementada",
+                "Añadir imagen a la publicación",
+              )
+            }
+          >
+            <Ionicons
+              name="image-outline"
+              size={26}
+              color={Colors.textLight}
+            />
+          </ToolButton>
+        </RightIcons>
+      </BottomBar>
+      <DiscardPostModal
+        visible={showDiscardModal}
+        onDiscard={handleDiscard}
+        onContinueEditing={() => setShowDiscardModal(false)}
+      />
+      <TagSelectorModal
+        visible={showTagModal}
+        onClose={() => setShowTagModal(false)}
+        onTagsSelected={setSelectedTags}
+        selectedTags={selectedTags}
+      />
+      <TextStyleModal
+        visible={showTextStyleModal}
+        onClose={() => setShowTextStyleModal(false)}
+        onStyleSelected={setTextStyle}
+        selectedStyle={textStyle}
+      />
     </SafeAreaView>
   );
 }
 
-const styles = {
-  publishButton: {
-    paddingHorizontal: THEME.SPACING.MD,
-    paddingVertical: THEME.SPACING.SM,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  publishButtonActive: {
-    backgroundColor: Colors.action, // AZUL
-  },
-  publishButtonDisabled: {
-    backgroundColor: Colors.grayLight, // GRIS CLARO
-  },
-  publishButtonText: {
-    fontSize: 16,
-    fontFamily: THEME.FONTS.BOLD,
-  },
-  publishButtonTextActive: {
-    color: Colors.textLight, // BLANCO
-  },
-  publishButtonTextDisabled: {
-    color: Colors.grayMedium, // GRIS OSCURO
-  },
-};
-
+// Tus componentes styled permanecen igual...
 const Container = styled.View`
   flex: 1;
   background-color: ${Colors.background};
@@ -278,7 +248,7 @@ const UserAvatar = styled.Image`
   width: 32px;
   height: 32px;
   border-radius: 16px;
-  background-color: ${Colors.grayLight};
+  background-color: ${Colors.textLight};
   margin-right: ${THEME.SPACING.SM}px;
 `;
 
@@ -346,7 +316,9 @@ const BottomBar = styled.View`
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding: ${THEME.SPACING.MD}px ${THEME.SPACING.SCREEN_HORIZONTAL}px;
+  padding-left: ${THEME.SPACING.SCREEN_HORIZONTAL}px;
+  padding-right: ${THEME.SPACING.SCREEN_HORIZONTAL}px;
+  padding-top: ${THEME.SPACING.MD}px;
   background-color: ${Colors.primary};
   min-height: ${THEME.SPACING.NAV_BAR_HEIGHT}px;
 `;
