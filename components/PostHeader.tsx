@@ -1,14 +1,12 @@
-
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ImageSourcePropType } from "react-native";
 import styled from "styled-components/native";
 
 import { Colors, THEME } from "@/constants";
 import { PostOptionsModal } from "./PostOptionsModal";
 const defaultAvatar = require("../assets/images/default_avatar.png");
-
 
 interface PostHeaderProps {
   user: {
@@ -27,13 +25,11 @@ interface PostHeaderProps {
 }
 
 export const PostHeader = ({
-
   user,
   createdAt,
   isFollowing = false,
   onFollowChange,
   onOptionsPress,
-
   postId,
   postContent,
   onNotInterested,
@@ -42,8 +38,13 @@ export const PostHeader = ({
   const [following, setFollowing] = useState(isFollowing);
   const [showOptionsModal, setShowOptionsModal] = useState(false);
 
+  // Sincronizar con la prop isFollowing si cambia externamente
+  useEffect(() => {
+    setFollowing(isFollowing);
+  }, [isFollowing]);
+
   const handleFollowPress = () => {
-    const newFollowState = !following;
+    const newFollowState = true; // Siempre pasa a true cuando se presiona
     setFollowing(newFollowState);
 
     if (onFollowChange) {
@@ -70,16 +71,6 @@ export const PostHeader = ({
     console.log("No me interesa el post:", postId);
     if (onNotInterested) {
       onNotInterested(postId);
-    }
-    setShowOptionsModal(false);
-  };
-
-  const handleFollowFromModal = () => {
-    const newFollowState = true;
-    setFollowing(newFollowState);
-
-    if (onFollowChange) {
-      onFollowChange(user.id, newFollowState);
     }
     setShowOptionsModal(false);
   };
@@ -149,7 +140,16 @@ export const PostHeader = ({
           {/* Botón de Seguir (solo visible si no se está siguiendo) */}
           {!following && (
             <FollowButton onPress={handleFollowPress}>
-              <FollowButtonText>Seguir</FollowButtonText>
+              <FollowContent>
+                <Ionicons
+                  name="person-add-outline"
+                  size={14}
+                  color={Colors.textLight}
+                />
+                <FollowText style={{ marginLeft: THEME.SPACING.XS }}>
+                  Seguir
+                </FollowText>
+              </FollowContent>
             </FollowButton>
           )}
 
@@ -168,9 +168,9 @@ export const PostHeader = ({
         visible={showOptionsModal}
         onClose={handleCloseModal}
         onNotInterested={handleNotInterested}
-        onFollow={handleFollowFromModal}
         onUnfollow={handleUnfollow}
         isFollowing={following}
+        showFollowOption={!following} // Solo mostrar opción de seguir si no se está siguiendo
       />
     </>
   );
@@ -217,15 +217,20 @@ const ActionsContainer = styled.View`
 `;
 
 const FollowButton = styled.TouchableOpacity`
-  margin-right: ${THEME.SPACING.MD}px;
-  padding: ${THEME.SPACING.XS}px ${THEME.SPACING.SM}px;
+  padding: ${THEME.SPACING.SM}px ${THEME.SPACING.MD}px;
+  border-radius: ${THEME.COMMON.BORDER_RADIUS.XL}px;
+  margin-right: ${THEME.SPACING.MD}px * 0.01;
   background-color: ${Colors.action};
-  border-radius: 20px;
 `;
 
-const FollowButtonText = styled.Text`
-  font-family: ${THEME.FONTS.SEMI_BOLD};
+const FollowContent = styled.View`
+  flex-direction: row;
+  align-items: center;
+`;
+
+const FollowText = styled.Text`
   font-size: ${THEME.TYPOGRAPHY.CAPTION}px;
+  font-family: ${THEME.FONTS.BOLD};
   color: ${Colors.textLight};
 `;
 
