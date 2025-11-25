@@ -1,3 +1,4 @@
+import { THEME } from "@/constants";
 import {
   Alegreya_400Regular_Italic,
   useFonts,
@@ -14,7 +15,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { THEME } from "@/constants";
 
 interface IHandleChange {
   (name: string, value: any): void;
@@ -58,7 +58,7 @@ const LoginScreen = () => {
 
     if (Object.keys(newErrors).length === 0) {
       Alert.alert("Inicio de Sesión Exitoso", `Bienvenido, ${formData.email}`);
-      console.log("Formulario enviado:", formData);
+      //console.log("Formulario enviado:", formData);
       router.push("/screens/HomeScreen");
     }
   };

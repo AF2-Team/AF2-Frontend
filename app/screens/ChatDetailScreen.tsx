@@ -1,22 +1,67 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import {
-    Dimensions,
-    Image,
-    SafeAreaView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  Image,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 const { width } = Dimensions.get("window");
 
 const ChatDetailScreen = () => {
   const router = useRouter();
+  const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState([
+    {
+      id: "1",
+      text: "Holaaaaaaaaaaaaaaaa",
+      time: "20 de junio 8:59 a. m.",
+      isSent: false // Mensaje recibido
+    }
+  ]);
+  // Función para enviar mensaje
+  const handleSendMessage = () => {
+    if (message.trim()) {
+      const newMessage = {
+        id: Date.now().toString(),
+        text: message,
+        time: new Date().toLocaleString('es-ES', { 
+          day: 'numeric', 
+          month: 'long', 
+          hour: 'numeric', 
+          minute: 'numeric',
+          hour12: true 
+        }),
+        isSent: true // Mensaje enviado
+      };
+      
+      setMessages(prev => [...prev, newMessage]);
+      setMessage(""); // Limpiar input
+    }
+  };
+  // Renderizar mensajes dinámicamente
+  const renderMessage = (msg) => (
+    <View key={msg.id} style={[
+      styles.messageRow, 
+      msg.isSent && styles.sentMessageRow
+    ]}>
+      <View style={[
+        styles.messageBubble,
+        msg.isSent && styles.sentMessageBubble
+      ]}>
+        <Text style={styles.messageText}>{msg.text}</Text>
+      </View>
+      <Text style={styles.messageTime}>{msg.time}</Text>
+    </View>
+  );
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -42,7 +87,7 @@ const ChatDetailScreen = () => {
       {/* --- AREA DE MENSAJES --- */}
       <View style={styles.chatArea}>
         
-        {/* Info del usuario (Parte superior del chat) */}
+        {/* Info del usuario */}
         <View style={styles.userInfoContainer}>
           <Image 
             source={{ uri: "https://i.pravatar.cc/150?u=snailsfall" }} 
@@ -52,14 +97,8 @@ const ChatDetailScreen = () => {
           <Text style={styles.userStatus}>Siguiendo</Text>
         </View>
 
-        {/* Burbuja de mensaje */}
-        <View style={styles.messageRow}>
-          <View style={styles.messageBubble}>
-            <Text style={styles.messageText}>Holaaaaaaaaaaaaaaaa</Text>
-          </View>
-          <Text style={styles.messageTime}>20 de junio 8:59 a. m.</Text>
-        </View>
-
+        {/* Mensajes dinámicos */}
+        {messages.map(renderMessage)}
       </View>
 
       {/* --- INPUT FOOTER --- */}
@@ -74,6 +113,9 @@ const ChatDetailScreen = () => {
             placeholder="Escribe un mensaje, broken-hours"
             placeholderTextColor="#666"
             style={styles.input}
+            value={message}
+            onChangeText={setMessage}
+            onSubmitEditing={handleSendMessage}
           />
         </View>
         
@@ -82,7 +124,10 @@ const ChatDetailScreen = () => {
                <Ionicons name="image-outline" size={28} color="#333" />
             </TouchableOpacity>
             
-            <TouchableOpacity style={styles.iconButton}>
+            <TouchableOpacity 
+              style={styles.iconButton}
+              onPress={handleSendMessage}
+            >
                <Ionicons name="send-outline" size={28} color="#000" />
             </TouchableOpacity>
         </View>
@@ -107,6 +152,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
+    marginTop:15,
   },
   headerLeft: { flexDirection: "row", alignItems: "center" },
   headerAvatar: { width: 40, height: 40, borderRadius: 20, marginHorizontal: 10 },
@@ -164,7 +210,18 @@ const styles = StyleSheet.create({
       backgroundColor: "#423646",
       borderTopLeftRadius: 0,
       borderTopRightRadius: 0
-  }
+  },
+  iconButton: {
+    padding: 8,
+  },
+  sentMessageRow: {
+    alignItems: "flex-end",
+  },
+  sentMessageBubble: {
+    backgroundColor: "#DCF8C6", // Color diferente para mensajes enviados
+    borderBottomRightRadius: 0,
+    borderBottomLeftRadius: 10,
+  },
 });
 
 export default ChatDetailScreen;

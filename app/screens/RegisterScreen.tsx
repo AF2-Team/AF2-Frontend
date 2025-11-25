@@ -1,20 +1,20 @@
+import { ThemedTextInput } from "@/components/ThemedTextInput";
+import { THEME } from "@/constants";
+import {
+  Alegreya_400Regular_Italic,
+  useFonts,
+} from "@expo-google-fonts/alegreya";
+import { useRouter } from "expo-router";
 import React from "react";
 import {
+  Dimensions,
+  KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  KeyboardAvoidingView,
-  Platform,
-  Dimensions,
 } from "react-native";
-import {
-  useFonts,
-  Alegreya_400Regular_Italic,
-} from "@expo-google-fonts/alegreya";
-import { THEME } from "@/constants";
-import { useRouter } from "expo-router";
-import { ThemedTextInput } from "@/components/ThemedTextInput";
 
 const { height: screenHeight } = Dimensions.get("window");
 
@@ -135,7 +135,7 @@ const RegisterScreen = () => {
 
   const handleSubmit = () => {
     if (validateForm()) {
-      console.log("Usuario registrado:", formData);
+      //console.log("Usuario registrado:", formData);
       router.push("/screens/usernameChoose");
     }
   };
