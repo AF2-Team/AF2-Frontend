@@ -17,6 +17,7 @@ export interface PostData {
   initialReposts: number;
   initialComments: number;
   mediaUrl?: string;
+  mediaUrls?: string[];
   isFollowing?: boolean;
 }
 

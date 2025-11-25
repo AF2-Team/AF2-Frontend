@@ -2,32 +2,35 @@ import React, { useState, useCallback } from "react";
 import { useRouter } from "expo-router";
 import styled from "styled-components/native";
 import { Ionicons } from "@expo/vector-icons";
+import { Colors, THEME } from "@/constants";
 
-const COLOR_BACKGROUND = "#423646";
-const COLOR_LIGHT_TEXT = "#faf7f7";
-const ICON_SIZE = 24;
+const ICON_SIZE = 25;
 
 const ICON_CONFIG = {
   size: ICON_SIZE,
+  like: {
+    active: { name: "heart" as const, color: Colors.error },
+    inactive: { name: "heart-outline" as const, color: Colors.textLight },
+  },
   comment: {
-    name: "chatbubble-outline" as const,
-    color: COLOR_LIGHT_TEXT,
+    name: "chatbox-outline" as const,
+    color: Colors.textLight,
   },
   repost: {
     name: "arrow-redo-outline" as const,
-    color: COLOR_LIGHT_TEXT,
+    color: Colors.textLight,
   },
   favorite: {
-    active: { name: "star" as const, color: COLOR_LIGHT_TEXT },
-    inactive: { name: "star-outline" as const, color: COLOR_LIGHT_TEXT },
+    active: { name: "star" as const, color: Colors.textLight },
+    inactive: { name: "star-outline" as const, color: Colors.textLight },
   },
-  like: {
-    active: { name: "heart" as const, color: COLOR_LIGHT_TEXT },
-    inactive: { name: "heart-outline" as const, color: COLOR_LIGHT_TEXT },
+  message: {
+    name: "mail-outline" as const,
+    color: Colors.textLight,
   },
 } as const;
 
-const getIconConfig = (type: "favorite" | "like", isActive: boolean) => {
+const getIconConfig = (type: "like" | "favorite", isActive: boolean) => {
   const config = ICON_CONFIG[type];
   return "active" in config
     ? isActive
@@ -45,7 +48,7 @@ interface ImagePostFooterProps {
   onRepostPress?: () => void;
   onFavoritePress?: () => void;
   onLikePress?: () => void;
-  // Nuevas props para la navegación a RepostScreen
+  onMessagePress?: () => void;
   postId?: string;
   postContent?: string;
   postAuthor?: string;
@@ -63,7 +66,7 @@ export const ImagePostFooter: React.FC<ImagePostFooterProps> = ({
   onRepostPress,
   onFavoritePress,
   onLikePress,
-  // Nuevas props
+  onMessagePress,
   postId = "",
   postContent = "",
   postAuthor = "",
@@ -73,63 +76,63 @@ export const ImagePostFooter: React.FC<ImagePostFooterProps> = ({
 }) => {
   const router = useRouter();
 
-  const [interactions, setInteractions] = useState({
-    liked: false,
-    favorited: false,
-    likes: initialLikes,
-    favorites: initialFavorites,
-    reposts: initialReposts,
-  });
+  const [isLiked, setIsLiked] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [likesCount, setLikesCount] = useState(initialLikes);
+  const [favoritesCount, setFavoritesCount] = useState(initialFavorites);
+  const [repostsCount, setRepostsCount] = useState(initialReposts);
+  const [commentsCount, setCommentsCount] = useState(initialComments);
 
-  const [comments] = useState(initialComments);
-  const totalNotes = comments;
+  const totalInteractions =
+    likesCount + favoritesCount + repostsCount + commentsCount;
 
-  const handleLike = useCallback(() => {
-    setInteractions((prev) => ({
-      ...prev,
-      liked: !prev.liked,
-      likes: prev.liked ? prev.likes - 1 : prev.likes + 1,
-    }));
+  const handleLikePress = useCallback(() => {
+    setIsLiked((prev) => {
+      const newState = !prev;
+      setLikesCount((prevCount) => (newState ? prevCount + 1 : prevCount - 1));
+      return newState;
+    });
     onLikePress?.();
   }, [onLikePress]);
 
-  const handleFavorite = useCallback(() => {
-    setInteractions((prev) => ({
-      ...prev,
-      favorited: !prev.favorited,
-      favorites: prev.favorited ? prev.favorites - 1 : prev.favorites + 1,
-    }));
+  const handleFavoritePress = useCallback(() => {
+    setIsFavorite((prev) => {
+      const newState = !prev;
+      setFavoritesCount((prevCount) =>
+        newState ? prevCount + 1 : prevCount - 1,
+      );
+
+      console.log(
+        `Post ${postId} ${newState ? "agregado a" : "eliminado de"} favoritos`,
+      );
+
+      return newState;
+    });
     onFavoritePress?.();
-  }, [onFavoritePress]);
+  }, [onFavoritePress, postId]);
 
-  const handleRepost = useCallback(() => {
-    setInteractions((prev) => ({
-      ...prev,
-      reposts: prev.reposts + 1,
-    }));
+  const handleRepostPress = useCallback(() => {
+    setRepostsCount((prev) => prev + 1);
 
-    // Navegar a la pantalla de Repost
-    if (postId) {
-      router.push({
-        pathname: "/screens/create-repost",
-        params: {
-          postId,
-          postContent,
-          postAuthor,
-          postImage,
-          originalPost: JSON.stringify({
-            id: postId,
-            user: {
-              username: postAuthor,
-              avatarUrl: postUserAvatar,
-            },
-            content: postContent,
-            tags: postTags,
-            mainImage: postImage,
-          }),
-        },
-      });
-    }
+    router.push({
+      pathname: "/screens/RepostScreen",
+      params: {
+        postId,
+        postContent,
+        postAuthor,
+        postImage,
+        originalPost: JSON.stringify({
+          id: postId,
+          user: {
+            username: postAuthor,
+            avatarUrl: postUserAvatar,
+          },
+          content: postContent,
+          tags: postTags,
+          mainImage: postImage,
+        }),
+      },
+    });
 
     onRepostPress?.();
   }, [
@@ -143,91 +146,124 @@ export const ImagePostFooter: React.FC<ImagePostFooterProps> = ({
     postUserAvatar,
   ]);
 
+  const handleCommentPress = useCallback(() => {
+    setCommentsCount((prev) => prev + 1);
+
+    router.push({
+      pathname: "/screens/CommentScreen",
+      params: {
+        postId,
+        postContent,
+        postAuthor,
+        postImage,
+        postTags: JSON.stringify(postTags),
+        postUserAvatar,
+      },
+    });
+
+    onCommentPress?.();
+  }, [
+    onCommentPress,
+    router,
+    postId,
+    postContent,
+    postAuthor,
+    postImage,
+    postTags,
+    postUserAvatar,
+  ]);
+
   return (
     <FooterContainer>
-      {/* Sección de Notas (Comentarios) */}
-      <NotesButton onPress={onCommentPress}>
-        <NotesText>{totalNotes}</NotesText>
-        <NotesLabel>notas</NotesLabel>
-      </NotesButton>
+      <NotesContainer>
+        <NotesText>
+          {totalInteractions} {totalInteractions === 1 ? "nota" : "notas"}
+        </NotesText>
+      </NotesContainer>
 
-      {/* Íconos de Interacción */}
-      <IconsContainer>
-        {/* Comentarios */}
-        <FooterIcon onPress={onCommentPress}>
+      <InteractionsContainer>
+        <IconButton onPress={handleLikePress}>
+          <Ionicons
+            {...getIconConfig("like", isLiked)}
+            size={ICON_CONFIG.size}
+          />
+          <CountText active={isLiked}>{likesCount}</CountText>
+        </IconButton>
+
+        <IconButton onPress={handleCommentPress}>
           <Ionicons
             name={ICON_CONFIG.comment.name}
             color={ICON_CONFIG.comment.color}
             size={ICON_CONFIG.size}
           />
-        </FooterIcon>
+          <CountText>{commentsCount}</CountText>
+        </IconButton>
 
-        {/* Repost */}
-        <FooterIcon onPress={handleRepost}>
+        <IconButton onPress={handleRepostPress}>
           <Ionicons
             name={ICON_CONFIG.repost.name}
             color={ICON_CONFIG.repost.color}
             size={ICON_CONFIG.size}
           />
-        </FooterIcon>
+          <CountText>{repostsCount}</CountText>
+        </IconButton>
 
-        {/* Favorito (Estrella) */}
-        <FooterIcon onPress={handleFavorite}>
+        <IconButton onPress={handleFavoritePress}>
           <Ionicons
-            {...getIconConfig("favorite", interactions.favorited)}
+            {...getIconConfig("favorite", isFavorite)}
             size={ICON_CONFIG.size}
           />
-        </FooterIcon>
-
-        {/* Like (Corazón) */}
-        <FooterIcon onPress={handleLike}>
-          <Ionicons
-            {...getIconConfig("like", interactions.liked)}
-            size={ICON_CONFIG.size}
-          />
-        </FooterIcon>
-      </IconsContainer>
+          <CountText active={isFavorite}>{favoritesCount}</CountText>
+        </IconButton>
+      </InteractionsContainer>
     </FooterContainer>
   );
 };
 
-// Estilos (se mantienen igual)
+// Estilos (mantenemos los mismos)
 const FooterContainer = styled.View`
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 18px;
-  background-color: ${COLOR_BACKGROUND};
-  border-top-left-radius: 14px;
-  border-top-right-radius: 14px;
+  padding: ${THEME.SPACING.MD}px ${THEME.SPACING.MD}px ${THEME.SPACING.XL}px;
+  background-color: ${Colors.primary};
+  border-top-left-radius: ${THEME.COMMON.BORDER_RADIUS.MD}px;
+  border-top-right-radius: ${THEME.COMMON.BORDER_RADIUS.MS}px;
+  min-height: 110px;
 `;
 
-const NotesButton = styled.TouchableOpacity`
-  flex-direction: row;
-  align-items: center;
-  border-width: 1px;
-  border-color: ${COLOR_LIGHT_TEXT};
+const NotesContainer = styled.View`
+  width: 89px;
+  height: 31px;
+  border-width: 1.5px;
+  border-color: ${Colors.textLight};
   border-radius: 20px;
-  padding: 3px 12px;
+  justify-content: center;
+  align-items: center;
+  background-color: transparent;
 `;
 
 const NotesText = styled.Text`
-  color: ${COLOR_LIGHT_TEXT};
-  font-weight: 700;
-  margin-right: 5px;
+  font-size: ${THEME.TYPOGRAPHY.CAPTION}px;
+  color: ${Colors.textLight};
+  font-family: ${THEME.FONTS.SEMI_BOLD};
 `;
 
-const NotesLabel = styled.Text`
-  color: ${COLOR_LIGHT_TEXT};
-  font-size: 13px;
-`;
-
-const IconsContainer = styled.View`
+const InteractionsContainer = styled.View`
   flex-direction: row;
   align-items: center;
-  gap: 20px;
 `;
 
-const FooterIcon = styled.TouchableOpacity`
-  padding: 6px;
+const IconButton = styled.TouchableOpacity`
+  flex-direction: row;
+  align-items: center;
+  margin-left: ${THEME.SPACING.MD}px;
+  padding: ${THEME.SPACING.XS}px;
+`;
+
+const CountText = styled.Text<{ active?: boolean }>`
+  margin-left: ${THEME.SPACING.XS}px;
+  font-size: ${THEME.TYPOGRAPHY.SMALL}px;
+  color: ${({ active }) => (active ? Colors.error : Colors.textLight)};
+  font-family: ${THEME.FONTS.REGULAR};
 `;

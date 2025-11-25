@@ -10,7 +10,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -26,11 +26,10 @@ interface ITagItem {
   imageUrl: string;
 }
 
-const ExploreScreen = () => {
+const SearchScreen = () => {
   const router = useRouter();
   const [searchText, setSearchText] = React.useState("");
 
-  // Datos de ejemplo basados en tu imagen
   const recentSearches: IRecentSearch[] = [
     { id: "1", text: "Sineala" },
     { id: "2", text: "Ao3" },
@@ -38,13 +37,29 @@ const ExploreScreen = () => {
   ];
 
   const followedTags: ITagItem[] = [
-    { id: "1", text: "#destiel", imageUrl: "https://placehold.co/100x100/333/white?text=DS" },
-    { id: "2", text: "#flowers", imageUrl: "https://placehold.co/100x100/pink/white?text=FL" },
-    { id: "3", text: "#remmick", imageUrl: "https://placehold.co/100x100/222/white?text=RM" },
-    { id: "4", text: "#sentryagent", imageUrl: "https://placehold.co/100x100/gold/black?text=SA" },
+    {
+      id: "1",
+      text: "#destiel",
+      imageUrl: "https://placehold.co/100x100/333/white?text=DS",
+    },
+    {
+      id: "2",
+      text: "#flowers",
+      imageUrl: "https://placehold.co/100x100/pink/white?text=FL",
+    },
+    {
+      id: "3",
+      text: "#remmick",
+      imageUrl: "https://placehold.co/100x100/222/white?text=RM",
+    },
+    {
+      id: "4",
+      text: "#sentryagent",
+      imageUrl: "https://placehold.co/100x100/gold/black?text=SA",
+    },
   ];
 
-  // Manejadores de eventos (placeholders)
+  // Manejadores de eventos
   const handleRemoveRecent = (id: string) => {
     console.log("Eliminar búsqueda:", id);
   };
@@ -53,30 +68,43 @@ const ExploreScreen = () => {
     setSearchText(text);
   };
 
+  const handleViewAllTags = () => {
+    router.push("/screens/ManageTagsScreen");
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={"red"} />      
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={THEME.COLORS.primary}
+      />
       <View style={styles.container}>
         <View style={styles.headerContainer}>
           <View style={styles.headerTopRow}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-              <Ionicons name="arrow-back" size={28} color="white" />
+            <TouchableOpacity
+              onPress={() => router.replace("../screens/HomeScreen")}
+              style={styles.backButton}
+            >
+              <Ionicons
+                name="arrow-back"
+                size={28}
+                color={THEME.COLORS.textLight}
+              />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Explorar</Text>
           </View>
           <View style={styles.searchBarContainer}>
-            <Text></Text>
             <TextInput
               style={styles.searchInput}
               placeholder="Buscar..."
-              placeholderTextColor={THEME.COLORS.textPlaceholder || "#999"}
+              placeholderTextColor={THEME.COLORS.textPlaceholder}
               value={searchText}
               onChangeText={handleSearch}
             />
-            <Ionicons 
-              name="search" 
-              size={20} 
-              color={THEME.COLORS.textMuted || "#666"} 
+            <Ionicons
+              name="search"
+              size={20}
+              color={THEME.COLORS.textMuted}
               style={styles.searchIcon}
             />
           </View>
@@ -84,15 +112,23 @@ const ExploreScreen = () => {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Recientes</Text>
-            
+
             {recentSearches.map((item) => (
               <View key={item.id} style={styles.recentItemRow}>
                 <View style={styles.recentItemLeft}>
-                  <Ionicons name="search-outline" size={24} color={THEME.COLORS.text || "#333"} />
+                  <Ionicons
+                    name="search-outline"
+                    size={24}
+                    color={THEME.COLORS.text}
+                  />
                   <Text style={styles.recentItemText}>{item.text}</Text>
                 </View>
                 <TouchableOpacity onPress={() => handleRemoveRecent(item.id)}>
-                  <Ionicons name="close" size={24} color={THEME.COLORS.textMuted || "#666"} />
+                  <Ionicons
+                    name="close"
+                    size={24}
+                    color={THEME.COLORS.textMuted}
+                  />
                 </TouchableOpacity>
               </View>
             ))}
@@ -101,9 +137,9 @@ const ExploreScreen = () => {
             <Text style={styles.sectionTitle}>Etiquetas que sigues</Text>
             {followedTags.map((item) => (
               <View key={item.id} style={styles.tagItemRow}>
-                <Image 
-                  source={{ uri: item.imageUrl }} 
-                  style={styles.tagImage} 
+                <Image
+                  source={{ uri: item.imageUrl }}
+                  style={styles.tagImage}
                 />
                 <Text style={styles.tagItemText}>{item.text}</Text>
               </View>
@@ -111,12 +147,15 @@ const ExploreScreen = () => {
           </View>
           <TouchableOpacity
             style={styles.viewAllLinkContainer}
-            onPress={() => (null/*router.push("/screens/FandomScreen")*/)}
+            onPress={handleViewAllTags}
           >
             <Text style={styles.viewAllText}>Ver las etiquetas que sigues</Text>
-            <Ionicons name="arrow-forward" size={20} color={THEME.COLORS.text || "#333"} />
+            <Ionicons
+              name="arrow-forward"
+              size={20}
+              color={THEME.COLORS.text}
+            />
           </TouchableOpacity>
-
         </ScrollView>
       </View>
     </SafeAreaView>
@@ -126,116 +165,113 @@ const ExploreScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#46364B",
+    backgroundColor: THEME.COLORS.primary,
   },
   container: {
     flex: 1,
-    backgroundColor: THEME.COLORS.background || "#FFF",
+    backgroundColor: THEME.COLORS.background,
   },
   /* Header Styles */
   headerContainer: {
-    backgroundColor: "#46364B",
-    paddingHorizontal: THEME.SPACING.SCREEN_HORIZONTAL || 16,
-    paddingBottom: THEME.SPACING.LG || 20,
-    paddingTop: THEME.SPACING.SM || 10,
+    backgroundColor: THEME.COLORS.primary,
+    paddingHorizontal: THEME.SPACING.SCREEN_HORIZONTAL,
+    paddingBottom: THEME.SPACING.LG,
+    paddingTop: THEME.SPACING.SM,
   },
   headerTopRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: THEME.SPACING.MD || 16,
+    marginBottom: THEME.SPACING.MD,
   },
   backButton: {
-    marginRight: THEME.SPACING.MD || 16,
+    marginRight: THEME.SPACING.MD,
   },
   headerTitle: {
-    fontFamily: THEME.FONTS.TITLE_SERIF || "System",
-    fontSize: THEME.TYPOGRAPHY.TITLE || 22,
-    color: "white",
+    fontFamily: THEME.FONTS.TITLE_SERIF,
+    fontSize: THEME.TYPOGRAPHY.TITLE,
+    color: THEME.COLORS.textLight,
     fontWeight: "600",
   },
   searchBarContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "white",
-    borderRadius: 30,
+    backgroundColor: THEME.COLORS.background,
+    borderRadius: THEME.COMMON.BORDER_RADIUS.LG,
     height: 45,
-    paddingHorizontal: THEME.SPACING.MD || 12,
+    paddingHorizontal: THEME.SPACING.MD,
   },
   searchInput: {
     flex: 1,
     height: "100%",
-    fontFamily: THEME.FONTS.REGULAR || "System",
-    fontSize: THEME.TYPOGRAPHY.BODY || 16,
-    color: THEME.COLORS.text || "#000",
+    fontFamily: THEME.FONTS.REGULAR,
+    fontSize: THEME.TYPOGRAPHY.BODY,
+    color: THEME.COLORS.text,
   },
   searchIcon: {
-    marginLeft: 8,
-    position: "absolute",
-    right: 16,
-    color: "#666"
+    marginLeft: THEME.SPACING.XS,
   },
   scrollContent: {
-    paddingHorizontal: THEME.SPACING.SCREEN_HORIZONTAL || 20,
-    paddingTop: THEME.SPACING.LG || 24,
-    paddingBottom: 40,
+    paddingHorizontal: THEME.SPACING.SCREEN_HORIZONTAL,
+    paddingTop: THEME.SPACING.LG,
+    paddingBottom: THEME.SPACING.XL,
   },
   section: {
-    marginBottom: THEME.SPACING.XL || 32,
+    marginBottom: THEME.SPACING.XL,
   },
   sectionTitle: {
-    fontFamily: THEME.FONTS.BOLD || "System",
-    fontSize: THEME.TYPOGRAPHY.HEADER || 18,
-    color: THEME.COLORS.text || "#333",
-    marginBottom: THEME.SPACING.MD || 16,
-    fontWeight: "bold",
-    opacity: 0.8,
+    fontFamily: THEME.FONTS.BOLD,
+    fontSize: THEME.TYPOGRAPHY.SUBTITLE,
+    color: THEME.COLORS.text,
+    marginBottom: THEME.SPACING.MD,
   },
   recentItemRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: THEME.SPACING.MD || 16,
+    marginBottom: THEME.SPACING.MD,
+    paddingVertical: THEME.SPACING.XS,
   },
   recentItemLeft: {
     flexDirection: "row",
     alignItems: "center",
   },
   recentItemText: {
-    marginLeft: THEME.SPACING.MD || 16,
-    fontSize: THEME.TYPOGRAPHY.BODY || 16,
-    color: THEME.COLORS.textMuted || "#555",
-    fontFamily: THEME.FONTS.REGULAR || "System",
+    marginLeft: THEME.SPACING.MD,
+    fontSize: THEME.TYPOGRAPHY.BODY,
+    color: THEME.COLORS.text,
+    fontFamily: THEME.FONTS.REGULAR,
   },
   tagItemRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: THEME.SPACING.MD || 16,
+    marginBottom: THEME.SPACING.MD,
+    paddingVertical: THEME.SPACING.XS,
   },
   tagImage: {
     width: 40,
     height: 40,
-    borderRadius: 8,
-    backgroundColor: "#ccc",
+    borderRadius: THEME.COMMON.BORDER_RADIUS.MD,
+    backgroundColor: THEME.COLORS.backgroundAlt,
   },
   tagItemText: {
-    marginLeft: THEME.SPACING.MD || 16,
-    fontSize: THEME.TYPOGRAPHY.BODY || 16,
-    color: THEME.COLORS.text || "#333",
-    fontFamily: THEME.FONTS.REGULAR || "System",
+    marginLeft: THEME.SPACING.MD,
+    fontSize: THEME.TYPOGRAPHY.BODY,
+    color: THEME.COLORS.text,
+    fontFamily: THEME.FONTS.REGULAR,
   },
   viewAllLinkContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginTop: THEME.SPACING.SM || 8,
-    paddingVertical: 10,
+    marginTop: THEME.SPACING.SM,
+    paddingVertical: THEME.SPACING.SM,
+    paddingHorizontal: THEME.SPACING.XS,
   },
   viewAllText: {
-    fontFamily: THEME.FONTS.BOLD || "System",
-    fontSize: 16,
-    color: THEME.COLORS.text || "#000",
-    fontWeight: "600",
-  }
+    fontFamily: THEME.FONTS.SEMI_BOLD,
+    fontSize: THEME.TYPOGRAPHY.BODY,
+    color: THEME.COLORS.text,
+  },
 });
 
-export default ExploreScreen;
+export default SearchScreen;

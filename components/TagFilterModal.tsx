@@ -6,15 +6,13 @@ import {
   Dimensions,
   Keyboard,
   Easing,
-  Image,
 } from "react-native";
 import styled from "styled-components/native";
 import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
+import { Colors, THEME } from "@/constants";
 
 const { height: screenHeight } = Dimensions.get("window");
-
-// Importar el ícono de lupa
-const searchIcon = require("../assets/images/search-icon.png");
 
 interface TagFilterModalProps {
   visible: boolean;
@@ -128,6 +126,18 @@ export const TagFilterModal: React.FC<TagFilterModalProps> = ({
     [selectedTags],
   );
 
+  // Calcular altura dinámica basada en la cantidad de etiquetas
+  const getModalHeight = () => {
+    const baseHeight = 300; // Altura base para elementos fijos
+    const tagRowHeight = 50; // Altura aproximada por fila de etiquetas
+    const tagCount = filteredTags.length;
+    const rowCount = Math.ceil(tagCount / 2);
+    const calculatedHeight = baseHeight + rowCount * tagRowHeight;
+
+    // Limitar la altura máxima al 75% de la pantalla
+    return Math.min(calculatedHeight, screenHeight * 0.75);
+  };
+
   return (
     <Modal
       visible={visible}
@@ -144,6 +154,7 @@ export const TagFilterModal: React.FC<TagFilterModalProps> = ({
           as={Animated.View}
           style={{
             transform: [{ translateY: slideAnim }],
+            height: getModalHeight(),
           }}
         >
           <Header>
@@ -151,13 +162,14 @@ export const TagFilterModal: React.FC<TagFilterModalProps> = ({
               <CancelText>Cancelar</CancelText>
             </CancelButton>
             <Title>Filtrar por etiquetas</Title>
+            <PlaceholderView />
           </Header>
 
           <SearchContainer>
-            <SearchIcon source={searchIcon} />
+            <Ionicons name="search" size={20} color={Colors.textPlaceholder} />
             <SearchInput
               placeholder="Busca entre tus etiquetas"
-              placeholderTextColor="#4B4B4B"
+              placeholderTextColor={Colors.textPlaceholder}
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
@@ -170,7 +182,10 @@ export const TagFilterModal: React.FC<TagFilterModalProps> = ({
               renderItem={renderTagItem}
               numColumns={2}
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingBottom: 20 }}
+              contentContainerStyle={{
+                paddingBottom: THEME.SPACING.XL,
+                flexGrow: 1,
+              }}
               initialNumToRender={20}
               maxToRenderPerBatch={30}
               windowSize={10}
@@ -211,10 +226,10 @@ export const TagFilterModal: React.FC<TagFilterModalProps> = ({
   );
 };
 
-// Estilos finales pulidos
+// Estilos con área táctil mejorada para Cancelar
 const Overlay = styled.View`
   flex: 1;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: ${Colors.modalOverlay};
   justify-content: flex-end;
 `;
 
@@ -223,73 +238,74 @@ const OverlayBackground = styled.View`
 `;
 
 const ModalContainer = styled.View`
-  background-color: #ffffff;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
-  padding: 20px 16px 10px 16px;
-  max-height: 85%;
+  background-color: ${Colors.modalBackground};
+  border-top-left-radius: ${THEME.COMMON.BORDER_RADIUS.LG}px;
+  border-top-right-radius: ${THEME.COMMON.BORDER_RADIUS.LG}px;
+  padding: ${THEME.SPACING.LG}px ${THEME.SPACING.MD}px ${THEME.SPACING.MD}px;
+  min-height: 300px;
+  max-height: 75%;
 `;
 
 const Header = styled.View`
   flex-direction: row;
   align-items: center;
-  justify-content: center;
-  padding-bottom: 10px;
-  position: relative;
+  justify-content: space-between;
+  padding-bottom: ${THEME.SPACING.SM}px;
+  min-height: 50px;
 `;
 
 const CancelButton = styled.TouchableOpacity`
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
+  padding: ${THEME.SPACING.MD}px;
   justify-content: center;
-  padding-vertical: 8px;
+  align-items: flex-start;
+  min-height: 44px;
+  min-width: 80px;
 `;
 
 const CancelText = styled.Text`
-  color: #1291eb;
-  font-size: 14px;
-  font-weight: 600;
-  font-family: "OpenSans-SemiBold", "System";
+  color: ${Colors.action};
+  font-size: ${THEME.TYPOGRAPHY.BODY}px;
+  font-family: ${THEME.FONTS.SEMI_BOLD};
 `;
 
 const Title = styled.Text`
-  font-size: 15px;
-  font-weight: 700;
-  color: #000000;
-  font-family: "OpenSans-Bold", "System";
+  font-size: ${THEME.TYPOGRAPHY.BODY}px;
+  font-family: ${THEME.FONTS.BOLD};
+  color: ${Colors.text};
+  position: absolute;
+  left: 0;
+  right: 0;
+  text-align: center;
+`;
+
+const PlaceholderView = styled.View`
+  width: 80px;
 `;
 
 const SearchContainer = styled.View`
   flex-direction: row;
   align-items: center;
-  background-color: #adadad;
-  height: 36px;
-  border-radius: 20px;
-  padding-horizontal: 16px;
-  margin-top: 8px;
-  gap: 8px;
-`;
-
-const SearchIcon = styled.Image`
-  width: 16px;
-  height: 16px;
-  /* Se eliminó tint-color para mantener el color original del Figma */
+  background-color: ${Colors.backgroundAlt};
+  height: 44px;
+  border-radius: ${THEME.COMMON.BORDER_RADIUS.XL}px;
+  padding-horizontal: ${THEME.SPACING.MD}px;
+  margin-top: ${THEME.SPACING.SM}px;
+  margin-bottom: ${THEME.SPACING.MD}px;
+  gap: ${THEME.SPACING.SM}px;
 `;
 
 const SearchInput = styled.TextInput`
   flex: 1;
-  font-size: 14px;
-  color: #000000;
-  font-family: "OpenSans-Regular", "System";
-  padding-vertical: 0; /* ✅ Alinea verticalmente con el icono */
+  font-size: ${THEME.TYPOGRAPHY.BODY}px;
+  color: ${Colors.text};
+  font-family: ${THEME.FONTS.REGULAR};
+  padding-vertical: 0;
 `;
 
 const TagsContainer = styled.View`
   flex: 1;
-  margin-top: 16px;
-  min-height: 200px;
+  min-height: 120px;
+  margin-bottom: ${THEME.SPACING.MD}px;
 `;
 
 const TagsList = styled.FlatList`
@@ -297,12 +313,13 @@ const TagsList = styled.FlatList`
 `;
 
 const TagItem = styled.TouchableOpacity<{ isSelected: boolean }>`
-  background-color: ${({ isSelected }) => (isSelected ? "#1291EB" : "#FFFFFF")};
+  background-color: ${({ isSelected }) =>
+    isSelected ? Colors.action : Colors.background};
   border: 1.5px solid
-    ${({ isSelected }) => (isSelected ? "#1291EB" : "#4B4B4B")};
-  padding: 6px 12px;
-  border-radius: 16px;
-  margin: 4px;
+    ${({ isSelected }) => (isSelected ? Colors.action : Colors.border)};
+  padding: ${THEME.SPACING.SM}px ${THEME.SPACING.MD}px;
+  border-radius: ${THEME.COMMON.BORDER_RADIUS.XL}px;
+  margin: ${THEME.SPACING.XS}px;
   flex: 1;
   min-width: 45%;
   align-items: center;
@@ -310,48 +327,50 @@ const TagItem = styled.TouchableOpacity<{ isSelected: boolean }>`
 `;
 
 const TagText = styled.Text<{ isSelected: boolean }>`
-  color: ${({ isSelected }) => (isSelected ? "#FFFFFF" : "#4B4B4B")};
-  font-size: 14px;
-  font-weight: 500;
-  font-family: "OpenSans-Medium", "System";
+  color: ${({ isSelected }) => (isSelected ? Colors.textLight : Colors.text)};
+  font-size: ${THEME.TYPOGRAPHY.CAPTION}px;
+  font-family: ${THEME.FONTS.SEMI_BOLD};
 `;
 
 const DividerContainer = styled.View`
   width: 100%;
-  margin-vertical: 8px;
+  margin-vertical: ${THEME.SPACING.SM}px;
 `;
 
 const ActionsContainer = styled.View`
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding-vertical: 14px;
-  background-color: #ffffff;
+  padding-top: ${THEME.SPACING.MD}px;
+  background-color: ${Colors.modalBackground};
+  min-height: 60px;
 `;
 
 const ClearButton = styled.TouchableOpacity<{ disabled: boolean }>`
-  padding: 10px 0;
-  opacity: ${({ disabled }) => (disabled ? 0.6 : 1)};
-`;
-
-const ClearText = styled.Text<{ disabled: boolean }>`
-  color: ${({ disabled }) => (disabled ? "#ADADAD" : "#1291EB")};
-  font-size: 14px;
-  font-weight: 600;
-  font-family: "OpenSans-SemiBold", "System";
-`;
-
-const ApplyButton = styled.TouchableOpacity`
-  background-color: #1291eb;
-  padding: 10px 28px;
-  border-radius: 20px;
-  align-items: center;
+  padding: ${THEME.SPACING.MD}px ${THEME.SPACING.LG}px;
+  opacity: ${({ disabled }) => (disabled ? 0.5 : 1)};
+  min-height: 44px;
   justify-content: center;
 `;
 
+const ClearText = styled.Text<{ disabled: boolean }>`
+  color: ${({ disabled }) => (disabled ? Colors.textMuted : Colors.action)};
+  font-size: ${THEME.TYPOGRAPHY.BODY}px;
+  font-family: ${THEME.FONTS.SEMI_BOLD};
+`;
+
+const ApplyButton = styled.TouchableOpacity`
+  background-color: ${Colors.action};
+  padding: ${THEME.SPACING.MD}px ${THEME.SPACING.XL}px;
+  border-radius: ${THEME.COMMON.BORDER_RADIUS.XL}px;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  min-height: 44px;
+`;
+
 const ApplyText = styled.Text`
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 700;
-  font-family: "OpenSans-Bold", "System";
+  color: ${Colors.textLight};
+  font-size: ${THEME.TYPOGRAPHY.BODY}px;
+  font-family: ${THEME.FONTS.BOLD};
 `;

@@ -8,7 +8,7 @@ interface PostOptionsModalProps {
   onClose: () => void;
   onNotInterested: () => void;
   onFollow: () => void;
-  onUnfollow?: () => void; // Nueva prop para dejar de seguir
+  onUnfollow?: () => void;
   isFollowing?: boolean;
 }
 
