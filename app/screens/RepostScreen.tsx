@@ -1,20 +1,20 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useKeyboard } from '@react-native-community/hooks';
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   TextInput as RNTextInput,
   ScrollView,
+  View
 } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import styled from "styled-components/native";
 import { DiscardPostModal } from "../../components/DiscardPostModal";
 import { OriginalPostView } from "../../components/OriginalPostView";
 import { TagSelectorModal } from "../../components/TagSelectorModal";
 import { TextStyleModal } from "../../components/TextStyleModal";
 import { Colors, THEME } from "../../constants";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 const defaultAvatar = require("../../assets/images/default_avatar.png");
 
@@ -49,6 +49,8 @@ const currentUser = {
 
 export default function RepostScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const keyboard = useKeyboard();
   const [repostComment, setRepostComment] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [textStyle, setTextStyle] = useState("regular");
@@ -86,148 +88,161 @@ export default function RepostScreen() {
   const isReadyToRepost =
     repostComment.trim().length > 0 || mockOriginalPost.content.length > 0;
 
+  // Calculamos el margen inferior dinámicamente
+  const bottomMargin = keyboard.keyboardShown ? keyboard.keyboardHeight : 0;
+
+  const getFontFamily = (style: string) => {
+    switch (style) {
+      case "light":
+        return THEME.FONTS.LIGHT;
+      case "regular":
+        return THEME.FONTS.REGULAR;
+      case "semibold":
+        return THEME.FONTS.SEMI_BOLD;
+      case "bold":
+        return THEME.FONTS.BOLD;
+      default:
+        return THEME.FONTS.REGULAR;
+    }
+  };
+
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: Colors.background }}
       edges={["top"]}
     >
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-      >
-        <Container>
-          <Header>
-            <CloseButton
-              onPress={handleClose}
-              accessibilityLabel="Cerrar y descartar"
-            >
-              <Ionicons name="close-outline" size={32} color={Colors.text} />
-            </CloseButton>
-
-            <UserHeaderContainer>
-              <UserAvatar
-                source={
-                  currentUser.avatarUrl
-                    ? { uri: currentUser.avatarUrl }
-                    : defaultAvatar
-                }
-              />
-              <Username>{currentUser.username}</Username>
-              <Ionicons
-                name="chevron-down-outline"
-                size={18}
-                color={Colors.text}
-              />
-            </UserHeaderContainer>
-
-            <RepostButton onPress={handleRepost} disabled={!isReadyToRepost}>
-              <RepostText>Repostear</RepostText>
-            </RepostButton>
-          </Header>
-
-          <ScrollView
-            contentContainerStyle={{
-              paddingHorizontal: THEME.SPACING.SCREEN_HORIZONTAL,
-              paddingVertical: 10,
-            }}
+      {/* Contenido principal */}
+      <View style={{ flex: 1 }}>
+        <Header>
+          <CloseButton
+            onPress={handleClose}
+            accessibilityLabel="Cerrar y descartar"
           >
-            <Content>
-              <TextInput
-                key={textStyle}
-                placeholder="Puedes añadir un comentario."
-                placeholderTextColor={Colors.textPlaceholder}
-                multiline
-                value={repostComment}
-                onChangeText={setRepostComment}
-                style={{
-                  fontFamily:
-                    textStyle === "light"
-                      ? THEME.FONTS.LIGHT
-                      : textStyle === "regular"
-                        ? THEME.FONTS.REGULAR
-                        : textStyle === "semibold"
-                          ? THEME.FONTS.SEMI_BOLD
-                          : textStyle === "bold"
-                            ? THEME.FONTS.BOLD
-                            : THEME.FONTS.REGULAR,
-                  fontSize: THEME.TYPOGRAPHY.BODY,
-                  color: Colors.text,
-                  minHeight: 80,
-                  padding: 0,
-                  marginBottom: THEME.SPACING.MD,
-                }}
-              />
+            <Ionicons name="close-outline" size={32} color={Colors.text} />
+          </CloseButton>
 
-              <OriginalPostView post={mockOriginalPost} />
-            </Content>
-          </ScrollView>
-
-          <TagBar>
-            <TagAddButton
-              onPress={() => setShowTagModal(true)}
-              accessibilityLabel="Añadir etiquetas"
-            >
-              <TagAddText>+ Añadir Etiqueta</TagAddText>
-            </TagAddButton>
-
-            {selectedTags.map((tag) => (
-              <TagChip key={tag}>
-                <TagText>#{tag}</TagText>
-              </TagChip>
-            ))}
-          </TagBar>
-
-          <BottomBar>
-            <ToolButton
-              onPress={() => setShowTextStyleModal(true)}
-              accessibilityLabel="Seleccionar estilo de texto"
-            >
-              <Ionicons
-                name="text-outline"
-                size={26}
-                color={Colors.textLight}
-              />
-            </ToolButton>
-
-            <ToolButton
-              onPress={() =>
-                Alert.alert(
-                  "Función no implementada",
-                  "Añadir imagen a comentario",
-                )
+          <UserHeaderContainer>
+            <UserAvatar
+              source={
+                currentUser.avatarUrl
+                  ? { uri: currentUser.avatarUrl }
+                  : defaultAvatar
               }
-            >
-              <Ionicons
-                name="image-outline"
-                size={26}
-                color={Colors.textLight}
-              />
-            </ToolButton>
-          </BottomBar>
+            />
+            <Username>{currentUser.username}</Username>
+            <Ionicons
+              name="chevron-down-outline"
+              size={18}
+              color={Colors.text}
+            />
+          </UserHeaderContainer>
 
-          <DiscardPostModal
-            visible={showDiscardModal}
-            onDiscard={handleDiscard}
-            onContinueEditing={() => setShowDiscardModal(false)}
+          <RepostButton onPress={handleRepost} disabled={!isReadyToRepost}>
+            <RepostText>Repostear</RepostText>
+          </RepostButton>
+        </Header>
+
+        <ScrollView
+          contentContainerStyle={{
+            paddingHorizontal: THEME.SPACING.SCREEN_HORIZONTAL,
+            paddingVertical: 10,
+          }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Content>
+            <TextInput
+              key={textStyle}
+              placeholder="Puedes añadir un comentario."
+              placeholderTextColor={Colors.textPlaceholder}
+              multiline
+              value={repostComment}
+              onChangeText={setRepostComment}
+              style={{
+                fontFamily: getFontFamily(textStyle),
+                fontSize: THEME.TYPOGRAPHY.BODY,
+                color: Colors.text,
+                minHeight: 80,
+                padding: 0,
+                marginBottom: THEME.SPACING.MD,
+              }}
+            />
+
+            <OriginalPostView post={mockOriginalPost} />
+          </Content>
+        </ScrollView>
+
+        <TagBar>
+          <TagAddButton
+            onPress={() => setShowTagModal(true)}
+            accessibilityLabel="Añadir etiquetas"
+          >
+            <TagAddText>+ Añadir Etiqueta</TagAddText>
+          </TagAddButton>
+
+          {selectedTags.map((tag) => (
+            <TagChip key={tag}>
+              <TagText>#{tag}</TagText>
+            </TagChip>
+          ))}
+        </TagBar>
+      </View>
+
+      {/* BottomBar con ajuste dinámico */}
+      <BottomBar 
+        style={{ 
+          paddingBottom: Math.max(insets.bottom, 10),
+          marginBottom: bottomMargin,
+        }}>
+        <ToolButton
+          onPress={() => setShowTextStyleModal(true)}
+          accessibilityLabel="Seleccionar estilo de texto"
+        >
+          <Ionicons
+            name="text-outline"
+            size={26}
+            color={Colors.textLight}
           />
-          <TagSelectorModal
-            visible={showTagModal}
-            onClose={() => setShowTagModal(false)}
-            onTagsSelected={setSelectedTags}
-            selectedTags={selectedTags}
+        </ToolButton>
+
+        <ToolButton
+          onPress={() =>
+            Alert.alert(
+              "Función no implementada",
+              "Añadir imagen a comentario",
+            )
+          }
+        >
+          <Ionicons
+            name="image-outline"
+            size={26}
+            color={Colors.textLight}
           />
-          <TextStyleModal
-            visible={showTextStyleModal}
-            onClose={() => setShowTextStyleModal(false)}
-            onStyleSelected={setTextStyle}
-            selectedStyle={textStyle}
-          />
-        </Container>
-      </KeyboardAvoidingView>
+        </ToolButton>
+      </BottomBar>
+
+      {/* Modals */}
+      <DiscardPostModal
+        visible={showDiscardModal}
+        onDiscard={handleDiscard}
+        onContinueEditing={() => setShowDiscardModal(false)}
+      />
+      <TagSelectorModal
+        visible={showTagModal}
+        onClose={() => setShowTagModal(false)}
+        onTagsSelected={setSelectedTags}
+        selectedTags={selectedTags}
+      />
+      <TextStyleModal
+        visible={showTextStyleModal}
+        onClose={() => setShowTextStyleModal(false)}
+        onStyleSelected={setTextStyle}
+        selectedStyle={textStyle}
+      />
     </SafeAreaView>
   );
 }
 
+// Tus componentes styled permanecen igual...
 const Container = styled.View`
   flex: 1;
   background-color: ${Colors.background};
@@ -238,7 +253,7 @@ const Header = styled.View`
   justify-content: space-between;
   align-items: center;
   padding: ${THEME.SPACING.MD}px ${THEME.SPACING.SCREEN_HORIZONTAL}px
-    ${THEME.SPACING.SM}px; /* Más padding arriba */
+    ${THEME.SPACING.SM}px;
   border-bottom-width: 1px;
   border-bottom-color: ${Colors.border};
 `;
@@ -256,7 +271,7 @@ const UserAvatar = styled.Image`
   width: 32px;
   height: 32px;
   border-radius: 16px;
-  background-color: ${Colors.grayLight};
+  background-color: ${Colors.textLight};
   margin-right: ${THEME.SPACING.SM}px;
 `;
 
@@ -269,7 +284,7 @@ const Username = styled.Text`
 
 const RepostButton = styled.TouchableOpacity<{ disabled: boolean }>`
   background-color: ${(props) =>
-    props.disabled ? Colors.grayLight : Colors.action};
+    props.disabled ? Colors.textLight : Colors.action};
   padding: ${THEME.SPACING.SM}px ${THEME.SPACING.MD}px;
   border-radius: 20px;
 `;
@@ -336,9 +351,12 @@ const TagText = styled.Text`
 const BottomBar = styled.View`
   flex-direction: row;
   align-items: center;
-  padding: ${THEME.SPACING.MD}px ${THEME.SPACING.SCREEN_HORIZONTAL}px;
-  justify-content: flex-start;
+  justify-content: space-between;
+  padding-left: ${THEME.SPACING.SCREEN_HORIZONTAL}px;
+  padding-right: ${THEME.SPACING.SCREEN_HORIZONTAL}px;
+  padding-top: ${THEME.SPACING.MD}px;
   background-color: ${Colors.primary};
+  min-height: ${THEME.SPACING.NAV_BAR_HEIGHT}px;
 `;
 
 const ToolButton = styled.TouchableOpacity`
