@@ -1,98 +1,128 @@
-import React from "react";
-import { useRouter, usePathname } from "expo-router";
-import styled from "styled-components/native";
-import { Dimensions } from "react-native";
+import { Colors, THEME } from "@/constants";
+import { Ionicons } from "@expo/vector-icons";
+import { Href, usePathname, useRouter } from "expo-router";
+import { Pressable, StyleSheet, View } from "react-native";
 
-const homeIconOutline = require("../assets/images/homeIcon_outline.png");
-const homeIconFilled = require("../assets/images/homeIcon_filled.png");
-const searchIconOutline = require("../assets/images/searchIcon_outline.png");
-const notificationIconOutline = require("../assets/images/notificationIcon_outline.png");
-const notificationIconFilled = require("../assets/images/notificationIcon_filled.png");
-const messagesIconOutline = require("../assets/images/messageIcon_outline.png");
-const messagesIconFilled = require("../assets/images/messageIcon_filled.png");
-
-const { width: screenWidth } = Dimensions.get("window");
+type IoniconsName = keyof typeof Ionicons.glyphMap;
 
 interface NavigationBarProps {
   style?: any;
 }
 
-const NAV_BAR_WIDTH = 180;
-const NAV_BAR_HEIGHT = 87;
+interface Route {
+  path: Href;
+  icon: (isActive: boolean) => IoniconsName;
+  label: string;
+}
+
+interface INavIcon {
+  icon: IoniconsName;
+  pressed: boolean;
+  isActive: boolean;
+}
+
+const routes: Route[] = [
+  {
+    path: "/screens/HomeScreen",
+    icon: (isActive) => (isActive ? "home" : "home-outline"),
+    label: "Home",
+  },
+  {
+    path: "/screens/SearchScreen",
+    icon: (isActive) => (isActive ? "search" : "search-outline"),
+    label: "Search",
+  },
+  {
+    path: "/screens/NotificationScreen",
+    icon: (isActive) => (isActive ? "notifications" : "notifications-outline"),
+    label: "Notifications",
+  },
+  {
+    path: "/screens/MessageListScreen",
+    icon: (isActive) => (isActive ? "chatbubble" : "chatbubble-outline"),
+    label: "Messages",
+  },
+];
+
+const NavIcon = ({ icon, pressed, isActive }: INavIcon) => {
+  const iconColor = isActive ? Colors.tabIconSelected : Colors.navIconInactive;
+  const iconOpacity = pressed ? 0.8 : 1;
+
+  return (
+    <Ionicons
+      name={icon}
+      size={24}
+      color={iconColor}
+      style={{ opacity: iconOpacity }}
+    />
+  );
+};
 
 export const NavigationBar = ({ style }: NavigationBarProps) => {
   const router = useRouter();
   const pathname = usePathname();
 
-  const navigateTo = (screen: string) => {
-    router.push(`/(tabs)/${screen}`);
-  };
-
-  const getIconSource = (screen: string) => {
-    const isActive = pathname === `/(tabs)/${screen}`;
-
-    switch (screen) {
-      case "home":
-        return isActive ? homeIconFilled : homeIconOutline;
-      case "search":
-        return searchIconOutline;
-      case "notifications":
-        return isActive ? notificationIconFilled : notificationIconOutline;
-      case "messages":
-        return isActive ? messagesIconFilled : messagesIconOutline;
-      default:
-        return homeIconOutline;
-    }
-  };
-
   return (
-    <Container style={style}>
-      <NavButton onPress={() => navigateTo("home")}>
-        <Icon source={getIconSource("home")} />
-      </NavButton>
+    <View style={[styles.container, style]}>
+      {routes.map(({ path, icon, label }) => {
+        const isActive =
+          pathname === path || pathname.startsWith(path as string);
 
-      <NavButton onPress={() => navigateTo("search")}>
-        <Icon source={getIconSource("search")} />
-      </NavButton>
-
-      <NavButton onPress={() => navigateTo("notifications")}>
-        <Icon source={getIconSource("notifications")} />
-      </NavButton>
-
-      <NavButton onPress={() => navigateTo("messages")}>
-        <Icon source={getIconSource("messages")} />
-      </NavButton>
-    </Container>
+        return (
+          <Pressable
+            key={String(path)}
+            onPress={() => router.push(path)}
+            style={styles.pressable}
+          >
+            {({ pressed }) => (
+              <View
+                style={[
+                  styles.buttonContent,
+                  isActive && styles.buttonContentActive,
+                  pressed && styles.buttonContentPressed,
+                ]}
+              >
+                <NavIcon
+                  icon={icon(isActive)}
+                  pressed={pressed}
+                  isActive={isActive}
+                />
+              </View>
+            )}
+          </Pressable>
+        );
+      })}
+    </View>
   );
 };
 
-const Container = styled.View`
-  width: ${NAV_BAR_WIDTH}px;
-  height: ${NAV_BAR_HEIGHT}px;
-  background-color: #423646;
-  border-radius: 12px;
-  flex-direction: row;
-  justify-content: space-around;
-  align-items: center;
-  padding-horizontal: 10px;
-  shadow-color: #000;
-  shadow-offset: 0px 2px;
-  shadow-opacity: 0.25;
-  shadow-radius: 3.84px;
-  elevation: 5;
-`;
-
-const NavButton = styled.TouchableOpacity`
-  width: 40px;
-  height: 40px;
-  justify-content: center;
-  align-items: center;
-  border-radius: 20px;
-  background-color: rgba(255, 255, 255, 0.1);
-`;
-
-const Icon = styled.Image`
-  width: 24px;
-  height: 24px;
-  resize-mode: contain;
-`;
+const styles = StyleSheet.create({
+  container: {
+    width: "100%",
+    height: THEME.SPACING.NAV_BAR_HEIGHT,
+    backgroundColor: Colors.tabBarBackground,
+    borderRadius: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
+    paddingHorizontal: THEME.SPACING.SM,
+  },
+  pressable: {
+    flex: 1,
+    alignItems: "center",
+  },
+  buttonContent: {
+    justifyContent: "center",
+    alignItems: "center",
+    height: 44,
+    width: 44,
+    borderRadius: THEME.COMMON.BORDER_RADIUS.FULL,
+    backgroundColor: Colors.transparent,
+  },
+  buttonContentActive: {
+    backgroundColor: Colors.pressedOverlay,
+  },
+  buttonContentPressed: {
+    backgroundColor: Colors.pressedOverlay,
+  },
+});

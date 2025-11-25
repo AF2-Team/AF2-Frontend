@@ -1,15 +1,14 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { LinearGradient } from "expo-linear-gradient";
+import React, { useCallback, useEffect, useState } from "react";
 import {
-  Modal,
-  TouchableWithoutFeedback,
   Animated,
   Dimensions,
-  Keyboard,
   Easing,
-  Image,
+  Keyboard,
+  Modal,
+  TouchableWithoutFeedback
 } from "react-native";
 import styled from "styled-components/native";
-import { LinearGradient } from "expo-linear-gradient";
 
 const { height: screenHeight } = Dimensions.get("window");
 
@@ -31,21 +30,16 @@ export const TagFilterModal: React.FC<TagFilterModalProps> = ({
   followedTags,
   selectedTags: initiallySelectedTags,
 }) => {
-  const [selectedTags, setSelectedTags] = useState<string[]>(
-    initiallySelectedTags,
-  );
+  const [selectedTags, setSelectedTags] = useState<string[]>(initiallySelectedTags);
   const [searchQuery, setSearchQuery] = useState("");
   const [slideAnim] = useState(new Animated.Value(visible ? 0 : screenHeight));
   const [fadeAnim] = useState(new Animated.Value(visible ? 1 : 0));
-
-  // Debounce para la búsqueda
   const [debouncedQuery, setDebouncedQuery] = useState("");
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedQuery(searchQuery);
     }, 300);
-
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
@@ -71,14 +65,14 @@ export const TagFilterModal: React.FC<TagFilterModalProps> = ({
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 0,
-          duration: 250,
-          easing: Easing.out(Easing.ease),
+          duration: 200,
+          easing: Easing.in(Easing.ease),
           useNativeDriver: true,
         }),
         Animated.timing(slideAnim, {
           toValue: screenHeight,
-          duration: 300,
-          easing: Easing.out(Easing.ease),
+          duration: 250,
+          easing: Easing.in(Easing.ease),
           useNativeDriver: true,
         }),
       ]).start();
@@ -91,17 +85,12 @@ export const TagFilterModal: React.FC<TagFilterModalProps> = ({
 
   const handleTagPress = (tag: string) => {
     setSelectedTags((prev) => {
-      if (prev.includes(tag)) {
-        return prev.filter((t) => t !== tag);
-      } else {
-        return [...prev, tag];
-      }
+      if (prev.includes(tag)) return prev.filter((t) => t !== tag);
+      return [...prev, tag];
     });
   };
 
-  const handleClear = () => {
-    setSelectedTags([]);
-  };
+  const handleClear = () => setSelectedTags([]);
 
   const handleApply = () => {
     onApply(selectedTags);
@@ -121,6 +110,7 @@ export const TagFilterModal: React.FC<TagFilterModalProps> = ({
       <TagItem
         onPress={() => handleTagPress(item)}
         isSelected={selectedTags.includes(item)}
+        activeOpacity={0.8}
       >
         <TagText isSelected={selectedTags.includes(item)}>#{item}</TagText>
       </TagItem>
@@ -147,6 +137,7 @@ export const TagFilterModal: React.FC<TagFilterModalProps> = ({
           }}
         >
           <Header>
+            {/* Posicionamiento absoluto para no necesitar Views extra */}
             <CancelButton onPress={handleClose}>
               <CancelText>Cancelar</CancelText>
             </CancelButton>
@@ -154,12 +145,13 @@ export const TagFilterModal: React.FC<TagFilterModalProps> = ({
           </Header>
 
           <SearchContainer>
-            <SearchIcon source={searchIcon} />
+            <SearchIcon source={searchIcon} resizeMode="contain" />
             <SearchInput
               placeholder="Busca entre tus etiquetas"
-              placeholderTextColor="#4B4B4B"
+              placeholderTextColor="#666"
               value={searchQuery}
               onChangeText={setSearchQuery}
+              autoCorrect={false}
             />
           </SearchContainer>
 
@@ -169,23 +161,16 @@ export const TagFilterModal: React.FC<TagFilterModalProps> = ({
               keyExtractor={(item) => item}
               renderItem={renderTagItem}
               numColumns={2}
+              columnWrapperStyle={{ gap: 10 }} // Espacio horizontal
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingBottom: 20 }}
-              initialNumToRender={20}
-              maxToRenderPerBatch={30}
-              windowSize={10}
+              contentContainerStyle={{ paddingBottom: 20, paddingTop: 10 }}
             />
           </TagsContainer>
 
           <DividerContainer>
             <LinearGradient
               colors={["rgba(0, 0, 0, 0.1)", "rgba(0, 0, 0, 0)"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 0, y: 1 }}
-              style={{
-                height: 1,
-                width: "100%",
-              }}
+              style={{ height: 2, width: "100%" }}
             />
           </DividerContainer>
 
@@ -211,7 +196,8 @@ export const TagFilterModal: React.FC<TagFilterModalProps> = ({
   );
 };
 
-// Estilos finales pulidos
+// --- ESTILOS AJUSTADOS ---
+
 const Overlay = styled.View`
   flex: 1;
   background-color: rgba(0, 0, 0, 0.5);
@@ -224,72 +210,78 @@ const OverlayBackground = styled.View`
 
 const ModalContainer = styled.View`
   background-color: #ffffff;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
-  padding: 20px 16px 10px 16px;
-  max-height: 85%;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  padding: 20px 20px 20px 20px; /* Padding uniforme */
+  
+  /* SOLUCIÓN: Altura fija para que suba y ocupe espacio visible */
+  height: 60%; 
+  width: 100%;
+  
+  /* Sombra suave */
+  shadow-color: #000;
+  shadow-offset: 0px -2px;
+  shadow-opacity: 0.1;
+  shadow-radius: 4px;
+  elevation: 5;
 `;
 
 const Header = styled.View`
   flex-direction: row;
   align-items: center;
-  justify-content: center;
-  padding-bottom: 10px;
-  position: relative;
+  justify-content: center; /* Centra el Título */
+  position: relative;      /* Necesario para el absolute del botón */
+  margin-bottom: 20px;
+  height: 30px;
 `;
 
 const CancelButton = styled.TouchableOpacity`
   position: absolute;
   left: 0;
-  top: 0;
-  bottom: 0;
+  height: 100%;
   justify-content: center;
-  padding-vertical: 8px;
+  z-index: 1;
 `;
 
 const CancelText = styled.Text`
-  color: #1291eb;
-  font-size: 14px;
+  color: #1291EB;
+  font-size: 16px;
   font-weight: 600;
-  font-family: "OpenSans-SemiBold", "System";
 `;
 
 const Title = styled.Text`
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 700;
   color: #000000;
-  font-family: "OpenSans-Bold", "System";
+  text-align: center;
 `;
 
 const SearchContainer = styled.View`
   flex-direction: row;
   align-items: center;
-  background-color: #adadad;
-  height: 36px;
-  border-radius: 20px;
-  padding-horizontal: 16px;
-  margin-top: 8px;
-  gap: 8px;
+  background-color: #E8E8E8;
+  height: 45px;
+  border-radius: 12px;
+  padding-horizontal: 15px;
+  margin-bottom: 15px;
 `;
 
 const SearchIcon = styled.Image`
-  width: 16px;
-  height: 16px;
-  /* Se eliminó tint-color para mantener el color original del Figma */
+  width: 18px;
+  height: 18px;
+  margin-right: 10px;
+  opacity: 0.5;
 `;
 
 const SearchInput = styled.TextInput`
   flex: 1;
-  font-size: 14px;
+  font-size: 16px;
   color: #000000;
-  font-family: "OpenSans-Regular", "System";
-  padding-vertical: 0; /* ✅ Alinea verticalmente con el icono */
+  height: 100%;
 `;
 
 const TagsContainer = styled.View`
   flex: 1;
-  margin-top: 16px;
-  min-height: 200px;
 `;
 
 const TagsList = styled.FlatList`
@@ -297,61 +289,58 @@ const TagsList = styled.FlatList`
 `;
 
 const TagItem = styled.TouchableOpacity<{ isSelected: boolean }>`
-  background-color: ${({ isSelected }) => (isSelected ? "#1291EB" : "#FFFFFF")};
-  border: 1.5px solid
-    ${({ isSelected }) => (isSelected ? "#1291EB" : "#4B4B4B")};
-  padding: 6px 12px;
-  border-radius: 16px;
-  margin: 4px;
+  background-color: ${({ isSelected }) => (isSelected ? "#ffffff" : "#ffffff")};
+  border-width: 1.5px;
+  border-color: ${({ isSelected }) => (isSelected ? "#000000" : "#808080")};
+  padding: 8px 16px;
+  border-radius: 20px;
+  margin-bottom: 8px;
   flex: 1;
-  min-width: 45%;
   align-items: center;
   justify-content: center;
 `;
 
 const TagText = styled.Text<{ isSelected: boolean }>`
-  color: ${({ isSelected }) => (isSelected ? "#FFFFFF" : "#4B4B4B")};
+  color: ${({ isSelected }) => (isSelected ? "#000000" : "#505050")};
   font-size: 14px;
-  font-weight: 500;
-  font-family: "OpenSans-Medium", "System";
+  font-weight: 600;
 `;
 
 const DividerContainer = styled.View`
   width: 100%;
-  margin-vertical: 8px;
+  height: 10px;
+  justify-content: center;
+  margin-top: 10px;
 `;
 
 const ActionsContainer = styled.View`
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding-vertical: 14px;
-  background-color: #ffffff;
+  padding-top: 10px;
+  padding-bottom: 10px;
 `;
 
 const ClearButton = styled.TouchableOpacity<{ disabled: boolean }>`
-  padding: 10px 0;
-  opacity: ${({ disabled }) => (disabled ? 0.6 : 1)};
+  padding: 10px;
+  opacity: ${({ disabled }) => (disabled ? 0.5 : 1)};
 `;
 
 const ClearText = styled.Text<{ disabled: boolean }>`
-  color: ${({ disabled }) => (disabled ? "#ADADAD" : "#1291EB")};
-  font-size: 14px;
+  color: #A0A0A0;
+  font-size: 16px;
   font-weight: 600;
-  font-family: "OpenSans-SemiBold", "System";
 `;
 
 const ApplyButton = styled.TouchableOpacity`
   background-color: #1291eb;
-  padding: 10px 28px;
-  border-radius: 20px;
-  align-items: center;
-  justify-content: center;
+  padding-vertical: 12px;
+  padding-horizontal: 35px;
+  border-radius: 25px;
 `;
 
 const ApplyText = styled.Text`
   color: #ffffff;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
-  font-family: "OpenSans-Bold", "System";
 `;

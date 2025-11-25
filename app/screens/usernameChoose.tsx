@@ -1,66 +1,95 @@
+import {
+  Alegreya_400Regular_Italic,
+  useFonts,
+} from "@expo-google-fonts/alegreya";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
 import {
-  View,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  SafeAreaView,
+  View,
 } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import {
-  useFonts,
-  Alegreya_400Regular_Italic,
-} from "@expo-google-fonts/alegreya";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 
 const ChooseUsernameScreen = () => {
-  // Corregí el valor inicial para que coincida con la imagen
-  const [username, setUsername] = React.useState("broken-hours");
+  const [username, setUsername] = React.useState("");
+  const router = useRouter();
 
   const [fontsLoaded] = useFonts({
     Alegreya_400Regular_Italic,
   });
+
+  const handleContinue = () => {
+    if (username.trim()) {
+      router.push("/screens/HomeScreen");
+    }
+  };
+  const isButtonDisabled = !username.trim();
 
   if (!fontsLoaded) {
     return null;
   }
 
   return (
-    // Usamos SafeAreaView para evitar el notch y la barra inferior
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        {/* El contenido principal va en un ScrollView */}
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <Text style={styles.header}>¿Cómo quieres llamarte?</Text>
-          <Text style={styles.description}>
-            Este será el nombre con el que te verán otros usuarios de A place
-            fun for you. ¡Podrás cambiarlo cuando quieras!
-          </Text>
+        {/* ScrollView centrado verticalmente */}
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.contentWrapper}>
+            <Text style={styles.header}>¿Cómo quieres llamarte?</Text>
+            <Text style={styles.description}>
+              Este será el nombre con el que te verán otros usuarios de A place
+              fun for you. ¡Podrás cambiarlo cuando quieras!
+            </Text>
 
-          {/* Contenedor para el input con ícono */}
-          <View style={styles.inputContainer}>
-            <MaterialCommunityIcons
-              name="at"
-              size={24}
-              color="#6F6A6F"
-              style={styles.icon}
-            />
-            <TextInput
-              style={styles.input}
-              value={username}
-              onChangeText={setUsername}
-              placeholder="tu-usuario"
-              placeholderTextColor="#888"
-              autoCapitalize="none"
-            />
+            {/* Contenedor para el input con ícono */}
+            <View style={styles.inputContainer}>
+              <MaterialCommunityIcons
+                name="at"
+                size={24}
+                color="#6F6A6F"
+                style={styles.icon}
+              />
+              <TextInput
+                style={styles.input}
+                value={username}
+                onChangeText={setUsername}
+                placeholder="tu-usuario"
+                placeholderTextColor="#888"
+                autoCapitalize="none"
+                autoFocus={true}
+              />
+            </View>
           </View>
         </ScrollView>
 
-        {/* Contenedor para el botón (fuera del ScrollView) */}
+        {/* Contenedor para el botón */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>Continuar</Text>
+          <TouchableOpacity
+            style={[
+              styles.button,
+              isButtonDisabled ? styles.buttonDisabled : styles.buttonEnabled,
+            ]}
+            onPress={handleContinue}
+            disabled={isButtonDisabled}
+          >
+            <Text
+              style={[
+                styles.buttonText,
+                isButtonDisabled
+                  ? styles.buttonTextDisabled
+                  : styles.buttonTextEnabled,
+              ]}
+            >
+              Continuar
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -75,13 +104,16 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    // El 'justifyContent: space-between' empuja el scroll al inicio
-    // y el botón al final.
     justifyContent: "space-between",
   },
   scrollContent: {
+    flexGrow: 1,
+    justifyContent: "center",
     padding: 20,
-    alignItems: "center", // Centra el contenido
+  },
+  contentWrapper: {
+    alignItems: "center",
+    width: "100%",
   },
   header: {
     fontFamily: "Alegreya_400Regular_Italic",
@@ -89,57 +121,63 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 20,
     color: "#423646",
-    marginTop: "15%", // Un margen superior para bajar el título
   },
   description: {
-    fontSize: 17, // Ligeramente más grande para legibilidad
+    fontSize: 17,
     textAlign: "center",
     color: "#555",
     marginBottom: 40,
     paddingHorizontal: 15,
-    lineHeight: 24, // Espacio entre líneas
+    lineHeight: 24,
   },
-  // Estilos para el Input con ícono
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
     width: "100%",
+    maxWidth: 400,
     height: 50,
     borderWidth: 1,
     borderColor: "#6F6A6F",
     borderRadius: 12,
     backgroundColor: "#FAF7F7",
-    paddingHorizontal: 15, // Padding interno
+    paddingHorizontal: 15,
   },
   icon: {
-    marginRight: 10, // Espacio entre el ícono y el texto
+    marginRight: 10,
   },
   input: {
-    flex: 1, // Para que el input ocupe el resto del espacio
+    flex: 1,
     height: "100%",
     fontSize: 16,
     color: "#423646",
   },
-
-  // Contenedor del botón para "pegarlo" abajo
   buttonContainer: {
     padding: 20,
-    paddingBottom: 30, // Más padding abajo por la barra de gestos
-    backgroundColor: "#fff", // Fondo blanco
+    paddingBottom: 30,
+    backgroundColor: "#fff",
   },
   button: {
-    backgroundColor: "#BCA1BD", // Mismo color que el botón de login
     height: 50,
     borderRadius: 30,
     alignItems: "center",
     justifyContent: "center",
     width: "100%",
-    marginBottom: "15%", // Espacio inferior para separar del siguiente elemento
+  },
+  buttonEnabled: {
+    backgroundColor: "#BCA1BD",
+  },
+  buttonDisabled: {
+    backgroundColor: "#E0E0E0",
   },
   buttonText: {
-    color: "#423646", // Mismo color de texto
     fontSize: 16,
     fontWeight: "bold",
+  },
+  buttonTextEnabled: {
+    color: "#423646",
+  },
+  buttonTextDisabled: {
+    color: "#9E9E9E",
   },
 });
 

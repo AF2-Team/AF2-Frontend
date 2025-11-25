@@ -31,9 +31,24 @@ interface ProfileData extends PostUserWithoutAvatar {
   avatarUrl: ImageSourcePropType | null; 
 }
 
-// Constantes de Importación Local
-const LOCAL_AVATAR: ImageSourcePropType = require('../../assets/images/default_avatar.png'); 
-const LOCAL_COVER: ImageSourcePropType= require('../../assets/images/brokenhours-cover.jpg');
+import { useRouter } from "expo-router";
+const LOCAL_AVATAR: ImageSourcePropType = require('../../assets/images/default_avatar.png');
+const LOCAL_COVER: ImageSourcePropType = require('../../assets/images/brokenhours-cover.jpg');
+
+ 
+const MOCK_USER_DATA = {
+  username: 'broken-hours',
+  displayName: 'Broken Hours',
+  bio: "Todos los cerebos del mundo son impotentes contra cualquier estupidez que esé de moda - Fontaine -",
+
+  coverImageUrl: null, // Viene de la API/Red
+  profileImageUrl: null, // Viene de la API/Red
+
+  // Usamos URLs de prueba para simular imágenes subidas por el usuario
+  /*coverImageUrl: 'https://picsum.photos/seed/profile-cover/600/210', 
+   profileImageUrl: 'https://picsum.photos/seed/profile-avatar/100/100', */
+};
+
 
 const APP_COLORS = {
   PRIMARY: '#423646', 
@@ -44,7 +59,15 @@ const { width, height } = Dimensions.get('window');
 
 
 
+/*const finalAvatarSource = MOCK_USER_DATA.profileImageUrl
+  ? { uri: MOCK_USER_DATA.profileImageUrl }
+  : LOCAL_AVATAR;
+
+const finalCoverSource = MOCK_USER_DATA.coverImageUrl
+  ? { uri: MOCK_USER_DATA.coverImageUrl }
+  : LOCAL_COVER;*/
 const ProfileUserScreen: React.FC = () => {
+  const router = useRouter();
 
   // MOCK DATA DE USUARIO CON IMÁGENES LOCALES
   const [userProfile, setUserProfile] = useState<ProfileData>({
@@ -146,7 +169,7 @@ const ProfileUserScreen: React.FC = () => {
   const handleTabChange = (tabId: string) => {
     console.log(`Pestaña cambiada a: ${tabId}`);
   };
-
+ 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: APP_COLORS.PRIMARY }]}>
      <StatusBar barStyle="light-content" backgroundColor={APP_COLORS.PRIMARY} />
@@ -299,7 +322,7 @@ const PreviewHeaderImage = styled.Image`
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: APP_COLORS.BACKGROUND, 
+    backgroundColor: '#F5F5F5',
   },
   scrollView: {
     flex: 1,

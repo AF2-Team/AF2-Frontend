@@ -1,12 +1,14 @@
 import React from "react";
 import styled from "styled-components/native";
 import { Modal, TouchableWithoutFeedback } from "react-native";
+import { Colors, THEME } from "@/constants";
 
 interface PostOptionsModalProps {
   visible: boolean;
   onClose: () => void;
   onNotInterested: () => void;
   onFollow: () => void;
+  onUnfollow?: () => void; // Nueva prop para dejar de seguir
   isFollowing?: boolean;
 }
 
@@ -15,6 +17,7 @@ export const PostOptionsModal: React.FC<PostOptionsModalProps> = ({
   onClose,
   onNotInterested,
   onFollow,
+  onUnfollow,
   isFollowing = false,
 }) => {
   if (!visible) return null;
@@ -36,9 +39,13 @@ export const PostOptionsModal: React.FC<PostOptionsModalProps> = ({
             <OptionText>No me interesa</OptionText>
           </OptionButton>
 
-          {!isFollowing && (
+          {!isFollowing ? (
             <OptionButton onPress={onFollow}>
               <OptionText blue>Seguir</OptionText>
+            </OptionButton>
+          ) : (
+            <OptionButton onPress={onUnfollow}>
+              <OptionText red>Dejar de seguir</OptionText>
             </OptionButton>
           )}
         </ModalContent>
@@ -53,13 +60,13 @@ const OverlayWrapper = styled.View`
 
 const Overlay = styled.View`
   flex: 1;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: ${Colors.modalOverlay};
 `;
 
 const ModalContent = styled.View`
-  background-color: white;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
+  background-color: ${Colors.background};
+  border-top-left-radius: ${THEME.COMMON.BORDER_RADIUS.LG}px;
+  border-top-right-radius: ${THEME.COMMON.BORDER_RADIUS.LG}px;
   padding: 0;
   width: 100%;
   shadow-color: #000;
@@ -72,18 +79,22 @@ const ModalContent = styled.View`
 `;
 
 const OptionButton = styled.TouchableOpacity`
-  padding: 16px 20px;
+  padding: ${THEME.SPACING.MD}px ${THEME.SPACING.LG}px;
   border-bottom-width: 1px;
-  border-bottom-color: #f0f0f0;
+  border-bottom-color: ${Colors.border};
 
   &:last-child {
     border-bottom-width: 0;
   }
 `;
 
-const OptionText = styled.Text<{ blue?: boolean }>`
-  font-size: 16px;
-  color: ${({ blue }) => (blue ? "#007AFF" : "#423646")};
+const OptionText = styled.Text<{ blue?: boolean; red?: boolean }>`
+  font-size: ${THEME.TYPOGRAPHY.SUBTITLE}px;
+  color: ${({ blue, red }) => {
+    if (blue) return Colors.action;
+    if (red) return Colors.error;
+    return Colors.text;
+  }};
   text-align: center;
-  font-weight: 400;
+  font-family: ${THEME.FONTS.REGULAR};
 `;

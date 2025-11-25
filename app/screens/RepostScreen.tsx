@@ -1,19 +1,16 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
   Platform,
   TextInput as RNTextInput,
   ScrollView,
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
 } from "react-native";
 import styled from "styled-components/native";
 import { DiscardPostModal } from "../../components/DiscardPostModal";
+import { OriginalPostView } from "../../components/OriginalPostView";
 import { TagSelectorModal } from "../../components/TagSelectorModal";
 import { TextStyleModal } from "../../components/TextStyleModal";
 import { Colors, THEME } from "../../constants";
@@ -21,15 +18,38 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const defaultAvatar = require("../../assets/images/default_avatar.png");
 
+interface PostData {
+  id: string;
+  user: {
+    username: string;
+    avatarUrl: string | null;
+  };
+  content: string;
+  tags: string[];
+  mainImage: string | null;
+}
+
+const mockOriginalPost: PostData = {
+  id: "p123",
+  user: {
+    username: "archivetherot",
+    avatarUrl: null,
+  },
+  content:
+    '"Ghost bird, do you love me?" he whispered once in the dark, before he left for his expedition training, even though he was the ghost. ~"Ghost bird, do you need me?"',
+  tags: ["annihilation", "web weaving", "the southern reach"],
+  mainImage: "https://placehold.co/400x200/409C40/FFFFFF/?text=ANNIHILATION",
+};
+
 const currentUser = {
   id: "u456",
   username: "broken-hours",
   avatarUrl: null,
 };
 
-export default function CreatePostScreen() {
+export default function RepostScreen() {
   const router = useRouter();
-  const [postContent, setPostContent] = useState("");
+  const [repostComment, setRepostComment] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [textStyle, setTextStyle] = useState("regular");
 
@@ -37,8 +57,14 @@ export default function CreatePostScreen() {
   const [showTagModal, setShowTagModal] = useState(false);
   const [showTextStyleModal, setShowTextStyleModal] = useState(false);
 
+  useEffect(() => {
+    if (repostComment.trim() === "" && selectedTags.length === 0) {
+      setSelectedTags(mockOriginalPost.tags);
+    }
+  }, [repostComment]);
+
   const handleClose = () => {
-    if (postContent.trim() !== "" || selectedTags.length > 0) {
+    if (repostComment.trim() !== "") {
       setShowDiscardModal(true);
     } else {
       router.back();
@@ -49,31 +75,16 @@ export default function CreatePostScreen() {
     router.back();
   };
 
-  const handlePublish = () => {
+  const handleRepost = () => {
     Alert.alert(
-      "Publicación Exitosa",
-      `Post publicado por @${currentUser.username} con tags: ${selectedTags.join(", ")}`,
+      "Repost Exitoso",
+      `Posteado por @${currentUser.username} con tags: ${selectedTags.join(", ")}`,
     );
     router.push("/");
   };
 
-  const getFontFamily = (style: string) => {
-    switch (style) {
-      case "light":
-        return THEME.FONTS.LIGHT;
-      case "regular":
-        return THEME.FONTS.REGULAR;
-      case "semibold":
-        return THEME.FONTS.SEMI_BOLD;
-      case "bold":
-        return THEME.FONTS.BOLD;
-      default:
-        return THEME.FONTS.REGULAR;
-    }
-  };
-
-  // ⭕ SIMPLE Y DIRECTO - igual que en LoginScreen
-  const isReadyToPublish = postContent.trim().length > 0;
+  const isReadyToRepost =
+    repostComment.trim().length > 0 || mockOriginalPost.content.length > 0;
 
   return (
     <SafeAreaView
@@ -86,7 +97,10 @@ export default function CreatePostScreen() {
       >
         <Container>
           <Header>
-            <CloseButton onPress={handleClose}>
+            <CloseButton
+              onPress={handleClose}
+              accessibilityLabel="Cerrar y descartar"
+            >
               <Ionicons name="close-outline" size={32} color={Colors.text} />
             </CloseButton>
 
@@ -106,62 +120,53 @@ export default function CreatePostScreen() {
               />
             </UserHeaderContainer>
 
-            {/* ⭕ BOTÓN SIMPLIFICADO - igual que en LoginScreen */}
-            <TouchableOpacity
-              onPress={handlePublish}
-              disabled={!isReadyToPublish}
-              style={{
-                backgroundColor: isReadyToPublish
-                  ? Colors.action // AZUL CUANDO HAY TEXTO
-                  : Colors.grayLight, // GRIS CLARO SIN TEXTO
-                paddingHorizontal: THEME.SPACING.MD,
-                paddingVertical: THEME.SPACING.SM,
-                borderRadius: 20,
-              }}
-            >
-              <Text
-                style={{
-                  color: isReadyToPublish
-                    ? Colors.textLight // BLANCO CUANDO ACTIVO
-                    : Colors.grayMedium, // GRIS OSCURO CUANDO VACÍO
-                  fontSize: 16,
-                  fontFamily: THEME.FONTS.BOLD,
-                }}
-              >
-                Publicar
-              </Text>
-            </TouchableOpacity>
+            <RepostButton onPress={handleRepost} disabled={!isReadyToRepost}>
+              <RepostText>Repostear</RepostText>
+            </RepostButton>
           </Header>
 
           <ScrollView
             contentContainerStyle={{
               paddingHorizontal: THEME.SPACING.SCREEN_HORIZONTAL,
               paddingVertical: 10,
-              flexGrow: 1,
             }}
           >
             <Content>
               <TextInput
                 key={textStyle}
-                placeholder="¿Qué estás pensando?"
+                placeholder="Puedes añadir un comentario."
                 placeholderTextColor={Colors.textPlaceholder}
                 multiline
-                value={postContent}
-                onChangeText={setPostContent}
+                value={repostComment}
+                onChangeText={setRepostComment}
                 style={{
-                  fontFamily: getFontFamily(textStyle),
+                  fontFamily:
+                    textStyle === "light"
+                      ? THEME.FONTS.LIGHT
+                      : textStyle === "regular"
+                        ? THEME.FONTS.REGULAR
+                        : textStyle === "semibold"
+                          ? THEME.FONTS.SEMI_BOLD
+                          : textStyle === "bold"
+                            ? THEME.FONTS.BOLD
+                            : THEME.FONTS.REGULAR,
                   fontSize: THEME.TYPOGRAPHY.BODY,
                   color: Colors.text,
-                  minHeight: 180,
+                  minHeight: 80,
                   padding: 0,
                   marginBottom: THEME.SPACING.MD,
                 }}
               />
+
+              <OriginalPostView post={mockOriginalPost} />
             </Content>
           </ScrollView>
 
           <TagBar>
-            <TagAddButton onPress={() => setShowTagModal(true)}>
+            <TagAddButton
+              onPress={() => setShowTagModal(true)}
+              accessibilityLabel="Añadir etiquetas"
+            >
               <TagAddText>+ Añadir Etiqueta</TagAddText>
             </TagAddButton>
 
@@ -173,82 +178,55 @@ export default function CreatePostScreen() {
           </TagBar>
 
           <BottomBar>
-            <LeftIcons>
-              <ToolButton onPress={() => setShowTextStyleModal(true)}>
-                <Ionicons
-                  name="text-outline"
-                  size={26}
-                  color={Colors.textLight}
-                />
-              </ToolButton>
-            </LeftIcons>
+            <ToolButton
+              onPress={() => setShowTextStyleModal(true)}
+              accessibilityLabel="Seleccionar estilo de texto"
+            >
+              <Ionicons
+                name="text-outline"
+                size={26}
+                color={Colors.textLight}
+              />
+            </ToolButton>
 
-            <RightIcons>
-              <ToolButton
-                onPress={() =>
-                  Alert.alert(
-                    "Función no implementada",
-                    "Añadir imagen a la publicación",
-                  )
-                }
-              >
-                <Ionicons
-                  name="image-outline"
-                  size={26}
-                  color={Colors.textLight}
-                />
-              </ToolButton>
-            </RightIcons>
+            <ToolButton
+              onPress={() =>
+                Alert.alert(
+                  "Función no implementada",
+                  "Añadir imagen a comentario",
+                )
+              }
+            >
+              <Ionicons
+                name="image-outline"
+                size={26}
+                color={Colors.textLight}
+              />
+            </ToolButton>
           </BottomBar>
-        </Container>
 
-        <DiscardPostModal
-          visible={showDiscardModal}
-          onDiscard={handleDiscard}
-          onContinueEditing={() => setShowDiscardModal(false)}
-        />
-        <TagSelectorModal
-          visible={showTagModal}
-          onClose={() => setShowTagModal(false)}
-          onTagsSelected={setSelectedTags}
-          selectedTags={selectedTags}
-        />
-        <TextStyleModal
-          visible={showTextStyleModal}
-          onClose={() => setShowTextStyleModal(false)}
-          onStyleSelected={setTextStyle}
-          selectedStyle={textStyle}
-        />
+          <DiscardPostModal
+            visible={showDiscardModal}
+            onDiscard={handleDiscard}
+            onContinueEditing={() => setShowDiscardModal(false)}
+          />
+          <TagSelectorModal
+            visible={showTagModal}
+            onClose={() => setShowTagModal(false)}
+            onTagsSelected={setSelectedTags}
+            selectedTags={selectedTags}
+          />
+          <TextStyleModal
+            visible={showTextStyleModal}
+            onClose={() => setShowTextStyleModal(false)}
+            onStyleSelected={setTextStyle}
+            selectedStyle={textStyle}
+          />
+        </Container>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
-
-const styles = {
-  publishButton: {
-    paddingHorizontal: THEME.SPACING.MD,
-    paddingVertical: THEME.SPACING.SM,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  publishButtonActive: {
-    backgroundColor: Colors.action, // AZUL
-  },
-  publishButtonDisabled: {
-    backgroundColor: Colors.grayLight, // GRIS CLARO
-  },
-  publishButtonText: {
-    fontSize: 16,
-    fontFamily: THEME.FONTS.BOLD,
-  },
-  publishButtonTextActive: {
-    color: Colors.textLight, // BLANCO
-  },
-  publishButtonTextDisabled: {
-    color: Colors.grayMedium, // GRIS OSCURO
-  },
-};
 
 const Container = styled.View`
   flex: 1;
@@ -260,7 +238,7 @@ const Header = styled.View`
   justify-content: space-between;
   align-items: center;
   padding: ${THEME.SPACING.MD}px ${THEME.SPACING.SCREEN_HORIZONTAL}px
-    ${THEME.SPACING.SM}px;
+    ${THEME.SPACING.SM}px; /* Más padding arriba */
   border-bottom-width: 1px;
   border-bottom-color: ${Colors.border};
 `;
@@ -289,12 +267,25 @@ const Username = styled.Text`
   margin-right: ${THEME.SPACING.XS}px;
 `;
 
+const RepostButton = styled.TouchableOpacity<{ disabled: boolean }>`
+  background-color: ${(props) =>
+    props.disabled ? Colors.grayLight : Colors.action};
+  padding: ${THEME.SPACING.SM}px ${THEME.SPACING.MD}px;
+  border-radius: 20px;
+`;
+
+const RepostText = styled.Text`
+  color: ${Colors.textLight};
+  font-size: 16px;
+  font-family: ${THEME.FONTS.BOLD};
+`;
+
 const Content = styled.View`
   flex: 1;
 `;
 
 const TextInput = styled(RNTextInput)`
-  min-height: 180px;
+  min-height: 80px;
   font-size: 16px;
   color: ${Colors.text};
   padding: 0;
@@ -345,22 +336,12 @@ const TagText = styled.Text`
 const BottomBar = styled.View`
   flex-direction: row;
   align-items: center;
-  justify-content: space-between;
   padding: ${THEME.SPACING.MD}px ${THEME.SPACING.SCREEN_HORIZONTAL}px;
+  justify-content: flex-start;
   background-color: ${Colors.primary};
-  min-height: ${THEME.SPACING.NAV_BAR_HEIGHT}px;
-`;
-
-const LeftIcons = styled.View`
-  flex-direction: row;
-  align-items: center;
-`;
-
-const RightIcons = styled.View`
-  flex-direction: row;
-  align-items: center;
 `;
 
 const ToolButton = styled.TouchableOpacity`
   padding: ${THEME.SPACING.SM}px;
+  margin-right: 20px;
 `;

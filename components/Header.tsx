@@ -1,11 +1,12 @@
-import React from "react";
 import { useRouter } from "expo-router";
-import styled from "styled-components/native";
+import React from "react";
 import Animated, {
-  useSharedValue,
   useAnimatedStyle,
+  useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import styled from "styled-components/native";
+import { Colors, THEME } from "@/constants";
 
 const logo = require("../assets/images/logo.png");
 const defaultAvatar = require("../assets/images/default_avatar.png");
@@ -19,8 +20,8 @@ interface HeaderProps {
   onTabChange: (index: number) => void;
 }
 
-const INDICATOR_WIDTH = 26.95;
-const INDICATOR_HEIGHT = 2.82;
+const INDICATOR_WIDTH = 50;
+const INDICATOR_HEIGHT = 4;
 
 export const Header = ({
   currentUser,
@@ -50,9 +51,8 @@ export const Header = ({
     const activeLayout = tabLayouts.current[index];
 
     if (activeLayout.width === 0) return;
-
     const newPosition =
-      activeLayout.x + activeLayout.width / 2 - INDICATOR_WIDTH / 2;
+      activeLayout.x + activeLayout.width / 100 - INDICATOR_WIDTH / 1.195;
 
     indicatorPosition.value = withTiming(newPosition, {
       duration: 200,
@@ -70,11 +70,11 @@ export const Header = ({
   });
 
   const handleProfilePress = () => {
-    router.push("/screens/profile");
+    router.push("/screens/ProfileUserScreen");
   };
 
-  const handleTabPress = (tab: "inicio" | "etiquetas") => {
-    onTabChange(tab === "inicio" ? 0 : 1);
+  const handleTabPress = (index: number) => {
+    onTabChange(index);
   };
 
   return (
@@ -90,9 +90,7 @@ export const Header = ({
               key={tab}
               onLayout={(event) => handleLayout(event, index)}
               active={activeTabIndex === index}
-              onPress={() =>
-                handleTabPress(index === 0 ? "inicio" : "etiquetas")
-              }
+              onPress={() => handleTabPress(index)}
             >
               <TabText active={activeTabIndex === index}>{tab}</TabText>
             </Tab>
@@ -118,28 +116,29 @@ export const Header = ({
 
 const HeaderContainer = styled.View`
   width: 100%;
-  height: 181px;
-  background-color: #423646;
+  height: ${THEME.SPACING.HEADER_HEIGHT}px;
+  background-color: ${Colors.primary};
   justify-content: flex-end;
-  padding-bottom: 20px;
-  padding-top: 50px;
+  padding-bottom: ${THEME.SPACING.SM}px;
+  padding-top: ${THEME.SPACING.STATUS_BAR}px;
 `;
 
 const HeaderContent = styled.View`
   flex-direction: row;
   justify-content: space-between;
-  align-items: center;
-  padding-horizontal: 15px;
+  align-items: flex-start;
+  padding-horizontal: ${THEME.SPACING.SCREEN_HORIZONTAL}px;
 `;
 
 const LogoContainer = styled.View`
   flex: 1;
   align-items: flex-start;
+  margin-top: -${THEME.SPACING.SM}px;
 `;
 
 const Logo = styled.Image`
-  width: 40px;
-  height: 40px;
+  width: 50px;
+  height: 50px;
   resize-mode: contain;
 `;
 
@@ -149,19 +148,21 @@ const TabsContainer = styled.View`
   justify-content: center;
   align-items: center;
   position: relative;
+  margin-top: ${THEME.SPACING.XS}px;
 `;
 
 const Tab = styled.TouchableOpacity<{ active: boolean }>`
   flex: 1;
   align-items: center;
-  padding-vertical: 8px;
+  padding-vertical: ${THEME.SPACING.XS}px;
 `;
 
 const TabText = styled.Text<{ active: boolean }>`
-  font-family: "OpenSans-Bold";
-  font-size: 16px;
-  color: ${({ active }) => (active ? "#FFFFFF" : "#ADADAD")};
-  margin-bottom: 8px;
+  font-family: ${THEME.FONTS.BOLD};
+  font-size: ${THEME.TYPOGRAPHY.SUBTITLE}px;
+  color: ${({ active }) =>
+    active ? Colors.textLight : Colors.textPlaceholder};
+  margin-bottom: ${THEME.SPACING.XS}px;
 `;
 
 const TabIndicator = styled(Animated.View)`
@@ -169,20 +170,21 @@ const TabIndicator = styled(Animated.View)`
   bottom: 0;
   height: ${INDICATOR_HEIGHT}px;
   width: ${INDICATOR_WIDTH}px;
-  background-color: #bca1bd;
+  background-color: ${Colors.secondary};
   border-radius: ${INDICATOR_HEIGHT / 2}px;
 `;
 
 const AvatarContainer = styled.View`
   flex: 1;
   align-items: flex-end;
+  margin-top: -${THEME.SPACING.SM}px;
 `;
 
 const AvatarButton = styled.TouchableOpacity``;
 
 const Avatar = styled.Image`
-  width: 40px;
-  height: 40px;
-  border-radius: 20px;
+  width: 50px;
+  height: 50px;
+  border-radius: 25px;
   resize-mode: cover;
 `;
