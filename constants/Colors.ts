@@ -26,6 +26,14 @@ const palette = {
   successGreen: "#4CAF50",
 
   transparent: "transparent",
+
+  grayInputBackground: "#ADADAD",
+  textDark: "#000000",
+  modalBackground: "#FFFFFF",
+
+  filterBarBackground: "#2B222D",
+  borderMuted: "#918991",
+  iconLight: "#FFFFFF",
 };
 
 // ESTRUCTURA PLANA - SOLO MODO CLARO
@@ -63,11 +71,19 @@ export const Colors = {
   buttonDisabled: palette.grayPlaceholder,
   modalOverlay: palette.modalOverlay,
   pressedOverlay: palette.pressedOverlay,
+  feedBackground: palette.white,
+  emptyStateText: palette.grayMedium,
 
   // Navegación
   tabIconDefault: palette.grayPlaceholder,
   tabIconSelected: palette.white,
   tabBarBackground: palette.darkPurple,
-};
 
-export const COLORS = Colors;
+  inputBackground: palette.grayInputBackground,
+  textDark: palette.textDark,
+  modalBackground: palette.modalBackground,
+
+  filterBarBackground: palette.filterBarBackground,
+  borderMuted: palette.borderMuted,
+  iconLight: palette.iconLight,
+};
