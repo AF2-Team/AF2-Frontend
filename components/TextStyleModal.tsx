@@ -4,11 +4,13 @@ import {
   TouchableWithoutFeedback,
   Animated,
   Dimensions,
+  StyleSheet,
 } from "react-native";
 import styled from "styled-components/native";
+import { Ionicons } from "@expo/vector-icons";
+import { Colors, THEME } from "@/constants";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
-const checkIcon = require("../assets/images/check-icon.png");
 
 interface TextStyleModalProps {
   visible: boolean;
@@ -26,17 +28,17 @@ export const TextStyleModal: React.FC<TextStyleModalProps> = ({
   selectedStyle,
 }) => {
   const [fadeAnim] = useState(new Animated.Value(0));
-  const [slideAnim] = useState(new Animated.Value(20)); // ✅ Animación más sutil
+  const [slideAnim] = useState(new Animated.Value(20));
 
   const textStyles: {
     key: TextStyleOption;
     label: string;
     fontFamily: string;
   }[] = [
-    { key: "light", label: "Light", fontFamily: "OpenSans-Light" },
-    { key: "regular", label: "Regular", fontFamily: "OpenSans-Regular" },
-    { key: "semibold", label: "SemiBold", fontFamily: "OpenSans-SemiBold" },
-    { key: "bold", label: "Bold", fontFamily: "OpenSans-Bold" },
+    { key: "light", label: "Light", fontFamily: THEME.FONTS.LIGHT },
+    { key: "regular", label: "Regular", fontFamily: THEME.FONTS.REGULAR },
+    { key: "semibold", label: "SemiBold", fontFamily: THEME.FONTS.SEMI_BOLD },
+    { key: "bold", label: "Bold", fontFamily: THEME.FONTS.BOLD },
   ];
 
   useEffect(() => {
@@ -44,25 +46,26 @@ export const TextStyleModal: React.FC<TextStyleModalProps> = ({
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 1,
-          duration: 200,
+          duration: 250,
           useNativeDriver: true,
         }),
         Animated.timing(slideAnim, {
-          toValue: 0, // ✅ Flota hacia arriba suavemente
-          duration: 200,
+          toValue: 0,
+          duration: 250,
           useNativeDriver: true,
+          delay: 50,
         }),
       ]).start();
     } else {
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 0,
-          duration: 200,
+          duration: 250,
           useNativeDriver: true,
         }),
         Animated.timing(slideAnim, {
           toValue: 20,
-          duration: 200,
+          duration: 250,
           useNativeDriver: true,
         }),
       ]).start();
@@ -94,7 +97,7 @@ export const TextStyleModal: React.FC<TextStyleModalProps> = ({
           as={Animated.View}
           style={{
             transform: [{ translateY: slideAnim }],
-            opacity: fadeAnim, // ✅ Fade simultáneo para mayor suavidad
+            opacity: fadeAnim,
           }}
         >
           <ModalContent>
@@ -102,13 +105,17 @@ export const TextStyleModal: React.FC<TextStyleModalProps> = ({
               <StyleOption
                 key={style.key}
                 onPress={() => handleStyleSelect(style.key)}
-                isLast={index === textStyles.length - 1} // ✅ Para quitar borde del último
+                isLast={index === textStyles.length - 1}
               >
                 <StyleText style={{ fontFamily: style.fontFamily }}>
                   {style.label}
                 </StyleText>
                 {selectedStyle === style.key && (
-                  <CheckIcon source={checkIcon} />
+                  <Ionicons
+                    name="checkmark-sharp"
+                    size={20}
+                    color={Colors.action}
+                  />
                 )}
               </StyleOption>
             ))}
@@ -119,10 +126,10 @@ export const TextStyleModal: React.FC<TextStyleModalProps> = ({
   );
 };
 
-// Estilos mejorados
+// Estilos actualizados con tus constantes
 const Overlay = styled.View`
   flex: 1;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: ${Colors.modalOverlay};
   justify-content: flex-end;
 `;
 
@@ -132,40 +139,35 @@ const OverlayBackground = styled.View`
 
 const ModalContainer = styled(Animated.View)`
   position: absolute;
-  bottom: 90px; /* ✅ Justo encima del BottomBar */
-  left: 24px; /* ✅ Alineado con el botón Aa */
-  background-color: #ffffff;
-  border-radius: 10px;
-  width: 160px;
+  bottom: ${THEME.SPACING.NAV_BAR_HEIGHT + THEME.SPACING.LG}px;
+  left: ${THEME.SPACING.LG}px;
+  background-color: ${Colors.background};
+  border-radius: ${THEME.COMMON.BORDER_RADIUS.LG}px;
+  width: 180px;
   shadow-color: #000;
-  shadow-offset: 0px 2px;
-  shadow-opacity: 0.2;
-  shadow-radius: 4px;
-  elevation: 4;
+  shadow-offset: 0px 4px;
+  shadow-opacity: 0.15;
+  shadow-radius: 8px;
+  elevation: 6;
 `;
 
 const ModalContent = styled.View`
-  padding: 4px 0; /* ✅ Padding más compacto */
+  padding: ${THEME.SPACING.XS}px 0;
 `;
 
 const StyleOption = styled.TouchableOpacity<{ isLast?: boolean }>`
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
+  padding: ${THEME.SPACING.MD}px ${THEME.SPACING.LG}px;
   border-bottom-width: ${({ isLast }) =>
-    isLast ? "0px" : "1px"}; /* ✅ Líneas divisorias */
-  border-bottom-color: #e5e5e5;
+    isLast ? "0px" : StyleSheet.hairlineWidth};
+  border-bottom-color: ${Colors.border};
 `;
 
 const StyleText = styled.Text`
-  font-size: 16px;
-  color: #000000;
+  font-size: ${THEME.TYPOGRAPHY.SUBTITLE}px;
+  color: ${Colors.text};
   flex: 1;
-`;
-
-const CheckIcon = styled.Image`
-  width: 16px;
-  height: 16px;
-  tint-color: #1291eb;
+  font-family: ${THEME.FONTS.REGULAR};
 `;

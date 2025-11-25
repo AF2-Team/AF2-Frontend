@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import React, { useState, useEffect } from "react";
+import { ImageSourcePropType } from "react-native";
 import styled from "styled-components/native";
-import { PostOptionsModal } from "./PostOptionsModal";
 
+import { Colors, THEME } from "@/constants";
+import { PostOptionsModal } from "./PostOptionsModal";
 const defaultAvatar = require("../assets/images/default_avatar.png");
-const followButton = require("../assets/images/follow_button.png");
-const moveVertIcon = require("../assets/images/more_vert.png");
 
 interface PostHeaderProps {
   user: {
@@ -37,8 +38,13 @@ export const PostHeader = ({
   const [following, setFollowing] = useState(isFollowing);
   const [showOptionsModal, setShowOptionsModal] = useState(false);
 
+  // Sincronizar con la prop isFollowing si cambia externamente
+  useEffect(() => {
+    setFollowing(isFollowing);
+  }, [isFollowing]);
+
   const handleFollowPress = () => {
-    const newFollowState = !following;
+    const newFollowState = true; // Siempre pasa a true cuando se presiona
     setFollowing(newFollowState);
 
     if (onFollowChange) {
@@ -47,7 +53,7 @@ export const PostHeader = ({
   };
 
   const handleUserPress = () => {
-    router.push(`/screens/profile/${user.id}`);
+    console.log(`Navegar al perfil de ${user.username}`);
   };
 
   const handleOptionsPress = () => {
@@ -69,8 +75,8 @@ export const PostHeader = ({
     setShowOptionsModal(false);
   };
 
-  const handleFollowFromModal = () => {
-    const newFollowState = true;
+  const handleUnfollow = () => {
+    const newFollowState = false;
     setFollowing(newFollowState);
 
     if (onFollowChange) {
@@ -88,7 +94,6 @@ export const PostHeader = ({
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
-    const years = Math.floor(days / 365);
 
     if (seconds < 60) {
       return `${seconds} seg`;
@@ -117,7 +122,11 @@ export const PostHeader = ({
       <Container>
         <AvatarContainer onPress={handleUserPress}>
           <Avatar
-            source={user.avatarUrl ? { uri: user.avatarUrl } : defaultAvatar}
+            source={
+              user.avatarUrl
+                ? ({ uri: user.avatarUrl } as ImageSourcePropType)
+                : defaultAvatar
+            }
             avatarShape={user.avatarShape || "circle"}
           />
         </AvatarContainer>
@@ -128,13 +137,29 @@ export const PostHeader = ({
         </UserInfo>
 
         <ActionsContainer>
+          {/* Botón de Seguir (solo visible si no se está siguiendo) */}
           {!following && (
             <FollowButton onPress={handleFollowPress}>
-              <FollowButtonImage source={followButton} />
+              <FollowContent>
+                <Ionicons
+                  name="person-add-outline"
+                  size={14}
+                  color={Colors.textLight}
+                />
+                <FollowText style={{ marginLeft: THEME.SPACING.XS }}>
+                  Seguir
+                </FollowText>
+              </FollowContent>
             </FollowButton>
           )}
+
+          {/* Botón de Opciones */}
           <OptionsButton onPress={handleOptionsPress}>
-            <OptionsIcon source={moveVertIcon} />
+            <Ionicons
+              name="ellipsis-vertical"
+              size={20}
+              color={Colors.textMuted}
+            />
           </OptionsButton>
         </ActionsContainer>
       </Container>
@@ -143,8 +168,9 @@ export const PostHeader = ({
         visible={showOptionsModal}
         onClose={handleCloseModal}
         onNotInterested={handleNotInterested}
-        onFollow={handleFollowFromModal}
+        onUnfollow={handleUnfollow}
         isFollowing={following}
+        showFollowOption={!following} // Solo mostrar opción de seguir si no se está siguiendo
       />
     </>
   );
@@ -153,19 +179,19 @@ export const PostHeader = ({
 const Container = styled.View`
   flex-direction: row;
   align-items: center;
-  padding: 12px 15px;
-  background-color: #fff;
+  padding: ${THEME.SPACING.MD}px ${THEME.SPACING.SCREEN_HORIZONTAL}px;
+  background-color: ${Colors.background};
 `;
 
 const AvatarContainer = styled.TouchableOpacity`
-  margin-right: 12px;
+  margin-right: ${THEME.SPACING.MD}px;
 `;
 
 const Avatar = styled.Image<{ avatarShape: "circle" | "square" }>`
   width: 48px;
   height: 48px;
   border-radius: ${({ avatarShape }) =>
-    avatarShape === "circle" ? "24px" : "0px"};
+    avatarShape === "circle" ? "24px" : "8px"};
 `;
 
 const UserInfo = styled.TouchableOpacity`
@@ -173,16 +199,16 @@ const UserInfo = styled.TouchableOpacity`
 `;
 
 const Username = styled.Text`
-  font-family: "OpenSans-SemiBold";
-  font-size: 12px;
-  color: #423646;
-  margin-bottom: 2px;
+  font-family: ${THEME.FONTS.SEMI_BOLD};
+  font-size: ${THEME.TYPOGRAPHY.BODY}px;
+  color: ${Colors.text};
+  margin-bottom: ${THEME.SPACING.XS}px;
 `;
 
 const DateText = styled.Text`
-  font-family: "OpenSans-Light";
-  font-size: 12px;
-  color: #687076;
+  font-family: ${THEME.FONTS.LIGHT};
+  font-size: ${THEME.TYPOGRAPHY.CAPTION}px;
+  color: ${Colors.textMuted};
 `;
 
 const ActionsContainer = styled.View`
@@ -191,11 +217,23 @@ const ActionsContainer = styled.View`
 `;
 
 const FollowButton = styled.TouchableOpacity`
-  margin-right: 8px;
+  padding: ${THEME.SPACING.SM}px ${THEME.SPACING.MD}px;
+  border-radius: ${THEME.COMMON.BORDER_RADIUS.XL}px;
+  margin-right: ${THEME.SPACING.MD}px * 0.01;
+  background-color: ${Colors.action};
 `;
 
-const FollowButtonImage = styled.Image``;
+const FollowContent = styled.View`
+  flex-direction: row;
+  align-items: center;
+`;
 
-const OptionsButton = styled.TouchableOpacity``;
+const FollowText = styled.Text`
+  font-size: ${THEME.TYPOGRAPHY.CAPTION}px;
+  font-family: ${THEME.FONTS.BOLD};
+  color: ${Colors.textLight};
+`;
 
-const OptionsIcon = styled.Image``;
+const OptionsButton = styled.TouchableOpacity`
+  padding: ${THEME.SPACING.XS}px;
+`;

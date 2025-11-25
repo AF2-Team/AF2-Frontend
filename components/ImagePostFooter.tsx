@@ -1,13 +1,43 @@
-// components/ImagePostFooter.tsx
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
+import { useRouter } from "expo-router";
 import styled from "styled-components/native";
+import { Ionicons } from "@expo/vector-icons";
+import { Colors, THEME } from "@/constants";
 
-const commentIcon = require("../assets/images/messageImage.png");
-const repostIcon = require("../assets/images/repostImage.png");
-const favoriteIcon = require("../assets/images/favoriteImage_outline.png");
-const favoriteFilledIcon = require("../assets/images/favoriteImage_filled.png");
-const likeIcon = require("../assets/images/likeImage_outline.png");
-const likeFilledIcon = require("../assets/images/likeImagen_filled.png");
+const ICON_SIZE = 25;
+
+const ICON_CONFIG = {
+  size: ICON_SIZE,
+  like: {
+    active: { name: "heart" as const, color: Colors.error },
+    inactive: { name: "heart-outline" as const, color: Colors.textLight },
+  },
+  comment: {
+    name: "chatbox-outline" as const,
+    color: Colors.textLight,
+  },
+  repost: {
+    name: "arrow-redo-outline" as const,
+    color: Colors.textLight,
+  },
+  favorite: {
+    active: { name: "star" as const, color: Colors.textLight },
+    inactive: { name: "star-outline" as const, color: Colors.textLight },
+  },
+  message: {
+    name: "mail-outline" as const,
+    color: Colors.textLight,
+  },
+} as const;
+
+const getIconConfig = (type: "like" | "favorite", isActive: boolean) => {
+  const config = ICON_CONFIG[type];
+  return "active" in config
+    ? isActive
+      ? config.active
+      : config.inactive
+    : config;
+};
 
 interface ImagePostFooterProps {
   initialLikes: number;
@@ -18,6 +48,13 @@ interface ImagePostFooterProps {
   onRepostPress?: () => void;
   onFavoritePress?: () => void;
   onLikePress?: () => void;
+  onMessagePress?: () => void;
+  postId?: string;
+  postContent?: string;
+  postAuthor?: string;
+  postImage?: string;
+  postTags?: string[];
+  postUserAvatar?: string;
 }
 
 export const ImagePostFooter: React.FC<ImagePostFooterProps> = ({
@@ -29,97 +66,204 @@ export const ImagePostFooter: React.FC<ImagePostFooterProps> = ({
   onRepostPress,
   onFavoritePress,
   onLikePress,
+  onMessagePress,
+  postId = "",
+  postContent = "",
+  postAuthor = "",
+  postImage = "",
+  postTags = [],
+  postUserAvatar = null,
 }) => {
-  const [likes, setLikes] = useState(initialLikes);
-  const [favorites, setFavorites] = useState(initialFavorites);
-  const [reposts, setReposts] = useState(initialReposts);
-  const [comments] = useState(initialComments);
-  const [liked, setLiked] = useState(false);
-  const [favorited, setFavorited] = useState(false);
+  const router = useRouter();
 
-  const handleLike = () => {
-    setLiked(!liked);
-    setLikes((prev) => (liked ? prev - 1 : prev + 1));
-    if (onLikePress) onLikePress();
-  };
+  const [isLiked, setIsLiked] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [likesCount, setLikesCount] = useState(initialLikes);
+  const [favoritesCount, setFavoritesCount] = useState(initialFavorites);
+  const [repostsCount, setRepostsCount] = useState(initialReposts);
+  const [commentsCount, setCommentsCount] = useState(initialComments);
 
-  const handleFavorite = () => {
-    setFavorited(!favorited);
-    setFavorites((prev) => (favorited ? prev - 1 : prev + 1));
-    if (onFavoritePress) onFavoritePress();
-  };
+  const totalInteractions =
+    likesCount + favoritesCount + repostsCount + commentsCount;
+
+  const handleLikePress = useCallback(() => {
+    setIsLiked((prev) => {
+      const newState = !prev;
+      setLikesCount((prevCount) => (newState ? prevCount + 1 : prevCount - 1));
+      return newState;
+    });
+    onLikePress?.();
+  }, [onLikePress]);
+
+  const handleFavoritePress = useCallback(() => {
+    setIsFavorite((prev) => {
+      const newState = !prev;
+      setFavoritesCount((prevCount) =>
+        newState ? prevCount + 1 : prevCount - 1,
+      );
+
+      console.log(
+        `Post ${postId} ${newState ? "agregado a" : "eliminado de"} favoritos`,
+      );
+
+      return newState;
+    });
+    onFavoritePress?.();
+  }, [onFavoritePress, postId]);
+
+  const handleRepostPress = useCallback(() => {
+    setRepostsCount((prev) => prev + 1);
+
+    router.push({
+      pathname: "/screens/RepostScreen",
+      params: {
+        postId,
+        postContent,
+        postAuthor,
+        postImage,
+        originalPost: JSON.stringify({
+          id: postId,
+          user: {
+            username: postAuthor,
+            avatarUrl: postUserAvatar,
+          },
+          content: postContent,
+          tags: postTags,
+          mainImage: postImage,
+        }),
+      },
+    });
+
+    onRepostPress?.();
+  }, [
+    onRepostPress,
+    router,
+    postId,
+    postContent,
+    postAuthor,
+    postImage,
+    postTags,
+    postUserAvatar,
+  ]);
+
+  const handleCommentPress = useCallback(() => {
+    setCommentsCount((prev) => prev + 1);
+
+    router.push({
+      pathname: "/screens/CommentScreen",
+      params: {
+        postId,
+        postContent,
+        postAuthor,
+        postImage,
+        postTags: JSON.stringify(postTags),
+        postUserAvatar,
+      },
+    });
+
+    onCommentPress?.();
+  }, [
+    onCommentPress,
+    router,
+    postId,
+    postContent,
+    postAuthor,
+    postImage,
+    postTags,
+    postUserAvatar,
+  ]);
 
   return (
     <FooterContainer>
-      <NotesButton>
-        <NotesText>{comments}</NotesText>
-        <NotesLabel>notas</NotesLabel>
-      </NotesButton>
+      <NotesContainer>
+        <NotesText>
+          {totalInteractions} {totalInteractions === 1 ? "nota" : "notas"}
+        </NotesText>
+      </NotesContainer>
 
-      <IconsContainer>
-        <FooterIcon onPress={onCommentPress}>
-          <IconImage source={commentIcon} />
-        </FooterIcon>
+      <InteractionsContainer>
+        <IconButton onPress={handleLikePress}>
+          <Ionicons
+            {...getIconConfig("like", isLiked)}
+            size={ICON_CONFIG.size}
+          />
+          <CountText active={isLiked}>{likesCount}</CountText>
+        </IconButton>
 
-        <FooterIcon onPress={onRepostPress}>
-          <IconImage source={repostIcon} />
-        </FooterIcon>
+        <IconButton onPress={handleCommentPress}>
+          <Ionicons
+            name={ICON_CONFIG.comment.name}
+            color={ICON_CONFIG.comment.color}
+            size={ICON_CONFIG.size}
+          />
+          <CountText>{commentsCount}</CountText>
+        </IconButton>
 
-        <FooterIcon onPress={handleFavorite}>
-          <IconImage source={favorited ? favoriteFilledIcon : favoriteIcon} />
-        </FooterIcon>
+        <IconButton onPress={handleRepostPress}>
+          <Ionicons
+            name={ICON_CONFIG.repost.name}
+            color={ICON_CONFIG.repost.color}
+            size={ICON_CONFIG.size}
+          />
+          <CountText>{repostsCount}</CountText>
+        </IconButton>
 
-        <FooterIcon onPress={handleLike}>
-          <IconImage source={liked ? likeFilledIcon : likeIcon} />
-        </FooterIcon>
-      </IconsContainer>
+        <IconButton onPress={handleFavoritePress}>
+          <Ionicons
+            {...getIconConfig("favorite", isFavorite)}
+            size={ICON_CONFIG.size}
+          />
+          <CountText active={isFavorite}>{favoritesCount}</CountText>
+        </IconButton>
+      </InteractionsContainer>
     </FooterContainer>
   );
 };
 
-// 💅 Estilos
+// Estilos (mantenemos los mismos)
 const FooterContainer = styled.View`
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 18px;
-  background-color: #423646;
-  border-top-left-radius: 14px;
-  border-top-right-radius: 14px;
+  padding: ${THEME.SPACING.MD}px ${THEME.SPACING.MD}px ${THEME.SPACING.XL}px;
+  background-color: ${Colors.primary};
+  border-top-left-radius: ${THEME.COMMON.BORDER_RADIUS.MD}px;
+  border-top-right-radius: ${THEME.COMMON.BORDER_RADIUS.MS}px;
+  min-height: 110px;
 `;
 
-const NotesButton = styled.TouchableOpacity`
-  flex-direction: row;
-  align-items: center;
-  border-width: 1px;
-  border-color: #faf7f7;
+const NotesContainer = styled.View`
+  width: 89px;
+  height: 31px;
+  border-width: 1.5px;
+  border-color: ${Colors.textLight};
   border-radius: 20px;
-  padding: 3px 12px;
+  justify-content: center;
+  align-items: center;
+  background-color: transparent;
 `;
 
 const NotesText = styled.Text`
-  color: #faf7f7;
-  font-weight: 700;
-  margin-right: 5px;
+  font-size: ${THEME.TYPOGRAPHY.CAPTION}px;
+  color: ${Colors.textLight};
+  font-family: ${THEME.FONTS.SEMI_BOLD};
 `;
 
-const NotesLabel = styled.Text`
-  color: #faf7f7;
-  font-size: 13px;
-`;
-
-const IconsContainer = styled.View`
+const InteractionsContainer = styled.View`
   flex-direction: row;
   align-items: center;
-  gap: 20px;
 `;
 
-const FooterIcon = styled.TouchableOpacity`
-  padding: 6px;
+const IconButton = styled.TouchableOpacity`
+  flex-direction: row;
+  align-items: center;
+  margin-left: ${THEME.SPACING.MD}px;
+  padding: ${THEME.SPACING.XS}px;
 `;
 
-const IconImage = styled.Image`
-  width: 24px;
-  height: 24px;
-  tint-color: #faf7f7;
+const CountText = styled.Text<{ active?: boolean }>`
+  margin-left: ${THEME.SPACING.XS}px;
+  font-size: ${THEME.TYPOGRAPHY.SMALL}px;
+  color: ${({ active }) => (active ? Colors.error : Colors.textLight)};
+  font-family: ${THEME.FONTS.REGULAR};
 `;

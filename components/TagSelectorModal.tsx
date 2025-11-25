@@ -1,15 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Modal, 
-  TouchableWithoutFeedback, 
+import React, { useState, useEffect, useRef } from "react";
+import {
+  Modal,
+  TouchableWithoutFeedback,
   Animated,
   Dimensions,
   Keyboard,
-  FlatList
-} from 'react-native';
-import styled from 'styled-components/native';
+  ScrollView,
+  TextInput as RNTextInput,
+} from "react-native";
+import styled from "styled-components/native";
+import { Ionicons } from "@expo/vector-icons";
+import { Colors, THEME } from "@/constants";
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
 interface TagSelectorModalProps {
   visible: boolean;
@@ -20,53 +23,66 @@ interface TagSelectorModalProps {
 
 // Etiquetas de ejemplo
 const suggestedTags = [
-  'spn', 'annihilation', 'the southern reach', 'web weaving',
-  'authority', 'horror cosmic', 'sci-fi', 'book'
+  "spn",
+  "annihilation",
+  "the southern reach",
+  "web weaving",
+  "authority",
+  "horror cosmic",
+  "sci-fi",
+  "book",
+  "fantasy",
+  "thriller",
+  "mystery",
+  "adventure",
+  "technology",
+  "programming",
+  "reactnative",
+  "design",
 ];
 
 export const TagSelectorModal: React.FC<TagSelectorModalProps> = ({
   visible,
   onClose,
   onTagsSelected,
-  selectedTags: initiallySelectedTags
+  selectedTags: initiallySelectedTags,
 }) => {
-  const [selectedTags, setSelectedTags] = useState<string[]>(initiallySelectedTags);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>(
+    initiallySelectedTags,
+  );
+  const [searchQuery, setSearchQuery] = useState("");
   const [slideAnim] = useState(new Animated.Value(screenHeight));
   const [fadeAnim] = useState(new Animated.Value(0));
-  const inputRef = useRef<any>(null);
+  const inputRef = useRef<RNTextInput>(null);
 
   useEffect(() => {
     if (visible) {
       setSelectedTags(initiallySelectedTags);
-      setSearchQuery('');
+      setSearchQuery("");
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 1,
-          duration: 200, // ✅ Consistente: 200ms
+          duration: 300,
           useNativeDriver: true,
         }),
         Animated.timing(slideAnim, {
           toValue: 0,
-          duration: 200, // ✅ Consistente: 200ms
+          duration: 300,
           useNativeDriver: true,
         }),
-      ]).start();
-
-      // ✅ Auto-focus con delay para que la animación termine primero
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 250);
+      ]).start(() => {
+        setTimeout(() => inputRef.current?.focus(), 100);
+      });
     } else {
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 0,
-          duration: 200,
+          duration: 300,
           useNativeDriver: true,
         }),
         Animated.timing(slideAnim, {
           toValue: screenHeight,
-          duration: 200,
+          duration: 300,
           useNativeDriver: true,
         }),
       ]).start();
@@ -74,13 +90,35 @@ export const TagSelectorModal: React.FC<TagSelectorModalProps> = ({
   }, [visible, initiallySelectedTags]);
 
   const handleTagPress = (tag: string) => {
-    setSelectedTags(prev => {
-      if (prev.includes(tag)) {
-        return prev.filter(t => t !== tag);
+    const normalizedTag = tag.toLowerCase().trim();
+
+    setSelectedTags((prev) => {
+      const isSelected = prev.includes(normalizedTag);
+      if (isSelected) {
+        return prev.filter((t) => t !== normalizedTag);
       } else {
-        return [...prev, tag];
+        return [...prev, normalizedTag];
       }
     });
+    if (searchQuery.toLowerCase().trim() === normalizedTag) {
+      setSearchQuery("");
+    }
+  };
+
+  const handleSearchInputSubmit = () => {
+    if (searchQuery.trim() !== "") {
+      const normalizedQuery = searchQuery.toLowerCase().trim();
+
+      if (
+        !selectedTags.includes(normalizedQuery) &&
+        !suggestedTags.includes(normalizedQuery)
+      ) {
+        handleTagPress(normalizedQuery);
+      } else if (selectedTags.includes(normalizedQuery)) {
+        handleTagPress(normalizedQuery);
+      }
+      setSearchQuery("");
+    }
   };
 
   const handleDone = () => {
@@ -94,19 +132,8 @@ export const TagSelectorModal: React.FC<TagSelectorModalProps> = ({
     onClose();
   };
 
-  const filteredTags = suggestedTags.filter(tag =>
-    tag.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const renderTagItem = ({ item }: { item: string }) => (
-    <SuggestedTag
-      onPress={() => handleTagPress(item)}
-      isSelected={selectedTags.includes(item)}
-    >
-      <SuggestedTagText isSelected={selectedTags.includes(item)}>
-        #{item}
-      </SuggestedTagText>
-    </SuggestedTag>
+  const filteredTags = suggestedTags.filter((tag) =>
+    tag.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
@@ -115,21 +142,19 @@ export const TagSelectorModal: React.FC<TagSelectorModalProps> = ({
       transparent
       animationType="none"
       onRequestClose={handleClose}
+      statusBarTranslucent
     >
       <Overlay as={Animated.View} style={{ opacity: fadeAnim }}>
         <TouchableWithoutFeedback onPress={handleClose}>
           <OverlayBackground />
         </TouchableWithoutFeedback>
 
-        <ModalContainer 
+        <ModalContainer
           as={Animated.View}
           style={{
-            transform: [{ translateY: slideAnim }]
+            transform: [{ translateY: slideAnim }],
           }}
         >
-          {/* ✅ Handle bar para indicar que es arrastrable */}
-          <HandleBar />
-          
           <Header>
             <Title>Añadir etiquetas</Title>
             <DoneButton onPress={handleDone}>
@@ -138,51 +163,66 @@ export const TagSelectorModal: React.FC<TagSelectorModalProps> = ({
           </Header>
 
           <Content>
-            {/* Etiquetas seleccionadas */}
-            {selectedTags.length > 0 && (
-              <SelectedTagsContainer>
-                <SelectedTagsScrollView 
-                  horizontal 
-                  showsHorizontalScrollIndicator={false}
-                >
-                  {selectedTags.map(tag => (
-                    <SelectedTag key={tag}>
-                      <SelectedTagText>#{tag}</SelectedTagText>
-                      <RemoveTagButton onPress={() => handleTagPress(tag)}>
-                        <RemoveTagText>×</RemoveTagText>
-                      </RemoveTagButton>
-                    </SelectedTag>
-                  ))}
-                  <AddMoreButton>
-                    <AddMoreText>+</AddMoreText>
-                  </AddMoreButton>
-                </SelectedTagsScrollView>
-              </SelectedTagsContainer>
-            )}
-
             {/* Campo de búsqueda */}
             <SearchContainer>
               <HashSymbol>#</HashSymbol>
               <SearchInput
-                ref={inputRef} // ✅ Ref para auto-focus
-                placeholder="Añadir etiquetas..."
-                placeholderTextColor="#4B4B4B"
+                ref={inputRef}
+                placeholder="Buscar o crear etiquetas..."
+                placeholderTextColor={Colors.textPlaceholder}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
+                onSubmitEditing={handleSearchInputSubmit}
                 returnKeyType="done"
+                autoCapitalize="none"
+                autoCorrect={false}
               />
             </SearchContainer>
 
-            {/* Etiquetas sugeridas */}
-            <SuggestedTagsTitle>Etiquetas sugeridas</SuggestedTagsTitle>
-            <SuggestedTagsList
-              data={filteredTags}
-              keyExtractor={(item) => item}
-              renderItem={renderTagItem}
-              numColumns={2}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingBottom: 20 }}
-            />
+            {/* Etiquetas seleccionadas - Scroll horizontal */}
+            {selectedTags.length > 0 && (
+              <SelectedTagsSection>
+                <SectionTitle>Tus etiquetas</SectionTitle>
+                <SelectedTagsScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                >
+                  {selectedTags.map((tag) => (
+                    <SelectedTag key={tag}>
+                      <SelectedTagText>#{tag}</SelectedTagText>
+                      <RemoveTagButton onPress={() => handleTagPress(tag)}>
+                        <Ionicons
+                          name="close-circle"
+                          size={14}
+                          color={Colors.textLight}
+                        />
+                      </RemoveTagButton>
+                    </SelectedTag>
+                  ))}
+                </SelectedTagsScrollView>
+              </SelectedTagsSection>
+            )}
+
+            {/* Etiquetas sugeridas - Scroll horizontal */}
+            <SuggestedTagsSection>
+              <SectionTitle>Etiquetas sugeridas</SectionTitle>
+              <SuggestedTagsScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+              >
+                {filteredTags.map((tag) => (
+                  <SuggestedTag
+                    key={tag}
+                    onPress={() => handleTagPress(tag)}
+                    isSelected={selectedTags.includes(tag)}
+                  >
+                    <SuggestedTagText isSelected={selectedTags.includes(tag)}>
+                      #{tag}
+                    </SuggestedTagText>
+                  </SuggestedTag>
+                ))}
+              </SuggestedTagsScrollView>
+            </SuggestedTagsSection>
           </Content>
         </ModalContainer>
       </Overlay>
@@ -190,10 +230,10 @@ export const TagSelectorModal: React.FC<TagSelectorModalProps> = ({
   );
 };
 
-// Estilos mejorados
+// Estilos corregidos con botones más compactos
 const Overlay = styled.View`
   flex: 1;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: ${Colors.modalOverlay};
   justify-content: flex-end;
 `;
 
@@ -202,154 +242,138 @@ const OverlayBackground = styled.View`
 `;
 
 const ModalContainer = styled(Animated.View)`
-  background-color: #ffffff;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
-  max-height: 75%; // ✅ Mejor ergonomía en pantallas pequeñas
-`;
-
-// ✅ Handle bar para indicador de arrastre
-const HandleBar = styled.View`
-  width: 40px;
-  height: 4px;
-  background-color: #d9d9d9;
-  border-radius: 2px;
-  align-self: center;
-  margin-top: 8px;
-  margin-bottom: 8px;
+  background-color: ${Colors.background};
+  border-top-left-radius: ${THEME.COMMON.BORDER_RADIUS.LG}px;
+  border-top-right-radius: ${THEME.COMMON.BORDER_RADIUS.LG}px;
+  height: 30%;
+  width: 100%;
+  shadow-color: #000;
+  shadow-offset: 0px -4px;
+  shadow-opacity: 0.25;
+  shadow-radius: 12px;
+  elevation: 3;
 `;
 
 const Header = styled.View`
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
+  padding: ${THEME.SPACING.MD}px ${THEME.SPACING.LG}px;
   border-bottom-width: 1px;
-  border-bottom-color: #f0f0f0;
+  border-bottom-color: ${Colors.border};
 `;
 
 const Title = styled.Text`
-  font-size: 16px;
-  font-weight: 600;
-  color: #000000;
-  font-family: 'OpenSans-SemiBold', 'System';
+  font-size: ${THEME.TYPOGRAPHY.SUBTITLE}px;
+  color: ${Colors.text};
+  font-family: ${THEME.FONTS.BOLD};
 `;
 
 const DoneButton = styled.TouchableOpacity`
-  padding: 8px 16px;
+  padding: ${THEME.SPACING.XS}px ${THEME.SPACING.SM}px;
 `;
 
 const DoneText = styled.Text`
-  color: #1291EB;
-  font-size: 16px;
-  font-weight: 600;
-  font-family: 'OpenSans-SemiBold', 'System';
+  color: ${Colors.action};
+  font-size: ${THEME.TYPOGRAPHY.SUBTITLE}px;
+  font-family: ${THEME.FONTS.BOLD};
 `;
 
 const Content = styled.View`
   flex: 1;
-  padding: 20px;
-`;
-
-const SelectedTagsContainer = styled.View`
-  margin-bottom: 24px;
-`;
-
-const SelectedTagsScrollView = styled.ScrollView`
-  flex-grow: 0;
-`;
-
-const SelectedTag = styled.View`
-  flex-direction: row;
-  align-items: center;
-  background-color: #1291EB;
-  padding: 8px 12px;
-  border-radius: 16px;
-  margin-right: 8px;
-  margin-bottom: 8px;
-`;
-
-const SelectedTagText = styled.Text`
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 500;
-  font-family: 'OpenSans-Medium', 'System';
-  margin-right: 6px;
-`;
-
-const RemoveTagButton = styled.TouchableOpacity`
-  padding: 2px;
-`;
-
-const RemoveTagText = styled.Text`
-  color: #ffffff;
-  font-size: 16px;
-  font-weight: bold;
-`;
-
-const AddMoreButton = styled.TouchableOpacity`
-  background-color: #f0f0f0;
-  width: 32px;
-  height: 32px;
-  border-radius: 16px;
-  justify-content: center;
-  align-items: center;
-  margin-left: 8px;
-`;
-
-const AddMoreText = styled.Text`
-  color: #4B4B4B;
-  font-size: 18px;
-  font-weight: bold;
+  padding: ${THEME.SPACING.MD}px ${THEME.SPACING.LG}px;
 `;
 
 const SearchContainer = styled.View`
   flex-direction: row;
   align-items: center;
-  margin-bottom: 24px;
+  background-color: ${Colors.backgroundAlt};
+  border-radius: ${THEME.COMMON.BORDER_RADIUS.MD}px;
+  padding: ${THEME.SPACING.SM}px ${THEME.SPACING.MD}px;
+  margin-bottom: ${THEME.SPACING.MD}px;
+  border-width: 1px;
+  border-color: ${Colors.border};
 `;
 
 const HashSymbol = styled.Text`
-  font-size: 40px;
-  font-weight: bold;
-  color: #4B4B4B;
-  margin-right: 12px;
+  font-size: ${THEME.TYPOGRAPHY.SUBTITLE}px;
+  color: ${Colors.text};
+  font-family: ${THEME.FONTS.BOLD};
+  margin-right: ${THEME.SPACING.SM}px;
 `;
 
 const SearchInput = styled.TextInput`
   flex: 1;
-  font-size: 18px;
-  color: #000000;
-  font-family: 'OpenSans-Regular', 'System';
-  padding-vertical: 8px;
+  font-size: ${THEME.TYPOGRAPHY.BODY}px;
+  color: ${Colors.text};
+  font-family: ${THEME.FONTS.REGULAR};
+  padding: 0;
 `;
 
-const SuggestedTagsTitle = styled.Text`
-  font-size: 14px;
-  color: #4B4B4B;
-  margin-bottom: 12px;
-  font-family: 'OpenSans-Medium', 'System';
+const SelectedTagsSection = styled.View`
+  margin-bottom: ${THEME.SPACING.MD}px;
 `;
 
-const SuggestedTagsList = styled.FlatList`
+const SuggestedTagsSection = styled.View`
+  flex: 1;
+`;
+
+const SectionTitle = styled.Text`
+  font-size: ${THEME.TYPOGRAPHY.CAPTION}px;
+  color: ${Colors.text};
+  font-family: ${THEME.FONTS.SEMI_BOLD};
+  margin-bottom: ${THEME.SPACING.SM}px;
+`;
+
+const SelectedTagsScrollView = styled.ScrollView.attrs({
+  horizontal: true,
+  showsHorizontalScrollIndicator: false,
+})`
+  flex-grow: 0;
+`;
+
+// Botones seleccionados - más compactos y redondeados
+const SelectedTag = styled.View`
+  flex-direction: row;
+  align-items: center;
+  background-color: ${Colors.action};
+  padding: ${THEME.SPACING.XS}px ${THEME.SPACING.SM}px;
+  border-radius: ${THEME.COMMON.BORDER_RADIUS.XL}px; /* Más redondeado */
+  margin-right: ${THEME.SPACING.SM}px;
+`;
+
+const SelectedTagText = styled.Text`
+  color: ${Colors.textLight};
+  font-size: ${THEME.TYPOGRAPHY.SMALL}px;
+  font-family: ${THEME.FONTS.SEMI_BOLD};
+  margin-right: ${THEME.SPACING.XS}px;
+`;
+
+const RemoveTagButton = styled.TouchableOpacity`
+  padding: 1px;
+`;
+
+const SuggestedTagsScrollView = styled.ScrollView.attrs({
+  horizontal: true,
+  showsHorizontalScrollIndicator: false,
+})`
   flex: 1;
 `;
 
 const SuggestedTag = styled.TouchableOpacity<{ isSelected: boolean }>`
-  background-color: ${({ isSelected }) => isSelected ? '#1291EB' : '#FFFFFF'};
-  border: 1.5px solid ${({ isSelected }) => isSelected ? '#1291EB' : '#4B4B4B'};
-  padding: 10px 14px;
-  border-radius: 16px;
-  margin: 6px;
-  flex: 1;
-  min-width: 45%;
+  background-color: ${({ isSelected }) =>
+    isSelected ? Colors.action : Colors.backgroundTag};
+  /* QUITAMOS el borde: border: 1px solid ${Colors.border}; */
+  padding: ${THEME.SPACING.XS}px ${THEME.SPACING.MD}px; /* Menos padding vertical */
+  border-radius: ${THEME.COMMON.BORDER_RADIUS.XL}px; /* Más redondeado */
+  margin-right: ${THEME.SPACING.SM}px;
   align-items: center;
   justify-content: center;
+  min-height: 32px; /* Altura fija más compacta */
 `;
 
 const SuggestedTagText = styled.Text<{ isSelected: boolean }>`
-  color: ${({ isSelected }) => isSelected ? '#FFFFFF' : '#4B4B4B'};
-  font-size: 14px;
-  font-weight: 500;
-  font-family: 'OpenSans-Medium', 'System';
+  color: ${({ isSelected }) => (isSelected ? Colors.textLight : Colors.text)};
+  font-size: ${THEME.TYPOGRAPHY.SMALL}px;
+  font-family: ${THEME.FONTS.SEMI_BOLD};
 `;
