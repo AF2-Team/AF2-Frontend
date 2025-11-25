@@ -4,8 +4,8 @@ import { ActivityIndicator, FlatList, RefreshControl } from "react-native";
 import styled from "styled-components/native";
 import { PostData } from "../types/PostTypes";
 import { Post } from "./Post";
+import { Colors, THEME } from "@/constants";
 
-// Datos mock - reemplaza con la API real
 const mockPosts: PostData[] = [
   {
     id: "1",
@@ -23,6 +23,8 @@ const mockPosts: PostData[] = [
     initialFavorites: 1,
     initialReposts: 2,
     initialComments: 4,
+    mediaUrl:
+      "https://64.media.tumblr.com/1bc62bc6ab1b2d3bdda726d95a77b4eb/10e5cef0b5ed9588-58/s540x810/998ff66ea5cc48eb8f710a0cd192e2efc1a00c7e.jpg",
   },
   {
     id: "2",
@@ -79,7 +81,7 @@ const mockPosts: PostData[] = [
   },
 ];
 
-export const Feed = ({scrollEnabled=true}) => {
+export const Feed = ({ scrollEnabled = true }) => {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -132,11 +134,7 @@ export const Feed = ({scrollEnabled=true}) => {
   const handleNotInterested = (postId: string) => {
     console.log("Eliminando post no interesante:", postId);
 
-    // Aquí iría la llamada a la API para marcar como no interesante
-    // Por ahora, solo lo removemos del estado local
     setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
-
-  
   };
 
   const handleCommentPress = (postId: string) => {
@@ -166,7 +164,7 @@ export const Feed = ({scrollEnabled=true}) => {
     if (loading) {
       return (
         <LoadingContainer>
-          <ActivityIndicator size="large" color="#423646" />
+          <ActivityIndicator size="large" color={Colors.primary} />
           <LoadingText>Cargando publicaciones...</LoadingText>
         </LoadingContainer>
       );
@@ -195,7 +193,7 @@ export const Feed = ({scrollEnabled=true}) => {
   if (loading && !refreshing && posts.length === 0) {
     return (
       <LoadingContainer>
-        <ActivityIndicator size="large" color="#423646" />
+        <ActivityIndicator size="large" color={Colors.primary} />
         <LoadingText>Cargando publicaciones...</LoadingText>
       </LoadingContainer>
     );
@@ -209,18 +207,18 @@ export const Feed = ({scrollEnabled=true}) => {
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingBottom: 100,
+          paddingBottom: THEME.SPACING.XL * 3,
           flexGrow: posts.length === 0 ? 1 : 0,
         }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={["#423646"]}
-            tintColor="#423646"
+            colors={[Colors.primary]}
+            tintColor={Colors.primary}
           />
         }
-        scrollEnabled= {scrollEnabled}
+        scrollEnabled={scrollEnabled}
         ListEmptyComponent={renderEmptyComponent}
       />
     </Container>
@@ -229,67 +227,70 @@ export const Feed = ({scrollEnabled=true}) => {
 
 const Container = styled.View`
   flex: 1;
-  background-color: #ffffff;
+  background-color: ${Colors.background};
 `;
 
 const LoadingContainer = styled.View`
   flex: 1;
   justify-content: center;
   align-items: center;
-  padding: 50px;
+  padding: ${THEME.SPACING.XL * 2}px;
 `;
 
 const LoadingText = styled.Text`
-  margin-top: 16px;
-  font-size: 16px;
-  color: #687076;
+  margin-top: ${THEME.SPACING.MD}px;
+  font-size: ${THEME.TYPOGRAPHY.BODY}px;
+  color: ${Colors.textMuted};
+  font-family: ${THEME.FONTS.REGULAR};
 `;
 
 const EmptyContainer = styled.View`
   flex: 1;
   justify-content: center;
   align-items: center;
-  padding: 50px;
+  padding: ${THEME.SPACING.XL * 2}px;
   min-height: 300px;
 `;
 
 const EmptyText = styled.Text`
-  font-size: 18px;
-  font-weight: 600;
-  color: #423646;
-  margin-bottom: 8px;
+  font-size: ${THEME.TYPOGRAPHY.TITLE}px;
+  font-family: ${THEME.FONTS.SEMI_BOLD};
+  color: ${Colors.text};
+  margin-bottom: ${THEME.SPACING.SM}px;
   text-align: center;
 `;
 
 const EmptySubText = styled.Text`
-  font-size: 14px;
-  color: #687076;
+  font-size: ${THEME.TYPOGRAPHY.BODY}px;
+  color: ${Colors.textMuted};
   text-align: center;
+  font-family: ${THEME.FONTS.REGULAR};
 `;
 
 const ErrorText = styled.Text`
-  font-size: 18px;
-  font-weight: 600;
-  color: #ff6b6b;
-  margin-bottom: 8px;
+  font-size: ${THEME.TYPOGRAPHY.TITLE}px;
+  font-family: ${THEME.FONTS.SEMI_BOLD};
+  color: ${Colors.error};
+  margin-bottom: ${THEME.SPACING.SM}px;
   text-align: center;
 `;
 
 const ErrorSubText = styled.Text`
-  font-size: 14px;
-  color: #687076;
+  font-size: ${THEME.TYPOGRAPHY.BODY}px;
+  color: ${Colors.textMuted};
   text-align: center;
-  margin-bottom: 20px;
+  font-family: ${THEME.FONTS.REGULAR};
+  margin-bottom: ${THEME.SPACING.LG}px;
 `;
 
 const RetryButton = styled.TouchableOpacity`
-  background-color: #423646;
-  padding: 12px 24px;
-  border-radius: 8px;
+  background-color: ${Colors.primary};
+  padding: ${THEME.SPACING.SM}px ${THEME.SPACING.LG}px;
+  border-radius: ${THEME.COMMON.BORDER_RADIUS.MD}px;
 `;
 
 const RetryButtonText = styled.Text`
-  color: #ffffff;
-  font-size: 16px;
-  font-weight: 600;
+  color: ${Colors.textLight};
+  font-size: ${THEME.TYPOGRAPHY.BODY}px;
+  font-family: ${THEME.FONTS.SEMI_BOLD};
 `;
