@@ -69,7 +69,7 @@ const SearchScreen = () => {
   };
 
   const handleViewAllTags = () => {
-    router.push("/screens/ManageTagsScreen");
+    router.push("/screens/TagScreen");
   };
 
   return (

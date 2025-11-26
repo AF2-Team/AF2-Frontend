@@ -2,14 +2,14 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    Modal,
-    SafeAreaView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Modal,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 const ChangePasswordScreen = () => {
@@ -67,7 +67,7 @@ const ChangePasswordScreen = () => {
   };
 
   // Función auxiliar para renderizar el icono del ojo
-  const renderEyeIcon = (isVisible, setIsVisible) => (
+  const renderEyeIcon: (isVisibel: boolean, setIsVisible: any) => any = (isVisible, setIsVisible) => (
     <TouchableOpacity onPress={() => setIsVisible(!isVisible)} style={styles.eyeIconButton}>
       <MaterialCommunityIcons
         name={isVisible ? "eye" : "eye-off"}
@@ -211,11 +211,11 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "bold",
-    color: "#333",
+    color: "#423646",
     textAlign: "center",
-    marginBottom: 50,
+    marginBottom: 40,
   },
   inputGroup: {
     marginBottom: 30,

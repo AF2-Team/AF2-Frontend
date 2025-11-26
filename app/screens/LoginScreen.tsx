@@ -46,21 +46,15 @@ const LoginScreen = () => {
     const newErrors: IFormField = {};
 
     if (!formData.email) newErrors.email = "El correo es obligatorio";
-    else if (!/\S+@\S+\.\S+/.test(formData.email))
-      newErrors.email = "El formato del correo no es válido";
-    if (!formData.password) {
-      newErrors.password = "La contraseña es obligatoria";
-    } else if (formData.password.length < 8) {
-      newErrors.password = "La contraseña debe tener al menos 8 caracteres";
-    }
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "El formato del correo no es válido";
 
-    setErrors(newErrors);
+    if (!formData.password) newErrors.password = "La contraseña es obligatoria";
+    else if (formData.password.length < 8) newErrors.password = "La contraseña debe tener al menos 8 caracteres";
 
-    if (Object.keys(newErrors).length === 0) {
-      Alert.alert("Inicio de Sesión Exitoso", `Bienvenido, ${formData.email}`);
-      //console.log("Formulario enviado:", formData);
-      router.push("/screens/HomeScreen");
-    }
+    //if (Object.keys(newErrors).length > 0) return setErrors(newErrors);
+
+    Alert.alert("Inicio de Sesión Exitoso", `Bienvenido, ${formData?.email}`);
+    router.push("/screens/HomeScreen");
   };
 
   const isFormEmpty = formData.email == null || formData.email.trim() === "" || formData.password == null || formData.password.trim() === "";

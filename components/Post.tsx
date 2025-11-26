@@ -1,10 +1,10 @@
+import { Colors, THEME } from "@/constants";
 import { useRouter } from "expo-router";
 import React from "react";
-import styled from "styled-components/native";
+import { default as styled } from "styled-components/native";
 import { PostData } from "../types/PostTypes";
 import { PostFooter } from "./PostFooter";
 import { PostHeader } from "./PostHeader";
-import { Colors, THEME } from "@/constants";
 
 interface PostProps {
   post: PostData;
