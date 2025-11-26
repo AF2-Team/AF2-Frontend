@@ -1,4 +1,4 @@
-import { THEME } from "@/constants";
+import { palette, THEME } from "@/constants";
 import {
   Alegreya_400Regular_Italic,
   useFonts,
@@ -51,7 +51,7 @@ const LoginScreen = () => {
     if (!formData.password) newErrors.password = "La contraseña es obligatoria";
     else if (formData.password.length < 8) newErrors.password = "La contraseña debe tener al menos 8 caracteres";
 
-    //if (Object.keys(newErrors).length > 0) return setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return setErrors(newErrors);
 
     Alert.alert("Inicio de Sesión Exitoso", `Bienvenido, ${formData?.email}`);
     router.push("/screens/HomeScreen");
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     ...THEME.COMMON.SHADOWS.MEDIUM,
   },
   loginButtonDisabled: {
-    backgroundColor: THEME.COLORS.grayLight,
+    backgroundColor: THEME.COLORS.textLight,
     ...THEME.COMMON.SHADOWS.SMALL,
   },
   loginButtonText: {
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     fontFamily: THEME.FONTS.BOLD,
   },
   loginButtonTextDisabled: {
-    color: THEME.COLORS.grayMedium,
+    color: palette.grayMedium,
   },
   bottomSection: {
     marginTop: THEME.SPACING.MD,
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: THEME.COLORS.black,
+    backgroundColor: palette.black,
   },
   dividerText: {
     marginHorizontal: THEME.SPACING.MD,
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
     fontFamily: THEME.FONTS.REGULAR,
   },
   createAccountButton: {
-    backgroundColor: THEME.COLORS.black,
+    backgroundColor: palette.black,
     height: THEME.SPACING.BUTTON_HEIGHT,
     borderRadius: THEME.COMMON.BORDER_RADIUS.XL,
     alignItems: "center",

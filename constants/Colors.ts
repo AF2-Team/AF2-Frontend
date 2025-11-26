@@ -1,4 +1,4 @@
-const palette = {
+export const palette = {
   // Brand Colors
   darkPurple: "#423646",
   lavender: "#BCA1BD",
