@@ -31,15 +31,16 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
       transparent
       animationType="slide"
       onRequestClose={onClose}
-    >
+    > 
+    <TouchableWithoutFeedback onPress={onClose}>
       <OverlayWrapper>
         {/* Click en el fondo para cerrar */}
-        <TouchableWithoutFeedback onPress={onClose}>
+       
           <Overlay />
-        </TouchableWithoutFeedback>
-
+       
+        <TouchableWithoutFeedback onPress={()=>{}}>
         <ModalContent>
-          {/* CAMBIO: Manija de arrastre integrada */}
+          
           <Handle />
           
           {options.map((option, index) => (
@@ -51,16 +52,21 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
               }}
               isLast={index === options.length - 1}
             >
-                {option.icon && (<IconContainer>{option.icon}</IconContainer>)}
+              {/* Icono */}
+              {option.icon && (<IconContainer>{option.icon}</IconContainer>)}
+
+              {/* Texto */}
               <OptionText 
-              isPrimary={option.isPrimary}
-              hasIcon={!!option.icon}>
+                isPrimary={option.isPrimary}
+                hasIcon={!!option.icon}>
                 {option.label}
-               </OptionText>
+              </OptionText>
             </OptionButton>
           ))}
         </ModalContent>
+        </TouchableWithoutFeedback>
       </OverlayWrapper>
+    </TouchableWithoutFeedback>
     </Modal>
   );
 };
@@ -72,7 +78,6 @@ const OverlayWrapper = styled.View`
 `;
 
 const Overlay = styled.View`
-  flex: 1;
   background-color: rgba(0, 0, 0, 0.5);
 `;
 
@@ -84,11 +89,8 @@ const ModalContent = styled.View`
   width: 100%;
   shadow-color: #000;
   shadow-offset: 0px -4px;
-  shadow-opacity: 0.15;
   shadow-radius: 8px;
   elevation: 8;
-  position: absolute;
-  bottom: 0;
 `;
 
 const Handle = styled.View`
@@ -105,10 +107,12 @@ const OptionButton = styled.TouchableOpacity<{ isLast: boolean }>`
   padding: 16px 20px;
   border-bottom-width: ${({ isLast }) => (isLast ? 0 : 1)}px;
   border-bottom-color: #f0f0f0;
+  flex-direction: row;
+  align-items: center;
 `;
 
 const IconContainer = styled.View`
-  margin-right: 15px; /* Espacio entre el icono y el texto */
+  margin-right: 8px; 
   width: 24px; /* Asegura que todos los iconos tengan el mismo ancho para una alineación perfecta */
   align-items: center;
 `;
@@ -116,8 +120,7 @@ const IconContainer = styled.View`
 const OptionText = styled.Text<{ isPrimary?: boolean, hasIcon: boolean }>`
   font-size: 16px;
   color: ${({ isPrimary }) => (isPrimary ? "#007AFF" : "#423646")};
-  /* Alineación del texto: si hay icono, no lo centramos. Si no hay, lo centramos */
-  text-align: ${({ hasIcon }) => (hasIcon ? "left" : "center")}; 
-  flex: 1; /* Permite que el texto ocupe el espacio restante si hay icono */
+  flex: 1; 
   font-weight: 400;
+  text-align: left;
 `;

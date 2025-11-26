@@ -9,8 +9,6 @@ const TABS = [
   { id: 'posts', title: 'Publicaciones' },
   { id: 'favorite', title: 'Favoritos' },
   { id: 'followers', title: 'Seguidores'},
-  { id: 'following', title: 'Seguidos'},
-  { id: 'about', title: 'Acerca de' },
 ] as const;
 
 type TabId = typeof TABS[number]['id'];
@@ -53,8 +51,8 @@ const ProfileTabs = ({ style, onTabChange }: ProfileTabsProps) => {
     switch (activeTab) {
       case 'posts':
         return <Feed scrollEnabled={false}/>;
-      case 'about':
-        return <Text style={styles.contentText}>Contenido: Información Detallada del Usuario.</Text>;
+      case 'favorite':
+        return <Feed scrollEnabled={false} showFavoritesOnly={true} />;
       case 'followers':
         return <FollowersList userId={MOCK_USER_ID} />;
       default:
@@ -141,7 +139,6 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   contentContainer: {
-    padding: 20,
     backgroundColor: LOCAL_COLORS.WHITE,
   },
   contentText: {

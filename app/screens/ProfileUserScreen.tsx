@@ -139,7 +139,7 @@ const ProfileUserScreen: React.FC = () => {
   // Handlers para el Modal
 
   const handleEditCoverOpen = () => {
-    // 🔑 CORRECCIÓN: Si el valor es 'number' (require()), no es una URI, usamos null
+    // Si el valor es 'number' (require()), no es una URI, usamos null
     const uriString = typeof userProfile.coverUrl === 'string' ? userProfile.coverUrl : null;
 
     setImagePickerState({
@@ -248,7 +248,10 @@ const ProfileUserScreen: React.FC = () => {
                 )}
             </PreviewContainer>
 
-            {/*Opciones de edicion de imagenes */}
+           
+        </PreviewOverlayBackground>
+      </Modal>
+       {/*Opciones de edicion de imagenes */}
             <ImageEditOptionsSheet
                 isVisible={imagePickerState.isVisible}
                 type={imagePickerState.type}
@@ -259,8 +262,6 @@ const ProfileUserScreen: React.FC = () => {
                 onSave={handleSave}
             />
 
-        </PreviewOverlayBackground>
-      </Modal>
 
     </SafeAreaView>
   );

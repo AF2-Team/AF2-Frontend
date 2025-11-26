@@ -1,12 +1,8 @@
-// src/components/Profile/ImageEditOptionsSheet.tsx
-
 import React from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { BottomSheet, Option } from './ui/BottomSheet';
 import { AvatarShape, ImageCropType } from '../types/ImagePickerTypes';
 import * as ImagePicker from 'expo-image-picker';
-import {MediaType} from 'expo-image-picker';
-
 
 interface ImageEditOptionsSheetProps {
   isVisible: boolean;
@@ -15,7 +11,7 @@ interface ImageEditOptionsSheetProps {
   onClose: () => void;
   onImageSelected: (uri: string, type: ImageCropType) => void;
   onShapeChange: (shape: AvatarShape) => void;
-  onSave: () => void;
+  onSave: () => void; // solo se usará si se integra en otra opción.
 }
 
 const ImageEditOptionsSheet: React.FC<ImageEditOptionsSheetProps> = ({
@@ -25,7 +21,7 @@ const ImageEditOptionsSheet: React.FC<ImageEditOptionsSheetProps> = ({
   onClose,
   onImageSelected,
   onShapeChange,
-  onSave,
+
 }) => {
 
   const handlePickImage = async () => {
@@ -37,15 +33,17 @@ const ImageEditOptionsSheet: React.FC<ImageEditOptionsSheetProps> = ({
     });
 
     if (!result.canceled && result.assets && result.assets.length > 0 && type) {
-      onImageSelected(result.assets[0].uri, type);
+  
+      onImageSelected(result.assets[0].uri, type); 
+
     }
-    //No se cierra el bottomsheet aquí, para que el usuario pueda seguir cambiando la forma.
+   
   };
 
 
   if (!type) return null;
 
-  // Opciones base 
+  // Opciones base
   const options: Option[] = [
     {
       id: 'pick_photo',
@@ -56,45 +54,30 @@ const ImageEditOptionsSheet: React.FC<ImageEditOptionsSheetProps> = ({
     },
   ];
 
-  //Opciones de forma (Solo si es avatar)
+
   if (type === 'avatar') {
     options.push(
       {
         id: 'shape_square',
         label: `Forma Cuadrada ${avatarShape === 'square' ? ' (Actual)' : ''}`,
-        onPress: () => onShapeChange('square'),
+        onPress: () => onShapeChange('square'), // Llama a la función que NO cierra
         icon: <MaterialCommunityIcons name={avatarShape === 'square' ? "checkbox-marked-outline" : "checkbox-blank-outline"} size={24} color="#423646" />,
       },
       {
         id: 'shape_circle',
         label: `Forma Circular ${avatarShape === 'circle' ? ' (Actual)' : ''}`,
-        onPress: () => onShapeChange('circle'),
+        onPress: () => onShapeChange('circle'), // Llama a la función que NO cierra
         icon: <MaterialCommunityIcons name={avatarShape === 'circle' ? "radiobox-marked" : "radiobox-blank"} size={24} color="#423646" />,
       },
     );
   }
 
-  //Opción de Guardar y Cerrar
-   options.push(
-    {
-      id: 'save',
-      label: 'Guardar cambios',
-      onPress: onSave,
-      icon: <MaterialCommunityIcons name="content-save" size={24} color="#423646" />,
-      isPrimary: true,
-    },
-    {
-      id: 'cancel',
-      label: 'Cancelar',
-      onPress: onClose, // onClose ya está configurado para cerrar en la prop del sheet
-      icon: <MaterialCommunityIcons name="close-circle-outline" size={24} color="#423646" />,
-    }
-  );
+
 
   return (
     <BottomSheet
       visible={isVisible}
-      onClose={onClose}
+      onClose={onClose} 
       options={options}
     />
   );

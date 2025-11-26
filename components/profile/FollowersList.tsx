@@ -69,9 +69,8 @@ const FollowersListComponent: React.FC<FollowersListComponentProps> = ({ userId 
                 //Deshabilitar el scroll interno 
                 scrollEnabled={false} 
                 ItemSeparatorComponent={() => <View style={styles.separator} />}
-                ListFooterComponent={() => (
-                    <Text style={styles.footerText}>-- {followers.length} Seguidores mostrados --</Text>
-                )}
+               
+                
             />
         </View>
     );

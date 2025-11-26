@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Image, ImageSourcePropType, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { Image, ImageSourcePropType, StyleProp, StyleSheet, View, ViewStyle, TouchableOpacity } from 'react-native';
 import CircleIconButton, { CircleIconButtonProps } from '../ui/CircleIconButton';
 
 
@@ -33,6 +33,7 @@ const HeaderProfile = ({
   //coverImageUrl,
   coverSource,
   useDefaultCover = false,
+  onEditCoverPress,
   onPressBack,
   onPressSettings,
   style,
@@ -53,22 +54,19 @@ const HeaderProfile = ({
   };
 
   return (
-    <View style={[
-
-      styles.container,
-      //Si es default entonces muestra el color por defecto
-      //isDefault && { backgroundColor: LOCAL_COLORS.PRIMARY }, 
-      shouldShowColorFallback && { backgroundColor: LOCAL_COLORS.PRIMARY },
-      style
-
-    ]}
+    <TouchableOpacity 
+      style={[
+        styles.container,
+        shouldShowColorFallback && { backgroundColor: LOCAL_COLORS.PRIMARY },
+        style
+      ]}
+      activeOpacity={onEditCoverPress ? 0.9 : 1} // Solo da feedback si es clickeable
+      onPress={onEditCoverPress} // <-- Llama al handler para abrir el sheet
+      disabled={!onEditCoverPress} // Deshabilita si no hay handler
     >
-      {/*{isDefault ? (*/}
       {shouldShowColorFallback ? (
-        //Si no hay URL, renderizamos el View de relleno
         <View style={styles.coverFallback} />
       ) : (
-        //Si hay URL, renderizamos la imagen
         <Image
           source={coverSource!}
           style={styles.coverImage}
@@ -77,13 +75,15 @@ const HeaderProfile = ({
       )}
 
       <View style={styles.buttonsContainer}>
+        {/* Los botones de navegación se mantienen */}
         <CircleIconButton {...backButtonProps} />
         <CircleIconButton {...settingsButtonProps} />
       </View>
-    </View>
+    </TouchableOpacity>
+    // Nota: El botón de edición de la cubierta se puede mover aquí o eliminarse,
+    // ya que toda la cubierta es ahora clickeable para editar.
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     width: '100%',
