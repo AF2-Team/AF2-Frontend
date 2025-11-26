@@ -1,23 +1,23 @@
-import React, { useState, useRef, useEffect } from "react";
+import { CommentInput } from "@/components/CommentInput";
+import { Comment, CommentItem } from "@/components/CommentItem";
+import { Tab, TabView } from "@/components/TabView";
+import { UserListItem } from "@/components/UserListItem";
+import { Colors, THEME } from "@/constants";
+import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useRef, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  StatusBar,
-  Keyboard,
   Animated,
+  FlatList,
+  Keyboard,
   Platform,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { Colors, THEME } from "@/constants";
-import { TabView, Tab } from "@/components/TabView";
-import { CommentItem, Comment } from "@/components/CommentItem";
-import { CommentInput } from "@/components/CommentInput";
-import { UserListItem } from "@/components/UserListItem";
 
 const CommentScreen = () => {
   const router = useRouter();
@@ -27,7 +27,7 @@ const CommentScreen = () => {
     ? JSON.parse(params.originalPost as string)
     : null;
 
-  const postId = originalPost?.id || "";
+  const postId = originalPost?.postId || "";
   const postContent = originalPost?.content || "";
   const postAuthor = originalPost?.user?.username || "";
   const postImage = originalPost?.mainImage || "";
