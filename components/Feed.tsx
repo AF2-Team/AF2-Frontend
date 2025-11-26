@@ -138,7 +138,10 @@ export const Feed = ({ scrollEnabled = true }) => {
   };
 
   const handleCommentPress = (postId: string) => {
-    router.push(`/screens/comments/${postId}`);
+    router.push({
+      pathname: "/screens/CommentScreen",
+      params: { postId },
+    });
   };
 
   const handleOptionsPress = (postId: string) => {
