@@ -10,11 +10,15 @@ import {
   Dimensions,
   TouchableWithoutFeedback,
 } from 'react-native';
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import styled from 'styled-components/native';
 import ProfileHeader from '../../components/profile/ProfileHeader';
 import ProfileCard from '../../components/profile/ProfileCard';
 import ProfileTabs from '../../components/profile/ProfileTabs'; 
 import ImageEditOptionsSheet from '../../components/ImageEditOptionsSheet';
+import { FloatingActionButton } from '../../components/FloatingActionButton';
+import { NavigationBar } from '../../components/NavigationBar';
+import { Colors, THEME } from '../../constants';
 import ImageEditHeader from '../../components/ImageEditHeader';
 import { AvatarShape, ImageCropType, ImagePickerState } from '@/types/ImagePickerTypes';
 import { PostUser } from '@/types/PostTypes';
@@ -68,6 +72,7 @@ const finalCoverSource = MOCK_USER_DATA.coverImageUrl
   : LOCAL_COVER;*/
 const ProfileUserScreen: React.FC = () => {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   // MOCK DATA DE USUARIO CON IMÁGENES LOCALES
   const [userProfile, setUserProfile] = useState<ProfileData>({
@@ -171,12 +176,13 @@ const ProfileUserScreen: React.FC = () => {
   };
  
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: APP_COLORS.PRIMARY }]}>
+    <View style={styles.fullContainer}>
      <StatusBar barStyle="light-content" backgroundColor={APP_COLORS.PRIMARY} />
      
      <ScrollView 
        style={styles.scrollView}
        showsVerticalScrollIndicator={false}
+       contentContainerStyle={{ paddingBottom: THEME.SPACING.NAV_BAR_HEIGHT + insets.bottom }}
      >
        
        {/* PROFILE HEADER */}
@@ -184,7 +190,7 @@ const ProfileUserScreen: React.FC = () => {
          coverSource={userProfile.coverUrl}
          onEditCoverPress={handleEditCoverOpen} 
          onPressBack={() => console.log('Back')}
-         onPressSettings={() => console.log('Settings')}
+         onPressSettings={() => router.push('./ConfigurationScreen')}
        />
        
        <View style={styles.contentWrapper}>
@@ -203,6 +209,13 @@ const ProfileUserScreen: React.FC = () => {
        </View>
        
      </ScrollView>
+     {/* Floating Action Button (Fijo abajo y a la derecha) */}
+    <FloatingActionButton style={[styles.floatingButton, { bottom: insets.bottom }]} />
+
+    {/*Navigation Bar (Fija en la parte inferior) */}
+    <View style={[styles.bottomArea, { paddingBottom: insets.bottom }]}>
+      <NavigationBar />
+    </View>
 
      {/* Edicion de las imagenes*/}
      <Modal
@@ -263,7 +276,7 @@ const ProfileUserScreen: React.FC = () => {
             />
 
 
-    </SafeAreaView>
+   </View>
   );
 };
 
@@ -321,6 +334,13 @@ const PreviewHeaderImage = styled.Image`
 
 
 const styles = StyleSheet.create({
+  fullContainer: {
+    flex: 1,
+    backgroundColor: APP_COLORS.BACKGROUND,
+  },
+  scrollContent: {
+    minHeight: '100%',
+  },
   safeArea: {
     flex: 1,
     backgroundColor: '#F5F5F5',
@@ -332,6 +352,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: APP_COLORS.BACKGROUND, 
   },
+  floatingButton: {
+    position: "absolute",
+    bottom: THEME.SPACING.NAV_BAR_HEIGHT + THEME.SPACING.XL,
+    right: THEME.SPACING.MD,
+    zIndex: 12,
+  },
+bottomArea: {
+    width: "100%", 
+    backgroundColor: Colors.tabBarBackground,
+  },
 });
 
 export default ProfileUserScreen;
