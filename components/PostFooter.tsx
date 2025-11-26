@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import { useRouter } from "expo-router";
-import styled from "styled-components/native";
-import { Ionicons } from "@expo/vector-icons";
 import { Colors, THEME } from "@/constants";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
+import styled from "styled-components/native";
 
 const ICON_CONFIG = {
   size: 25,
@@ -61,7 +61,7 @@ export const PostFooter = ({
   postAuthor,
   postImage,
   postTags = [],
-  postUserAvatar = null,
+  postUserAvatar,
 }: PostFooterProps) => {
   const router = useRouter();
   const [isLiked, setIsLiked] = useState(false);
@@ -121,23 +121,7 @@ export const PostFooter = ({
   };
 
   const handleCommentPress = () => {
-    const newCommentsCount = commentsCount + 1;
-    setCommentsCount(newCommentsCount);
-
-    router.push({
-      pathname: "/screens/CommentScreen",
-      params: {
-        postId,
-        postContent: postContent ?? "",
-        postAuthor: postAuthor ?? "",
-        postImage: postImage ?? "",
-        postUserAvatar: postUserAvatar ?? "",
-        initialLikes: String(likesCount),
-        initialComments: String(newCommentsCount),
-        initialReposts: String(repostsCount),
-        initialFavorites: String(favoritesCount),
-      },
-    });
+    setCommentsCount((prev) => prev + 1);
 
     if (onCommentPress) onCommentPress();
   };
