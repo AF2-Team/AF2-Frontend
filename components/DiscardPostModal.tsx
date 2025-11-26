@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  Modal,
-  TouchableWithoutFeedback,
   Animated,
   Dimensions,
+  Modal,
+  TouchableWithoutFeedback,
 } from "react-native";
 import styled from "styled-components/native";
+import { Colors, THEME } from "@/constants";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -28,12 +29,12 @@ export const DiscardPostModal: React.FC<DiscardPostModalProps> = ({
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 1,
-          duration: 200, // ✅ Consistente con otros modales (200ms)
+          duration: 200,
           useNativeDriver: true,
         }),
         Animated.timing(scaleAnim, {
           toValue: 1,
-          duration: 200, // ✅ Consistente con otros modales (200ms)
+          duration: 200,
           useNativeDriver: true,
         }),
       ]).start();
@@ -77,46 +78,58 @@ export const DiscardPostModal: React.FC<DiscardPostModalProps> = ({
           <OverlayBackground />
         </TouchableWithoutFeedback>
 
-        <ModalContainer
-          as={Animated.View}
-          style={{
-            opacity: fadeAnim,
-            transform: [{ scale: scaleAnim }],
-          }}
-        >
-          <Title>¿Descartar publicación?</Title>
+        {/* CONTENEDOR PRINCIPAL - CENTRADO VERTICALMENTE */}
+        <ModalContentContainer>
+          <ModalContainer
+            as={Animated.View}
+            style={{
+              opacity: fadeAnim,
+              transform: [{ scale: scaleAnim }],
+            }}
+          >
+            <Title>¿Descartar publicación?</Title>
 
-          <ActionsContainer>
-            <DiscardButton
-              onPress={handleDiscard}
-              accessible
-              accessibilityLabel="Descartar publicación"
-              accessibilityRole="button"
-            >
-              <DiscardText>Descartar</DiscardText>
-            </DiscardButton>
+            <ActionsContainer>
+              <DiscardButton
+                onPress={handleDiscard}
+                accessible
+                accessibilityLabel="Descartar publicación"
+                accessibilityRole="button"
+              >
+                <DiscardText>Descartar</DiscardText>
+              </DiscardButton>
 
-            <ContinueButton
-              onPress={handleContinueEditing}
-              accessible
-              accessibilityLabel="Seguir editando la publicación"
-              accessibilityRole="button"
-            >
-              <ContinueText>Seguir editando</ContinueText>
-            </ContinueButton>
-          </ActionsContainer>
-        </ModalContainer>
+              <ContinueButton
+                onPress={handleContinueEditing}
+                accessible
+                accessibilityLabel="Seguir editando la publicación"
+                accessibilityRole="button"
+              >
+                <ContinueText>Seguir editando</ContinueText>
+              </ContinueButton>
+            </ActionsContainer>
+          </ModalContainer>
+        </ModalContentContainer>
       </Overlay>
     </Modal>
   );
 };
 
-// Estilos mejorados con layout flexible
-const Overlay = styled.View`
+// NUEVO: Contenedor para centrar el modal verticalmente
+const ModalContentContainer = styled.View`
   flex: 1;
-  background-color: rgba(0, 0, 0, 0.5);
   justify-content: center;
   align-items: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+`;
+
+const Overlay = styled.View`
+  flex: 1;
+  background-color: ${Colors.modalOverlay};
 `;
 
 const OverlayBackground = styled.View`
@@ -126,23 +139,19 @@ const OverlayBackground = styled.View`
 
 const ModalContainer = styled(Animated.View)`
   width: 312px;
-  height: 88px;
-  background-color: #ffffff;
-  border-radius: 12px;
+  background-color: ${Colors.modalBackground};
+  border-radius: ${THEME.COMMON.BORDER_RADIUS.MD}px;
   justify-content: space-between;
-  padding: 15px 22px;
-  shadow-color: #000;
-  shadow-offset: 0px 4px;
-  shadow-opacity: 0.25;
-  shadow-radius: 8px;
-  elevation: 5;
+  padding: ${THEME.SPACING.LG}px ${THEME.SPACING.XL}px;
+  ${THEME.COMMON.SHADOWS.MEDIUM}
 `;
 
 const Title = styled.Text`
-  font-size: 16px;
-  color: #000000;
-  font-weight: 600;
-  font-family: "OpenSans-SemiBold", "System";
+  font-size: ${THEME.TYPOGRAPHY.BODY}px;
+  color: ${Colors.text};
+  font-family: ${THEME.FONTS.SEMI_BOLD};
+  text-align: center;
+  margin-bottom: ${THEME.SPACING.MD}px;
 `;
 
 const ActionsContainer = styled.View`
@@ -152,21 +161,22 @@ const ActionsContainer = styled.View`
 `;
 
 const DiscardButton = styled.TouchableOpacity`
-  margin-right: 16px;
+  margin-right: ${THEME.SPACING.LG}px;
+  padding: ${THEME.SPACING.SM}px ${THEME.SPACING.MD}px;
 `;
 
 const DiscardText = styled.Text`
-  color: #adadad;
-  font-size: 14px;
-  font-weight: 500;
-  font-family: "OpenSans-Medium", "System";
+  color: ${Colors.textMuted};
+  font-size: ${THEME.TYPOGRAPHY.BODY}px;
+  font-family: ${THEME.FONTS.SEMI_BOLD};
 `;
 
-const ContinueButton = styled.TouchableOpacity``;
+const ContinueButton = styled.TouchableOpacity`
+  padding: ${THEME.SPACING.SM}px ${THEME.SPACING.MD}px;
+`;
 
 const ContinueText = styled.Text`
-  color: #1291eb;
-  font-size: 14px;
-  font-weight: 600;
-  font-family: "OpenSans-SemiBold", "System";
+  color: ${Colors.action};
+  font-size: ${THEME.TYPOGRAPHY.BODY}px;
+  font-family: ${THEME.FONTS.SEMI_BOLD};
 `;

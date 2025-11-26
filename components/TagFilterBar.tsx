@@ -1,7 +1,6 @@
 import React from "react";
 import styled from "styled-components/native";
-
-const gestionIcon = require("../assets/images/gestion.png");
+import { Colors, THEME } from "@/constants";
 
 interface TagFilterBarProps {
   onTagFilterPress?: () => void;
@@ -18,11 +17,9 @@ export const TagFilterBar: React.FC<TagFilterBarProps> = ({
 
   return (
     <Container>
-      {/* Línea separadora superior */}
       <TopLine />
 
       <Content>
-        {/* Botón de Filtro por Etiquetas */}
         <FilterButton onPress={onTagFilterPress}>
           <ButtonContent active={isFilterActive}>
             <FilterIconContainer>
@@ -37,39 +34,33 @@ export const TagFilterBar: React.FC<TagFilterBarProps> = ({
           </ButtonContent>
         </FilterButton>
 
-        {/* Botón de Gestionar */}
         <ManageButton onPress={onManageTagsPress}>
           <ButtonContent>
-            <Icon source={gestionIcon} />
+            <GearIcon>⚙️</GearIcon>
             <ButtonText>Gestionar</ButtonText>
           </ButtonContent>
         </ManageButton>
       </Content>
 
-      {/* Línea separadora inferior */}
       <BottomLine />
     </Container>
   );
 };
 
 const Container = styled.View`
-  background-color: #2b222d;
-  shadow-color: #000;
-  shadow-offset: 0px 2px;
-  shadow-opacity: 0.1;
-  shadow-radius: 3px;
-  elevation: 3;
+  background-color: ${Colors.filterBarBackground};
+  ${THEME.COMMON.SHADOWS.SMALL}
 `;
 
 const TopLine = styled.View`
   height: 1px;
-  background-color: #918991;
+  background-color: ${Colors.borderMuted};
   width: 100%;
 `;
 
 const BottomLine = styled.View`
   height: 1px;
-  background-color: #918991;
+  background-color: ${Colors.borderMuted};
   width: 100%;
 `;
 
@@ -77,30 +68,30 @@ const Content = styled.View`
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
+  padding: ${THEME.SPACING.SM}px ${THEME.SPACING.MD}px;
 `;
 
 const FilterButton = styled.TouchableOpacity`
   flex: 1;
-  margin-right: 8px;
+  margin-right: ${THEME.SPACING.SM}px;
 `;
 
 const ManageButton = styled.TouchableOpacity`
   flex: 1;
-  margin-left: 8px;
+  margin-left: ${THEME.SPACING.SM}px;
 `;
 
 const ButtonContent = styled.View<{ active?: boolean }>`
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  padding: 10px 16px;
+  padding: ${THEME.SPACING.SM}px ${THEME.SPACING.MD}px;
   background-color: ${({ active }) =>
     active ? "rgba(18, 145, 235, 0.15)" : "rgba(255, 255, 255, 0.08)"};
-  border-radius: 8px;
+  border-radius: ${THEME.COMMON.BORDER_RADIUS.MD}px;
   border: 1.5px solid
-    ${({ active }) => (active ? "#1291EB" : "rgba(255, 255, 255, 0.15)")};
-  shadow-color: ${({ active }) => (active ? "#1291EB" : "transparent")};
+    ${({ active }) => (active ? Colors.action : "rgba(255, 255, 255, 0.15)")};
+  shadow-color: ${({ active }) => (active ? Colors.action : "transparent")};
   shadow-offset: 0px 1px;
   shadow-opacity: ${({ active }) => (active ? 0.3 : 0)};
   shadow-radius: 2px;
@@ -110,32 +101,31 @@ const ButtonContent = styled.View<{ active?: boolean }>`
 const FilterIconContainer = styled.View`
   flex-direction: row;
   align-items: center;
-  margin-right: 8px;
+  margin-right: ${THEME.SPACING.SM}px;
 `;
 
 const FilterIcon = styled.Text`
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: bold;
-  margin-right: 4px;
+  color: ${Colors.textLight};
+  font-size: ${THEME.TYPOGRAPHY.CAPTION}px;
+  font-family: ${THEME.FONTS.BOLD};
+  margin-right: ${THEME.SPACING.XS}px;
 `;
 
 const DropdownArrow = styled.Text`
-  color: #ffffff;
-  font-size: 12px;
+  color: ${Colors.textLight};
+  font-size: ${THEME.TYPOGRAPHY.SMALL}px;
   margin-top: 1px;
 `;
 
-const ButtonText = styled.Text<{ active?: boolean }>`
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: ${({ active }) => (active ? "600" : "500")};
-  font-family: "OpenSans-SemiBold";
+const GearIcon = styled.Text`
+  color: ${Colors.textLight};
+  font-size: ${THEME.TYPOGRAPHY.CAPTION}px;
+  margin-right: ${THEME.SPACING.SM}px;
 `;
 
-const Icon = styled.Image`
-  width: 16px;
-  height: 16px;
-  tint-color: #ffffff;
-  margin-right: 8px;
+const ButtonText = styled.Text<{ active?: boolean }>`
+  color: ${Colors.textLight};
+  font-size: ${THEME.TYPOGRAPHY.CAPTION}px;
+  font-family: ${({ active }) =>
+    active ? THEME.FONTS.SEMI_BOLD : THEME.FONTS.REGULAR};
 `;

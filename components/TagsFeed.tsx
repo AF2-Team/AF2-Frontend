@@ -1,17 +1,13 @@
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
-import {
-    ActivityIndicator,
-    FlatList,
-    RefreshControl
-} from "react-native";
+import { ActivityIndicator, FlatList, RefreshControl } from "react-native";
 import styled from "styled-components/native";
-import { PostData } from "../types/PostTypes.ts";
+import { PostData } from "../types/PostTypes";
 import { Post } from "./Post";
 import { TagFilterBar } from "./TagFilterBar";
 import { TagFilterModal } from "./TagFilterModal";
+import { Colors, THEME } from "@/constants";
 
-// Datos mock para etiquetas seguidas
 const mockFollowedTags = [
   { id: "1", name: "spn", postCount: 42 },
   { id: "2", name: "flowers", postCount: 28 },
@@ -20,7 +16,6 @@ const mockFollowedTags = [
   { id: "5", name: "photography", postCount: 52 },
 ];
 
-// Datos mock para posts filtrados por etiquetas
 const mockTagPosts: PostData[] = [
   {
     id: "tag1",
@@ -38,6 +33,12 @@ const mockTagPosts: PostData[] = [
     initialFavorites: 3,
     initialReposts: 2,
     initialComments: 5,
+    mediaUrls: [
+      "https://64.media.tumblr.com/4e1d9bdb2eeef58b263aacd74f87f2db/12d9f53468679919-89/s540x810/302b355d345c213efba725992bc532e8117b0e9f.pnj",
+      "https://64.media.tumblr.com/7f4bbb971fc56826564fbb50295e7514/12d9f53468679919-c7/s400x600/cdc24e1ff8fc0131180959f70a14e10553513f9a.jpg",
+      "https://64.media.tumblr.com/7acac4888048455cb1d30b29bb45481c/12d9f53468679919-8d/s400x600/1122fde097a8705229321fab329463db53e4a44f.jpg",
+      "https://64.media.tumblr.com/e7072b3d667ad1f43551e203ceea7b2c/12d9f53468679919-a7/s540x810/2968a06cb8f1fc1e4562ed6000646bf9325dfc2d.jpg",
+    ],
   },
   {
     id: "tag2",
@@ -106,7 +107,6 @@ export const TagsFeed = () => {
 
   const selectedTagsCount = selectedTags.length;
 
-  // Obtener las etiquetas seguidas como array de strings para el modal
   const followedTagNames = mockFollowedTags.map((tag) => tag.name);
 
   const loadTagPosts = useCallback(
@@ -157,12 +157,11 @@ export const TagsFeed = () => {
   const handleApplyTagFilter = (selectedTagsFromModal: string[]) => {
     setSelectedTags(selectedTagsFromModal);
     setShowTagFilterModal(false);
-    // El feed se actualizará automáticamente por el useEffect que depende de selectedTags
   };
 
   const handleManageTagsPress = () => {
     console.log("Navegar a pantalla de gestión de etiquetas");
-    router.push("/screens/manage-tags");
+    router.push("../screens/ManageTagsScreen");
   };
 
   const handleTagPress = (tagName: string) => {
@@ -199,7 +198,7 @@ export const TagsFeed = () => {
   };
 
   const handleCommentPress = (postId: string) => {
-    router.push(`/screens/comments/${postId}`);
+    router.push(`../screens/CommentScreen/${postId}`);
   };
 
   const handleOptionsPress = (postId: string) => {
@@ -243,7 +242,7 @@ export const TagsFeed = () => {
           <TagsScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 5 }}
+            contentContainerStyle={{ paddingHorizontal: THEME.SPACING.XS }}
           >
             {followedTags.map((tag) => (
               <TagItem
@@ -275,7 +274,7 @@ export const TagsFeed = () => {
     if (loading) {
       return (
         <LoadingContainer>
-          <ActivityIndicator size="large" color="#423646" />
+          <ActivityIndicator size="large" color={Colors.primary} />
           <LoadingText>Cargando publicaciones...</LoadingText>
         </LoadingContainer>
       );
@@ -317,7 +316,7 @@ export const TagsFeed = () => {
   if (loading && !refreshing && posts.length === 0) {
     return (
       <LoadingContainer>
-        <ActivityIndicator size="large" color="#423646" />
+        <ActivityIndicator size="large" color={Colors.primary} />
         <LoadingText>Cargando publicaciones...</LoadingText>
       </LoadingContainer>
     );
@@ -331,15 +330,15 @@ export const TagsFeed = () => {
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingBottom: 100,
+          paddingBottom: THEME.SPACING.XL * 3,
           flexGrow: posts.length === 0 ? 1 : 0,
         }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={["#423646"]}
-            tintColor="#423646"
+            colors={[Colors.primary]}
+            tintColor={Colors.primary}
           />
         }
         ListHeaderComponent={renderHeader}
@@ -357,51 +356,51 @@ export const TagsFeed = () => {
   );
 };
 
-// Estilos
 const Container = styled.View`
   flex: 1;
-  background-color: #ffffff;
+  background-color: ${Colors.background};
 `;
 
 const HeaderContainer = styled.View`
-  background-color: #ffffff;
+  background-color: ${Colors.background};
 `;
 
 const FilterSection = styled.View`
-  margin-bottom: 16px;
-  padding: 16px 15px 8px 15px;
+  margin-bottom: ${THEME.SPACING.MD}px;
+  padding: ${THEME.SPACING.MD}px ${THEME.SPACING.MD}px ${THEME.SPACING.SM}px
+    ${THEME.SPACING.MD}px;
 `;
 
 const FollowedTagsSection = styled.View`
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  padding: 12px;
-  border: 1px solid #e9ecef;
+  background-color: ${Colors.backgroundAlt};
+  border-radius: ${THEME.COMMON.BORDER_RADIUS.MD}px;
+  padding: ${THEME.SPACING.SM}px;
+  border: 1px solid ${Colors.border};
 `;
 
 const TagsHeader = styled.View`
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: ${THEME.SPACING.SM}px;
 `;
 
 const TagsTitle = styled.Text`
-  font-family: "OpenSans-SemiBold";
-  font-size: 14px;
-  color: #423646;
+  font-family: ${THEME.FONTS.SEMI_BOLD};
+  font-size: ${THEME.TYPOGRAPHY.CAPTION}px;
+  color: ${Colors.text};
 `;
 
 const ClearFilterButton = styled.TouchableOpacity`
-  padding: 6px 12px;
-  background-color: #6c757d;
-  border-radius: 16px;
+  padding: ${THEME.SPACING.SM}px ${THEME.SPACING.MD}px;
+  background-color: ${Colors.textMuted};
+  border-radius: ${THEME.COMMON.BORDER_RADIUS.XL}px;
 `;
 
 const ClearFilterText = styled.Text`
-  color: #ffffff;
-  font-size: 12px;
-  font-weight: 600;
+  color: ${Colors.textLight};
+  font-size: ${THEME.TYPOGRAPHY.SMALL}px;
+  font-family: ${THEME.FONTS.SEMI_BOLD};
 `;
 
 const TagsScrollView = styled.ScrollView`
@@ -409,95 +408,100 @@ const TagsScrollView = styled.ScrollView`
 `;
 
 const TagItem = styled.TouchableOpacity<{ isSelected: boolean }>`
-  background-color: ${({ isSelected }) => (isSelected ? "#423646" : "#ffffff")};
-  padding: 8px 12px;
-  border-radius: 16px;
-  margin-right: 8px;
-  border: 1px solid ${({ isSelected }) => (isSelected ? "#423646" : "#dee2e6")};
+  background-color: ${({ isSelected }) =>
+    isSelected ? Colors.primary : Colors.background};
+  padding: ${THEME.SPACING.SM}px ${THEME.SPACING.MD}px;
+  border-radius: ${THEME.COMMON.BORDER_RADIUS.XL}px;
+  margin-right: ${THEME.SPACING.SM}px;
+  border: 1px solid
+    ${({ isSelected }) => (isSelected ? Colors.primary : Colors.border)};
   min-width: 80px;
   align-items: center;
 `;
 
 const TagName = styled.Text<{ isSelected: boolean }>`
-  font-family: "OpenSans-Bold";
-  font-size: 13px;
-  color: ${({ isSelected }) => (isSelected ? "#ffffff" : "#423646")};
-  margin-bottom: 2px;
+  font-family: ${THEME.FONTS.BOLD};
+  font-size: ${THEME.TYPOGRAPHY.CAPTION}px;
+  color: ${({ isSelected }) => (isSelected ? Colors.textLight : Colors.text)};
+  margin-bottom: ${THEME.SPACING.XS}px;
 `;
 
 const TagCount = styled.Text`
-  font-family: "OpenSans-Light";
-  font-size: 11px;
-  color: #6c757d;
+  font-family: ${THEME.FONTS.LIGHT};
+  font-size: ${THEME.TYPOGRAPHY.SMALL}px;
+  color: ${Colors.textMuted};
 `;
 
 const PostsTitle = styled.Text`
-  font-family: "OpenSans-SemiBold";
-  font-size: 16px;
-  color: #423646;
-  margin-bottom: 8px;
-  margin-top: 8px;
-  padding: 0 15px;
+  font-family: ${THEME.FONTS.SEMI_BOLD};
+  font-size: ${THEME.TYPOGRAPHY.BODY}px;
+  color: ${Colors.text};
+  margin-bottom: ${THEME.SPACING.SM}px;
+  margin-top: ${THEME.SPACING.SM}px;
+  padding: 0 ${THEME.SPACING.MD}px;
 `;
 
 const LoadingContainer = styled.View`
   flex: 1;
   justify-content: center;
   align-items: center;
-  padding: 50px;
+  padding: ${THEME.SPACING.XL * 2}px;
 `;
 
 const LoadingText = styled.Text`
-  margin-top: 16px;
-  font-size: 16px;
-  color: #687076;
+  margin-top: ${THEME.SPACING.MD}px;
+  font-size: ${THEME.TYPOGRAPHY.BODY}px;
+  color: ${Colors.textMuted};
+  font-family: ${THEME.FONTS.REGULAR};
 `;
 
 const EmptyContainer = styled.View`
   flex: 1;
   justify-content: center;
   align-items: center;
-  padding: 50px;
+  padding: ${THEME.SPACING.XL * 2}px;
   min-height: 300px;
 `;
 
 const EmptyText = styled.Text`
-  font-size: 18px;
-  font-weight: 600;
-  color: #423646;
-  margin-bottom: 8px;
+  font-size: ${THEME.TYPOGRAPHY.TITLE}px;
+  font-family: ${THEME.FONTS.SEMI_BOLD};
+  color: ${Colors.text};
+  margin-bottom: ${THEME.SPACING.SM}px;
   text-align: center;
 `;
 
 const EmptySubText = styled.Text`
-  font-size: 14px;
-  color: #687076;
+  font-size: ${THEME.TYPOGRAPHY.BODY}px;
+  color: ${Colors.textMuted};
   text-align: center;
+  font-family: ${THEME.FONTS.REGULAR};
 `;
 
 const ErrorText = styled.Text`
-  font-size: 18px;
-  font-weight: 600;
-  color: #ff6b6b;
-  margin-bottom: 8px;
+  font-size: ${THEME.TYPOGRAPHY.TITLE}px;
+  font-family: ${THEME.FONTS.SEMI_BOLD};
+  color: ${Colors.error};
+  margin-bottom: ${THEME.SPACING.SM}px;
   text-align: center;
 `;
 
 const ErrorSubText = styled.Text`
-  font-size: 14px;
-  color: #687076;
+  font-size: ${THEME.TYPOGRAPHY.BODY}px;
+  color: ${Colors.textMuted};
   text-align: center;
-  margin-bottom: 20px;
+  font-family: ${THEME.FONTS.REGULAR};
+  margin-bottom: ${THEME.SPACING.LG}px;
 `;
 
 const RetryButton = styled.TouchableOpacity`
-  background-color: #423646;
-  padding: 12px 24px;
-  border-radius: 8px;
+  background-color: ${Colors.primary};
+  padding: ${THEME.SPACING.SM}px ${THEME.SPACING.LG}px;
+  border-radius: ${THEME.COMMON.BORDER_RADIUS.MD}px;
 `;
 
 const RetryButtonText = styled.Text`
-  color: #ffffff;
-  font-size: 16px;
-  font-weight: 600;
+  color: ${Colors.textLight};
+  font-size: ${THEME.TYPOGRAPHY.BODY}px;
+  font-family: ${THEME.FONTS.SEMI_BOLD};
 `;

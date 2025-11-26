@@ -1,11 +1,11 @@
-import React, { useState } from "react";
-import { useRouter } from "expo-router";
-import styled from "styled-components/native";
-import { Ionicons } from "@expo/vector-icons";
 import { Colors, THEME } from "@/constants";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
+import styled from "styled-components/native";
 
 const ICON_CONFIG = {
-  size: 24,
+  size: 25,
   like: {
     active: { name: "heart" as const, color: Colors.error },
     inactive: { name: "heart-outline" as const, color: Colors.textMuted },
@@ -15,13 +15,13 @@ const ICON_CONFIG = {
     color: Colors.textMuted,
   },
   repost: {
-    name: "repeat" as const,
+    name: "arrow-redo-outline" as const,
     color: Colors.textMuted,
   },
   favorite: {
-    active: { name: "bookmark" as const, color: Colors.primary },
+    active: { name: "star" as const, color: Colors.primary },
     inactive: {
-      name: "bookmark-outline" as const,
+      name: "star-outline" as const,
       color: Colors.textMuted,
     },
   },
@@ -61,7 +61,7 @@ export const PostFooter = ({
   postAuthor,
   postImage,
   postTags = [],
-  postUserAvatar = null,
+  postUserAvatar,
 }: PostFooterProps) => {
   const router = useRouter();
   const [isLiked, setIsLiked] = useState(false);
@@ -123,11 +123,7 @@ export const PostFooter = ({
   const handleCommentPress = () => {
     setCommentsCount((prev) => prev + 1);
 
-    router.push("/screens/CommentScreen");
-
-    if (onCommentPress) {
-      onCommentPress();
-    }
+    if (onCommentPress) onCommentPress();
   };
 
   return (
@@ -185,13 +181,13 @@ const Container = styled.View`
   padding-vertical: ${THEME.SPACING.SM}px;
   background-color: ${Colors.background};
   border-top-width: 1px;
-  border-top-color: ${Colors.primary};
+  border-top-color: ${Colors.borderMuted};
 `;
 
 const NotesContainer = styled.View`
   width: 89px;
   height: 31px;
-  border-width: 1px;
+  border-width: 1.5px;
   border-color: ${Colors.primary};
   border-radius: 20px;
   justify-content: center;

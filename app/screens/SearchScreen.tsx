@@ -1,13 +1,9 @@
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { THEME } from "@/constants";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React from "react";
 import {
-  Dimensions,
-  FlatList,
   Image,
-  ImageBackground,
-  Modal,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -16,469 +12,267 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import HomeScreen from "./HomeScreen";
 
-const { width } = Dimensions.get("window");
+// Interfaces para los datos mockeados
+interface IRecentSearch {
+  id: string;
+  text: string;
+}
 
-// --- DATOS DE PRUEBA (MOCKS) ---
-
-const RECENT_SEARCHES = ["Sineala", "Ao3", "Fanfiction"];
-
-const FOLLOWED_TAGS = [
-  { id: "1", tag: "#destiel", img: "https://i.pravatar.cc/150?img=11" },
-  { id: "2", tag: "#flowers", img: "https://i.pravatar.cc/150?img=25" },
-  { id: "3", tag: "#remmick", img: "https://i.pravatar.cc/150?img=3" },
-  { id: "4", tag: "#sentryagent", img: "https://i.pravatar.cc/150?img=4" },
-];
-
-const POSTS = [
-  {
-    id: "1",
-    user: "liminaltey",
-    avatar: "https://i.pravatar.cc/150?img=12",
-    time: "1 día",
-    title: "¿Crees que el AO3 debería prohibir las obras generadas por IA?",
-    content: "Bueno, en teoría, puede sonar ideal. ¿Pero en realidad? No.\nNo soy fanático de la IA, pero \"¿crees que el AO3 debería prohibir?\" nunca resuelve un problema. Porque, ¿cómo se puede saber qué es IA...?",
-    image: null,
-    tags: ["#gardenverse", "#fanfic", "#writing", "#writers"],
-    notes: 9,
-  },
-  {
-    id: "2",
-    user: "dominiqueramseyart",
-    avatar: "https://i.pravatar.cc/150?img=5",
-    time: "5 oct",
-    title: "",
-    content: "Rambling rose\n2022",
-    image: "https://images.unsplash.com/photo-1629196914375-f7e48f477b6d?auto=format&fit=crop&w=800&q=80", // Lobo con rosa
-    tags: ["#artist", "#wolf", "#rose", "#flower", "#fanart"],
-    notes: 300,
-  },
-  {
-    id: "3",
-    user: "himekokosu",
-    avatar: "https://i.pravatar.cc/150?img=32",
-    time: "Hace 6 días",
-    title: "",
-    content: "Solo recordando",
-    image: "https://i.pinimg.com/736x/2a/3a/07/2a3a0784570562624505315582255734.jpg", // Meme placeholder
-    tags: ["#the fact that fanfom is for nerds"],
-    notes: 15,
-  },
-];
-
-const PROFILES = [
-  {
-    id: "1",
-    name: "llovinghome",
-    handle: "Ya estoy en casa?",
-    avatar: "https://i.pravatar.cc/150?img=60",
-    banner: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80", // Casa campo
-  },
-  {
-    id: "2",
-    name: "geopsych",
-    handle: "Un recolector pero por la belleza",
-    avatar: "https://images.unsplash.com/photo-1590422915835-263a0a386121?auto=format&fit=crop&w=200&q=80", // Hongos
-    banner: "https://images.unsplash.com/photo-1541963463532-d68292c34b19?auto=format&fit=crop&w=800&q=80", // Arte abstracto azul
-  },
-];
-
-// --- COMPONENTE PRINCIPAL ---
+interface ITagItem {
+  id: string;
+  text: string;
+  imageUrl: string;
+}
 
 const SearchScreen = () => {
   const router = useRouter();
-  
-  // Estados
-  const [searchText, setSearchText] = useState("");
-  const [isSearching, setIsSearching] = useState(false);
-  
-  // Tabs: 'Publicaciones' | 'Etiquetas' | 'Perfiles'
-  const [activeTab, setActiveTab] = useState("Publicaciones");
-  
-  // Sub-filtro: 'Populares' | 'Recientes'
-  const [sortOption, setSortOption] = useState("Populares");
-  const [modalVisible, setModalVisible] = useState(false);
+  const [searchText, setSearchText] = React.useState("");
 
-  // Manejadores
-  const handleSearchSubmit = () => {
-    if (searchText.trim().length > 0) {
-      setIsSearching(true);
-    }
+  const recentSearches: IRecentSearch[] = [
+    { id: "1", text: "Sineala" },
+    { id: "2", text: "Ao3" },
+    { id: "3", text: "Fanfiction" },
+  ];
+
+  const followedTags: ITagItem[] = [
+    {
+      id: "1",
+      text: "#destiel",
+      imageUrl: "https://placehold.co/100x100/333/white?text=DS",
+    },
+    {
+      id: "2",
+      text: "#flowers",
+      imageUrl: "https://placehold.co/100x100/pink/white?text=FL",
+    },
+    {
+      id: "3",
+      text: "#remmick",
+      imageUrl: "https://placehold.co/100x100/222/white?text=RM",
+    },
+    {
+      id: "4",
+      text: "#sentryagent",
+      imageUrl: "https://placehold.co/100x100/gold/black?text=SA",
+    },
+  ];
+
+  // Manejadores de eventos
+  const handleRemoveRecent = (id: string) => {
+    console.log("Eliminar búsqueda:", id);
   };
 
-  const handleClearSearch = () => {
-    setSearchText("");
-    setIsSearching(false);
+  const handleSearch = (text: string) => {
+    setSearchText(text);
   };
 
-  const handleTagPress = (tag) => {
-    setSearchText(tag);
-    setIsSearching(true);
+  const handleViewAllTags = () => {
+    router.push("/screens/ManageTagsScreen");
   };
-
-  // --- RENDERIZADO: ITEMS DE LA LISTA DE POSTS ---
-  const renderPostItem = ({ item }) => (
-    <View style={styles.postCard}>
-      {/* Header del Post */}
-      <View style={styles.postHeader}>
-        <Image source={{ uri: item.avatar }} style={styles.postAvatar} />
-        <View>
-          <Text style={styles.postUser}>{item.user}</Text>
-          <Text style={styles.postTime}>{item.time}</Text>
-        </View>
-        <TouchableOpacity style={styles.followButtonSmall}>
-            <Text style={styles.followButtonTextSmall}>Seguir</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Contenido */}
-      {item.title ? <Text style={styles.postTitle}>{item.title}</Text> : null}
-      {item.image && (
-        <Image source={{ uri: item.image }} style={styles.postImage} resizeMode="cover" />
-      )}
-      <Text style={styles.postContent}>{item.content}</Text>
-      
-      {/* Tags */}
-      <View style={styles.tagRow}>
-        {item.tags.map((tag, index) => (
-            <Text key={index} style={styles.postTag}>{tag} </Text>
-        ))}
-      </View>
-
-      {/* Footer / Acciones */}
-      <View style={styles.postFooter}>
-        <View style={styles.notesContainer}>
-           <Text style={styles.notesText}>{item.notes} notas</Text>
-        </View>
-        <View style={styles.actionsContainer}>
-            <MaterialCommunityIcons name="comment-outline" size={24} color="#555" style={styles.actionIcon} />
-            <MaterialCommunityIcons name="repeat" size={24} color="#555" style={styles.actionIcon} />
-            <MaterialCommunityIcons name="star-outline" size={24} color="#555" style={styles.actionIcon} />
-            <MaterialCommunityIcons name="heart-outline" size={24} color="#555" style={styles.actionIcon} />
-        </View>
-      </View>
-    </View>
-  );
-
-  // --- RENDERIZADO: ITEMS DE PERFILES ---
-  const renderProfileItem = ({ item }) => (
-    <View style={styles.profileCard}>
-      <View style={styles.bannerContainer}>
-          <Image source={{ uri: item.banner }} style={styles.profileBanner} />
-          <TouchableOpacity style={styles.profileFollowBtn}>
-              <Text style={styles.profileFollowText}>Seguir</Text>
-          </TouchableOpacity>
-      </View>
-      <View style={styles.profileInfoContainer}>
-          <Image source={{ uri: item.avatar }} style={styles.profileAvatarAbsolute} />
-          <View style={styles.profileTexts}>
-             <Text style={styles.profileName}>{item.name}</Text>
-             <Text style={styles.profileHandle}>{item.handle}</Text>
-          </View>
-      </View>
-    </View>
-  );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor="#423646" barStyle="light-content" />
-
-      {/* --- HEADER PRINCIPAL --- */}
-      <View style={styles.header}>
-        <View style={styles.headerTopRow}>
-            {isSearching ? (
-                <TouchableOpacity onPress={handleClearSearch} style={{marginRight: 10}}>
-                    <Ionicons name="arrow-back" size={26} color="#fff" />
-                </TouchableOpacity>
-            ) : (
-                <TouchableOpacity onPress={() => router.back()} style={{marginRight: 10}}>
-                    <Ionicons name="arrow-back" size={26} color="#fff" />
-                </TouchableOpacity>
-            )}
-            
-            {/* Título dinámico: "Explorar" o el texto de búsqueda */}
-            <Text style={styles.headerTitle}>
-                {isSearching ? searchText : "Explorar"}
-            </Text>
-
-            {/* Botón Seguir (solo si estamos buscando) */}
-            {isSearching && (
-                 <TouchableOpacity style={styles.headerFollowButton}>
-                    <Text style={styles.headerFollowText}>Seguir</Text>
-                 </TouchableOpacity>
-            )}
-        </View>
-
-        {/* Barra de Búsqueda */}
-        <View style={styles.searchBarContainer}>
-           <TextInput 
-              style={styles.searchBar}
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={THEME.COLORS.primary}
+      />
+      <View style={styles.container}>
+        <View style={styles.headerContainer}>
+          <View style={styles.headerTopRow}>
+            <TouchableOpacity
+              onPress={() => router.replace("../screens/HomeScreen")}
+              style={styles.backButton}
+            >
+              <Ionicons
+                name="arrow-back"
+                size={28}
+                color={THEME.COLORS.textLight}
+              />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Explorar</Text>
+          </View>
+          <View style={styles.searchBarContainer}>
+            <TextInput
+              style={styles.searchInput}
               placeholder="Buscar..."
+              placeholderTextColor={THEME.COLORS.textPlaceholder}
               value={searchText}
-              onChangeText={setSearchText}
-              onSubmitEditing={handleSearchSubmit}
-           />
-           <Ionicons name="search" size={20} color="#000" style={styles.searchIcon} />
+              onChangeText={handleSearch}
+            />
+            <Ionicons
+              name="search"
+              size={20}
+              color={THEME.COLORS.textMuted}
+              style={styles.searchIcon}
+            />
+          </View>
         </View>
-      </View>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Recientes</Text>
 
-      {/* --- CONTENIDO CONDICIONAL --- */}
-      {!isSearching ? (
-        // === VISTA 1: EXPLORAR (LANDING) ===
-        <ScrollView style={styles.content}>
-          <Text style={styles.sectionTitle}>Recientes</Text>
-          {RECENT_SEARCHES.map((term, index) => (
-            <TouchableOpacity key={index} style={styles.recentItem} onPress={() => handleTagPress(term)}>
-               <Ionicons name="search-outline" size={22} color="#555" />
-               <Text style={styles.recentText}>{term}</Text>
-               <Ionicons name="close" size={22} color="#555" style={{ marginLeft: "auto"}} />
-            </TouchableOpacity>
-          ))}
-
-          <Text style={[styles.sectionTitle, { marginTop: 30 }]}>Etiquetas que sigues</Text>
-          {FOLLOWED_TAGS.map((item) => (
-            <TouchableOpacity key={item.id} style={styles.tagItem} onPress={() => handleTagPress(item.tag)}>
-               <Image source={{ uri: item.img }} style={styles.tagImage} />
-               <Text style={styles.tagText}>{item.tag}</Text>
-            </TouchableOpacity>
-          ))}
-
-          <TouchableOpacity style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={{ fontWeight: 'bold', fontSize: 16 }}>Ver las etiquetas que sigues</Text>
-              <Ionicons name="arrow-forward" size={20} />
+            {recentSearches.map((item) => (
+              <View key={item.id} style={styles.recentItemRow}>
+                <View style={styles.recentItemLeft}>
+                  <Ionicons
+                    name="search-outline"
+                    size={24}
+                    color={THEME.COLORS.text}
+                  />
+                  <Text style={styles.recentItemText}>{item.text}</Text>
+                </View>
+                <TouchableOpacity onPress={() => handleRemoveRecent(item.id)}>
+                  <Ionicons
+                    name="close"
+                    size={24}
+                    color={THEME.COLORS.textMuted}
+                  />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Etiquetas que sigues</Text>
+            {followedTags.map((item) => (
+              <View key={item.id} style={styles.tagItemRow}>
+                <Image
+                  source={{ uri: item.imageUrl }}
+                  style={styles.tagImage}
+                />
+                <Text style={styles.tagItemText}>{item.text}</Text>
+              </View>
+            ))}
+          </View>
+          <TouchableOpacity
+            style={styles.viewAllLinkContainer}
+            onPress={handleViewAllTags}
+          >
+            <Text style={styles.viewAllText}>Ver las etiquetas que sigues</Text>
+            <Ionicons
+              name="arrow-forward"
+              size={20}
+              color={THEME.COLORS.text}
+            />
           </TouchableOpacity>
         </ScrollView>
-
-      ) : (
-        // === VISTA 2: RESULTADOS DE BÚSQUEDA ===
-        <View style={{ flex: 1 }}>
-            
-            {/* Header Especial #gardenverse (Imagen 2) */}
-            {searchText.toLowerCase() === "#gardenverse" && (
-                <ImageBackground 
-                    source={{uri: "https://images.unsplash.com/photo-1507746560942-02f58be5b042?auto=format&fit=crop&w=800&q=80"}} // Flor blanca
-                    style={styles.imageHeader}
-                >
-                    <View style={styles.imageHeaderOverlay}>
-                        <Text style={styles.imageHeaderTitle}>#gardenverse</Text>
-                        <TouchableOpacity style={styles.headerFollowButtonBlue}>
-                            <Text style={styles.headerFollowText}>Seguir</Text>
-                        </TouchableOpacity>
-                    </View>
-                </ImageBackground>
-            )}
-
-            {/* TABS (Publicaciones / Etiquetas / Perfiles) */}
-            <View style={styles.tabsContainer}>
-                {["Publicaciones", "Etiquetas", "Perfiles"].map((tab) => (
-                    <TouchableOpacity 
-                        key={tab} 
-                        style={[styles.tab, activeTab === tab && styles.tabActive]}
-                        onPress={() => setActiveTab(tab)}
-                    >
-                        <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                            {tab}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
-            </View>
-
-            {/* FILTRO SECUNDARIO (Populares / Dropdown) */}
-            {activeTab === "Publicaciones" && (
-                 <View style={styles.subFilterContainer}>
-                    <TouchableOpacity 
-                        style={styles.dropdownButton} 
-                        onPress={() => setModalVisible(true)}
-                    >
-                        <Text style={styles.dropdownText}>{sortOption}</Text>
-                        <Ionicons name="chevron-down" size={16} color="#2196F3" />
-                    </TouchableOpacity>
-                 </View>
-            )}
-
-            {/* LISTAS SEGÚN TAB */}
-            {activeTab === "Publicaciones" ? (
-                <FlatList
-                    data={POSTS}
-                    renderItem={renderPostItem}
-                    keyExtractor={(item) => item.id}
-                    contentContainerStyle={{ paddingBottom: 80 }}
-                />
-            ) : activeTab === "Perfiles" ? (
-                <FlatList
-                    data={PROFILES}
-                    renderItem={renderProfileItem}
-                    keyExtractor={(item) => item.id}
-                    contentContainerStyle={{ paddingBottom: 80 }}
-                />
-            ) : (
-                <View style={styles.centerContent}><Text>No hay etiquetas aquí</Text></View>
-            )}
-
-            {/* FAB (Botón Flotante para escribir) */}
-            <TouchableOpacity style={styles.fab}>
-                <MaterialCommunityIcons name="pencil" size={28} color="#fff" />
-            </TouchableOpacity>
-
-        </View>
-      )}
-
-      {/* --- MODAL DE ORDENAMIENTO (BOTTOM SHEET) --- */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-         <TouchableOpacity 
-            style={styles.modalOverlay} 
-            activeOpacity={1} 
-            onPress={() => setModalVisible(false)}
-         >
-            <View style={styles.modalContent}>
-                <View style={styles.modalHandle} />
-                <Text style={styles.modalTitle}>Orden</Text>
-                
-                {/* Opción Populares */}
-                <TouchableOpacity 
-                    style={styles.modalOption} 
-                    onPress={() => { setSortOption("Populares"); setModalVisible(false); }}
-                >
-                    <Text style={styles.modalOptionText}>Populares</Text>
-                    {sortOption === "Populares" && <Ionicons name="checkmark" size={24} color="#2196F3" />}
-                </TouchableOpacity>
-
-                <View style={styles.modalSeparator} />
-
-                {/* Opción Recientes */}
-                <TouchableOpacity 
-                    style={styles.modalOption} 
-                    onPress={() => { setSortOption("Recientes"); setModalVisible(false); }}
-                >
-                    <Text style={styles.modalOptionText}>Recientes</Text>
-                    {sortOption === "Recientes" && <Ionicons name="checkmark" size={24} color="#2196F3" />}
-                </TouchableOpacity>
-            </View>
-         </TouchableOpacity>
-      </Modal>
-
+      </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  centerContent: { flex: 1, justifyContent: "center", alignItems: "center" },
-
-  // --- HEADER ---
-  header: {
-    backgroundColor: "#423646",
-    paddingTop: 10,
-    paddingBottom: 15,
-    paddingHorizontal: 15,
+  safeArea: {
+    flex: 1,
+    backgroundColor: THEME.COLORS.primary,
+  },
+  container: {
+    flex: 1,
+    backgroundColor: THEME.COLORS.background,
+  },
+  /* Header Styles */
+  headerContainer: {
+    backgroundColor: THEME.COLORS.primary,
+    paddingHorizontal: THEME.SPACING.SCREEN_HORIZONTAL,
+    paddingBottom: THEME.SPACING.LG,
+    paddingTop: THEME.SPACING.SM,
   },
   headerTopRow: {
-      flexDirection: 'row', alignItems: 'center', marginBottom: 15, justifyContent: 'space-between', marginTop: 19
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: THEME.SPACING.MD,
+  },
+  backButton: {
+    marginRight: THEME.SPACING.MD,
   },
   headerTitle: {
-      color: "#fff", fontSize: 20, fontWeight: "500", flex: 1
+    fontFamily: THEME.FONTS.TITLE_SERIF,
+    fontSize: THEME.TYPOGRAPHY.TITLE,
+    color: THEME.COLORS.textLight,
+    fontWeight: "600",
   },
-  headerFollowButton: {
-      backgroundColor: "#1976D2", paddingHorizontal: 15, paddingVertical: 6, borderRadius: 5
+  searchBarContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: THEME.COLORS.background,
+    borderRadius: THEME.COMMON.BORDER_RADIUS.LG,
+    height: 45,
+    paddingHorizontal: THEME.SPACING.MD,
   },
-  headerFollowButtonBlue: {
-      backgroundColor: "#2196F3", paddingHorizontal: 20, paddingVertical: 8, borderRadius: 8
+  searchInput: {
+    flex: 1,
+    height: "100%",
+    fontFamily: THEME.FONTS.REGULAR,
+    fontSize: THEME.TYPOGRAPHY.BODY,
+    color: THEME.COLORS.text,
   },
-  headerFollowText: { color: "#fff", fontWeight: "bold" },
-  
-  searchBarContainer: { position: 'relative', justifyContent: 'center' },
-  searchBar: {
-    backgroundColor: "#F0F0F0", height: 40, borderRadius: 20, paddingLeft: 40, fontSize: 16
+  searchIcon: {
+    marginLeft: THEME.SPACING.XS,
   },
-  searchIcon: { position: 'absolute', left: 10 },
-
-  // --- LANDING CONTENT ---
-  content: { padding: 20 },
-  sectionTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 15, color: "#333" },
-  recentItem: { flexDirection: "row", alignItems: "center", marginBottom: 20 },
-  recentText: { marginLeft: 15, fontSize: 16, color: "#444" },
-  
-  tagItem: { flexDirection: "row", alignItems: "center", marginBottom: 15 },
-  tagImage: { width: 40, height: 40, borderRadius: 5, marginRight: 15 },
-  tagText: { fontSize: 16, fontWeight: "500" },
-
-  // --- RESULTS CONTENT ---
-  imageHeader: { height: 180, justifyContent: 'flex-end' },
-  imageHeaderOverlay: { padding: 20 },
-  imageHeaderTitle: { color: "#fff", fontSize: 28, fontWeight: "bold", marginBottom: 10, textShadowColor: 'rgba(0,0,0,0.5)', textShadowRadius: 5 },
-
-  tabsContainer: {
-      flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#ddd'
+  scrollContent: {
+    paddingHorizontal: THEME.SPACING.SCREEN_HORIZONTAL,
+    paddingTop: THEME.SPACING.LG,
+    paddingBottom: THEME.SPACING.XL,
   },
-  tab: { flex: 1, paddingVertical: 15, alignItems: 'center' },
-  tabActive: { borderBottomWidth: 2, borderBottomColor: '#423646' },
-  tabText: { color: '#888', fontWeight: 'bold' },
-  tabTextActive: { color: '#423646' },
-
-  subFilterContainer: {
-      padding: 10, alignItems: 'flex-start' 
+  section: {
+    marginBottom: THEME.SPACING.XL,
   },
-  dropdownButton: {
-      flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#2196F3', borderRadius: 20, paddingVertical: 5, paddingHorizontal: 15
+  sectionTitle: {
+    fontFamily: THEME.FONTS.BOLD,
+    fontSize: THEME.TYPOGRAPHY.SUBTITLE,
+    color: THEME.COLORS.text,
+    marginBottom: THEME.SPACING.MD,
   },
-  dropdownText: { color: '#2196F3', marginRight: 5, fontWeight: 'bold' },
-
-  // --- POST CARD ---
-  postCard: { borderBottomWidth: 1, borderBottomColor: '#eee', padding: 15 },
-  postHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  postAvatar: { width: 40, height: 40, borderRadius: 20, marginRight: 10 },
-  postUser: { fontWeight: 'bold', fontSize: 15 },
-  postTime: { color: '#888', fontSize: 12 },
-  followButtonSmall: { marginLeft: 'auto' },
-  followButtonTextSmall: { color: '#2196F3', fontWeight: 'bold' },
-  postTitle: { fontWeight: 'bold', fontSize: 16, marginBottom: 5 },
-  postContent: { fontSize: 14, lineHeight: 20, color: '#333', marginBottom: 10 },
-  postImage: { width: '100%', height: 300, borderRadius: 10, marginBottom: 10 },
-  tagRow: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 10 },
-  postTag: { color: '#888', marginRight: 5 },
-  
-  postFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 5 },
-  notesContainer: { borderWidth: 1, borderColor: '#555', borderRadius: 15, paddingHorizontal: 10, paddingVertical: 4 },
-  notesText: { fontSize: 12, fontWeight: 'bold' },
-  actionsContainer: { flexDirection: 'row' },
-  actionIcon: { marginLeft: 15 },
-
-  // --- PROFILE CARD ---
-  profileCard: { marginBottom: 10, backgroundColor: '#eee' },
-  bannerContainer: { height: 120, position: 'relative' },
-  profileBanner: { width: '100%', height: '100%' },
-  profileFollowBtn: { 
-      position: 'absolute', right: 10, top: 10, backgroundColor: 'rgba(255,255,255,0.8)', paddingHorizontal: 15, paddingVertical: 5, borderRadius: 5 
+  recentItemRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: THEME.SPACING.MD,
+    paddingVertical: THEME.SPACING.XS,
   },
-  profileFollowText: { fontWeight: 'bold' },
-  profileInfoContainer: { 
-      flexDirection: 'row', paddingHorizontal: 15, paddingBottom: 15, backgroundColor: '#ccc' // Fondo gris perla como en la imagen
+  recentItemLeft: {
+    flexDirection: "row",
+    alignItems: "center",
   },
-  profileAvatarAbsolute: { 
-      width: 70, height: 70, borderRadius: 5, marginTop: -35, borderWidth: 2, borderColor: '#fff' 
+  recentItemText: {
+    marginLeft: THEME.SPACING.MD,
+    fontSize: THEME.TYPOGRAPHY.BODY,
+    color: THEME.COLORS.text,
+    fontFamily: THEME.FONTS.REGULAR,
   },
-  profileTexts: { marginLeft: 15, marginTop: 5 },
-  profileName: { fontWeight: 'bold', fontSize: 16, color: '#fff', textShadowColor: '#000', textShadowRadius: 2 }, // Hack para que se lea sobre fondos oscuros o usar fondo solido
-  profileHandle: { color: '#eee', fontSize: 13 },
-
-  // --- FAB ---
-  fab: {
-      position: 'absolute', bottom: 20, right: 20, backgroundColor: '#2196F3', width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center', elevation: 5
+  tagItemRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: THEME.SPACING.MD,
+    paddingVertical: THEME.SPACING.XS,
   },
-
-  // --- MODAL ---
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: '#fff', padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20 },
-  modalHandle: { width: 40, height: 4, backgroundColor: '#ccc', alignSelf: 'center', borderRadius: 2, marginBottom: 20 },
-  modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15 },
-  modalOption: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 15 },
-  modalOptionText: { fontSize: 16 },
-  modalSeparator: { height: 1, backgroundColor: '#eee' },
+  tagImage: {
+    width: 40,
+    height: 40,
+    borderRadius: THEME.COMMON.BORDER_RADIUS.MD,
+    backgroundColor: THEME.COLORS.backgroundAlt,
+  },
+  tagItemText: {
+    marginLeft: THEME.SPACING.MD,
+    fontSize: THEME.TYPOGRAPHY.BODY,
+    color: THEME.COLORS.text,
+    fontFamily: THEME.FONTS.REGULAR,
+  },
+  viewAllLinkContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: THEME.SPACING.SM,
+    paddingVertical: THEME.SPACING.SM,
+    paddingHorizontal: THEME.SPACING.XS,
+  },
+  viewAllText: {
+    fontFamily: THEME.FONTS.SEMI_BOLD,
+    fontSize: THEME.TYPOGRAPHY.BODY,
+    color: THEME.COLORS.text,
+  },
 });
 
 export default SearchScreen;
