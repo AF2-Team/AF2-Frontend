@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useKeyboard } from '@react-native-community/hooks';
+import { useKeyboard } from "@react-native-community/hooks";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -8,9 +8,12 @@ import {
   ScrollView,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { default as styled } from "styled-components/native";
 import { DiscardPostModal } from "../../components/DiscardPostModal";
 import { TagSelectorModal } from "../../components/TagSelectorModal";
@@ -38,18 +41,30 @@ export default function CreatePostScreen() {
   const [showTextStyleModal, setShowTextStyleModal] = useState(false);
 
   const handleClose = () => {
-    if (postContent.trim() !== "" || selectedTags.length > 0) setShowDiscardModal(true);
-    else router.back();
+    if (postContent.trim() !== "" || selectedTags.length > 0) {
+      setShowDiscardModal(true);
+    } else {
+      // Si no hay contenido, ir directamente a HomeScreen
+      router.replace("/screens/HomeScreen");
+    }
   };
 
-  const handleDiscard = () => router.back();
+  const handleDiscard = () => {
+    // Navegar a HomeScreen al descartar
+    router.replace("/screens/HomeScreen");
+  };
+
+  const handleContinueEditing = () => {
+    // Solo cerrar el modal
+    setShowDiscardModal(false);
+  };
 
   const handlePublish = () => {
     Alert.alert(
       "Publicación Exitosa",
       `Post publicado por @${currentUser.username} con tags: ${selectedTags.join(", ")}`,
     );
-    router.push("/screens/HomeScreen");
+    router.replace("/screens/HomeScreen");
   };
 
   const getFontFamily = (style: string) => {
@@ -112,9 +127,7 @@ export default function CreatePostScreen() {
           >
             <Text
               style={{
-                color: isReadyToPublish
-                  ? Colors.textLight
-                  : Colors.textMuted,
+                color: isReadyToPublish ? Colors.textLight : Colors.textMuted,
                 fontSize: 16,
                 fontFamily: THEME.FONTS.BOLD,
               }}
@@ -166,19 +179,15 @@ export default function CreatePostScreen() {
       </View>
 
       {/* BottomBar con posición absoluta y margen dinámico */}
-      <BottomBar 
-        style={{ 
+      <BottomBar
+        style={{
           paddingBottom: Math.max(insets.bottom, 10),
           marginBottom: bottomMargin,
         }}
       >
         <LeftIcons>
           <ToolButton onPress={() => setShowTextStyleModal(true)}>
-            <Ionicons
-              name="text-outline"
-              size={26}
-              color={Colors.textLight}
-            />
+            <Ionicons name="text-outline" size={26} color={Colors.textLight} />
           </ToolButton>
         </LeftIcons>
         <RightIcons>
@@ -190,25 +199,25 @@ export default function CreatePostScreen() {
               )
             }
           >
-            <Ionicons
-              name="image-outline"
-              size={26}
-              color={Colors.textLight}
-            />
+            <Ionicons name="image-outline" size={26} color={Colors.textLight} />
           </ToolButton>
         </RightIcons>
       </BottomBar>
+
+      {/* Modal de descartar publicación */}
       <DiscardPostModal
         visible={showDiscardModal}
         onDiscard={handleDiscard}
-        onContinueEditing={() => setShowDiscardModal(false)}
+        onContinueEditing={handleContinueEditing}
       />
+
       <TagSelectorModal
         visible={showTagModal}
         onClose={() => setShowTagModal(false)}
         onTagsSelected={setSelectedTags}
         selectedTags={selectedTags}
       />
+
       <TextStyleModal
         visible={showTextStyleModal}
         onClose={() => setShowTextStyleModal(false)}
@@ -219,12 +228,7 @@ export default function CreatePostScreen() {
   );
 }
 
-// Tus componentes styled permanecen igual...
-const Container = styled.View`
-  flex: 1;
-  background-color: ${Colors.background};
-`;
-
+// Componentes styled (se mantienen igual)
 const Header = styled.View`
   flex-direction: row;
   justify-content: space-between;
