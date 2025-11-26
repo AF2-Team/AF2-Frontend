@@ -146,20 +146,12 @@ export const ImagePostFooter: React.FC<ImagePostFooterProps> = ({
     postUserAvatar,
   ]);
 
-  const handleCommentPress = useCallback(() => {
-    setCommentsCount((prev) => prev + 1);
-
+  const handleCommentPress = (postId: string) => {
     router.push({
       pathname: "/screens/CommentScreen",
-      params: {
-        postId,
-        postContent,
-        postAuthor,
-        postImage,
-        postTags: JSON.stringify(postTags),
-        postUserAvatar,
-      },
+      params: { postId },
     });
+  };
 
     onCommentPress?.();
   }, [
