@@ -1,10 +1,10 @@
+import { Colors, THEME } from "@/constants";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, RefreshControl } from "react-native";
 import styled from "styled-components/native";
 import { PostData } from "../types/PostTypes";
 import { Post } from "./Post";
-import { Colors, THEME } from "@/constants";
 
 const mockPosts: PostData[] = [
   {
@@ -138,7 +138,10 @@ export const Feed = ({ scrollEnabled = true }) => {
   };
 
   const handleCommentPress = (postId: string) => {
-    router.push(`/screens/comments/${postId}`);
+    router.push({
+      pathname: "/screens/CommentScreen",
+      params: { postId },
+    });
   };
 
   const handleOptionsPress = (postId: string) => {
@@ -146,7 +149,10 @@ export const Feed = ({ scrollEnabled = true }) => {
   };
 
   const handleHashtagPress = (hashtag: string) => {
-    router.push(`/screens/search?hashtag=${encodeURIComponent(hashtag)}`);
+    router.push({
+      pathname: "/screens/SearchScreen",
+      params: { hashtag: encodeURIComponent(hashtag) },
+    });
   };
 
   const renderPost = ({ item }: { item: PostData }) => (

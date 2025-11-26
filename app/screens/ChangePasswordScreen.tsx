@@ -2,14 +2,14 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    Modal,
-    SafeAreaView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Modal,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 const ChangePasswordScreen = () => {
@@ -36,7 +36,9 @@ const ChangePasswordScreen = () => {
   useEffect(() => {
     // Lógica simple de validación
     if (newPassword.length > 0 && newPassword.length < 8) {
-      setError("La contraseña tiene menos de 8 caracteres.\nIngrese una contraseña más larga");
+      setError(
+        "La contraseña tiene menos de 8 caracteres.\nIngrese una contraseña más larga",
+      );
     } else {
       setError("");
     }
@@ -57,7 +59,7 @@ const ChangePasswordScreen = () => {
     if (isSaveEnabled) {
       // Aquí iría la lógica para enviar al backend
       setSuccessModalVisible(true);
-      
+
       // Opcional: Cerrar automáticamente y volver atrás después de unos segundos
       setTimeout(() => {
         setSuccessModalVisible(false);
@@ -67,8 +69,14 @@ const ChangePasswordScreen = () => {
   };
 
   // Función auxiliar para renderizar el icono del ojo
-  const renderEyeIcon = (isVisible, setIsVisible) => (
-    <TouchableOpacity onPress={() => setIsVisible(!isVisible)} style={styles.eyeIconButton}>
+  const renderEyeIcon: (isVisibel: boolean, setIsVisible: any) => any = (
+    isVisible,
+    setIsVisible,
+  ) => (
+    <TouchableOpacity
+      onPress={() => setIsVisible(!isVisible)}
+      style={styles.eyeIconButton}
+    >
       <MaterialCommunityIcons
         name={isVisible ? "eye" : "eye-off"}
         size={22}
@@ -86,15 +94,16 @@ const ChangePasswordScreen = () => {
         <TouchableOpacity onPress={() => router.back()}>
           <Text style={styles.cancelButton}>Cancelar</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
-          onPress={handleSave} 
-          disabled={!isSaveEnabled}
-        >
-          <Text style={[
-            styles.saveButton, 
-            isSaveEnabled ? styles.saveButtonActive : styles.saveButtonDisabled
-          ]}>
+
+        <TouchableOpacity onPress={handleSave} disabled={!isSaveEnabled}>
+          <Text
+            style={[
+              styles.saveButton,
+              isSaveEnabled
+                ? styles.saveButtonActive
+                : styles.saveButtonDisabled,
+            ]}
+          >
             Guardar
           </Text>
         </TouchableOpacity>
@@ -108,7 +117,7 @@ const ChangePasswordScreen = () => {
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Contraseña actual</Text>
           {/* Usamos un contenedor para el input y el icono */}
-          <View style={styles.passwordInputContainer}> 
+          <View style={styles.passwordInputContainer}>
             <TextInput
               style={styles.input}
               secureTextEntry={!showCurrentPass} // Controlado por el estado
@@ -125,7 +134,12 @@ const ChangePasswordScreen = () => {
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Contraseña nueva</Text>
           {/* Aplicamos el estilo de error al contenedor, no al input directo */}
-          <View style={[styles.passwordInputContainer, error ? styles.inputError : null]}>
+          <View
+            style={[
+              styles.passwordInputContainer,
+              error ? styles.inputError : null,
+            ]}
+          >
             <TextInput
               style={styles.input}
               secureTextEntry={!showNewPass}
@@ -174,7 +188,6 @@ const ChangePasswordScreen = () => {
           </View>
         </View>
       </Modal>
-
     </SafeAreaView>
   );
 };
@@ -201,21 +214,21 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   saveButtonDisabled: {
-    color: "#BDBDBD", 
+    color: "#BDBDBD",
   },
   saveButtonActive: {
-    color: "#423646", 
+    color: "#423646",
   },
   content: {
     paddingHorizontal: 30,
     marginTop: 40,
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "bold",
-    color: "#333",
+    color: "#423646",
     textAlign: "center",
-    marginBottom: 50,
+    marginBottom: 40,
   },
   inputGroup: {
     marginBottom: 30,
@@ -228,8 +241,8 @@ const styles = StyleSheet.create({
 
   // --- NUEVOS ESTILOS PARA INPUTS CON ICONO ---
   passwordInputContainer: {
-    flexDirection: 'row', // Alinear input e icono horizontalmente
-    alignItems: 'center',
+    flexDirection: "row", // Alinear input e icono horizontalmente
+    alignItems: "center",
     borderBottomWidth: 1,
     borderBottomColor: "#000",
     paddingBottom: 5,
@@ -247,7 +260,7 @@ const styles = StyleSheet.create({
   // --------------------------------------------
 
   inputError: {
-    borderBottomColor: "#FF6B6B", 
+    borderBottomColor: "#FF6B6B",
   },
   errorText: {
     color: "#FF6B6B",
@@ -255,20 +268,20 @@ const styles = StyleSheet.create({
     marginTop: 5,
     lineHeight: 16,
   },
-  
+
   // --- Estilos del Modal de Éxito (sin cambios) ---
   modalOverlay: {
     flex: 1,
     justifyContent: "flex-end",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.1)", 
+    backgroundColor: "rgba(0,0,0,0.1)",
     paddingBottom: 50,
   },
   successBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#E3F2FD", 
-    borderColor: "#2196F3", 
+    backgroundColor: "#E3F2FD",
+    borderColor: "#2196F3",
     borderWidth: 1,
     borderRadius: 8,
     paddingVertical: 12,
@@ -280,7 +293,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: "#2196F3", 
+    backgroundColor: "#2196F3",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 10,

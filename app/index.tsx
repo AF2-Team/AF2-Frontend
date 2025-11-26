@@ -24,14 +24,12 @@ export default function SplashScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Logo centrado - Usando Image en lugar de componente */}
       <Image
         source={require("@/assets/images/2.png") as ImageSourcePropType}
         style={styles.logo}
         resizeMode="contain"
       />
-
-      {/* Puntos de carga animados */}
+      
       <View style={styles.loadingDots}>
         <View style={[styles.dot, styles.dot1]} />
         <View style={[styles.dot, styles.dot2]} />

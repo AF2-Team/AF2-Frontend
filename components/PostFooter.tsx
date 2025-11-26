@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import { useRouter } from "expo-router";
-import styled from "styled-components/native";
-import { Ionicons } from "@expo/vector-icons";
 import { Colors, THEME } from "@/constants";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
+import styled from "styled-components/native";
 
 const ICON_CONFIG = {
   size: 25,
@@ -61,7 +61,7 @@ export const PostFooter = ({
   postAuthor,
   postImage,
   postTags = [],
-  postUserAvatar = null,
+  postUserAvatar,
 }: PostFooterProps) => {
   const router = useRouter();
   const [isLiked, setIsLiked] = useState(false);
@@ -123,11 +123,7 @@ export const PostFooter = ({
   const handleCommentPress = () => {
     setCommentsCount((prev) => prev + 1);
 
-    router.push("/screens/CommentScreen");
-
-    if (onCommentPress) {
-      onCommentPress();
-    }
+    if (onCommentPress) onCommentPress();
   };
 
   return (
