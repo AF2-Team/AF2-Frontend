@@ -121,13 +121,25 @@ export const PostFooter = ({
   };
 
   const handleCommentPress = () => {
-    setCommentsCount((prev) => prev + 1);
+    const newCommentsCount = commentsCount + 1;
+    setCommentsCount(newCommentsCount);
 
-    router.push("/screens/CommentScreen");
+    router.push({
+      pathname: "/screens/CommentScreen",
+      params: {
+        postId,
+        postContent: postContent ?? "",
+        postAuthor: postAuthor ?? "",
+        postImage: postImage ?? "",
+        postUserAvatar: postUserAvatar ?? "",
+        initialLikes: String(likesCount),
+        initialComments: String(newCommentsCount),
+        initialReposts: String(repostsCount),
+        initialFavorites: String(favoritesCount),
+      },
+    });
 
-    if (onCommentPress) {
-      onCommentPress();
-    }
+    if (onCommentPress) onCommentPress();
   };
 
   return (
