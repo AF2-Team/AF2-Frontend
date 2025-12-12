@@ -152,19 +152,7 @@ export const ImagePostFooter: React.FC<ImagePostFooterProps> = ({
       params: { postId },
     });
   };
-
-    onCommentPress?.();
-  }, [
-    onCommentPress,
-    router,
-    postId,
-    postContent,
-    postAuthor,
-    postImage,
-    postTags,
-    postUserAvatar,
-  ]);
-
+  
   return (
     <FooterContainer>
       <NotesContainer>
