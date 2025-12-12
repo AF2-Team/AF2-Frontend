@@ -1,24 +1,28 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
+import LoadingScreen from '@components/LoadingScreen';
+import { COLORS, PALLETE } from '@constants/colors';
+import { useFonts } from 'expo-font';
+import { Slot } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import { View } from 'react-native';
+import { ThemeProvider } from 'styled-components/native';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+const RootLayout = () => {
+    const [loaded] = useFonts({
+        SpaceMono: require('@fonts/SpaceMono-Regular.ttf'),
+    });
 
-export const unstable_settings = {
-  anchor: '(tabs)',
+    return (
+        <ThemeProvider theme={{ ...COLORS, PALLETE }}>
+            {!loaded ? (
+                <View style={{ flex: 1 }}>
+                    <Slot />
+                    <StatusBar style="auto" />
+                </View>
+            ) : (
+                <LoadingScreen />
+            )}
+        </ThemeProvider>
+    );
 };
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
-
-  return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
-  );
-}
+export default RootLayout;
