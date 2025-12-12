@@ -146,15 +146,14 @@ export const ImagePostFooter: React.FC<ImagePostFooterProps> = ({
     postUserAvatar,
   ]);
 
-  const handleCommentPress = (postId: string) => {
+  const handleCommentPress = useCallback(() => {
     router.push({
       pathname: "/screens/CommentScreen",
       params: { postId },
     });
-  };
-
     onCommentPress?.();
-  }, [
+  }, 
+  [
     onCommentPress,
     router,
     postId,
