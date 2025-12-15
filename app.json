@@ -17,18 +17,16 @@
             "supportsTablet": true
         },
         "android": {
+            "edgeToEdgeEnabled": true,
             "adaptiveIcon": {
                 "foregroundImage": "./assets/images/adaptive-icon.png",
                 "backgroundColor": "#ffffff"
             },
-            "edgeToEdgeEnabled": true,
-            "userInterfaceStyle": "automatic",
             "package": "com.anonymous.af2frontend"
         },
         "web": {
             "bundler": "metro",
             "output": "static",
-            "userInterfaceStyle": "automatic",
             "favicon": "./assets/images/favicon.png"
         },
         "plugins": [

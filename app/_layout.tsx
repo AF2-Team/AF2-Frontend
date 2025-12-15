@@ -1,28 +1,24 @@
-import LoadingScreen from '@components/LoadingScreen';
+import LoadingScreen from '@components/loading-screen';
 import { COLORS, PALLETE } from '@constants/colors';
 import { useFonts } from 'expo-font';
 import { Slot } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemeProvider } from 'styled-components/native';
 
-const RootLayout = () => {
+export default function RootLayout() {
     const [loaded] = useFonts({
         SpaceMono: require('@fonts/SpaceMono-Regular.ttf'),
     });
 
+    if (!loaded) return <LoadingScreen />;
+
     return (
         <ThemeProvider theme={{ ...COLORS, PALLETE }}>
-            {!loaded ? (
-                <View style={{ flex: 1 }}>
-                    <Slot />
-                    <StatusBar style="auto" />
-                </View>
-            ) : (
-                <LoadingScreen />
-            )}
+            <StatusBar style="dark" backgroundColor="white" />
+            <SafeAreaView>
+                <Slot />
+            </SafeAreaView>
         </ThemeProvider>
     );
-};
-
-export default RootLayout;
+}
