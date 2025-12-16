@@ -31,6 +31,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation("cafe.adriel.voyager:voyager-navigator:1.0.1")
             implementation("cafe.adriel.voyager:voyager-transitions:1.0.1") // Para animaciones bonitas
+            implementation(compose.materialIconsExtended)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
