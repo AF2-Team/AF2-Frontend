@@ -1,11 +1,14 @@
-package com.dev.af2.features.auth.presentation.register
+package com.dev.af2.features.auth.presentation.login
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -15,15 +18,19 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,19 +40,13 @@ import cafe.adriel.voyager.core.screen.uniqueScreenKey
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import org.jetbrains.compose.resources.painterResource
-import androidx.compose.foundation.text.KeyboardActions
 
+import com.dev.af2.features.auth.presentation.forgotpassword.ForgotPasswordPage
 import com.dev.af2.core.designsystem.getAlegreyaFontFamily
-
 import af2.composeapp.generated.resources.Res
-import af2.composeapp.generated.resources.logo_black_stroke
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.foundation.border
-import com.dev.af2.features.auth.presentation.login.LoginPage
-// --- PALETA DE COLORES ---
+import af2.composeapp.generated.resources.logo_black_stroke // El mismo logo
+
+// --- PALETA DE COLORES (Consistente con Registro) ---
 private val ColorBgWhite = Color.White
 private val ColorDarkText = Color(0xFF423646)
 private val ColorInputBg = Color(0xFFFAF7F7)
@@ -53,39 +54,41 @@ private val ColorInputBorder = Color(0xFF918991)
 private val ColorButton = Color(0xFFBCA1BD)
 private val ColorError = Color(0xFFEF4444)
 
-class RegisterPage : Screen {
+class LoginPage : Screen {
     override val key: ScreenKey = uniqueScreenKey
 
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        RegisterScreen(
-            onRegisterClick = { name, email, password->
-                println("Registro: $name, $email")
-                // navigator.push(HomePage())
+        LoginScreen(
+            onLoginClick = { email, pass ->
+                println("Login: $email")
+                // navigator.push(HomePage()) // Ir al Home
             },
-            onLoginClick = { navigator.push(LoginPage()) }
+            onRegisterClick = {
+                navigator.pop() // Volver al registro si vino de allá, o push(RegisterPage())
+            },
+            onForgotPasswordClick = {
+                navigator.push(ForgotPasswordPage()) // Implementar después
+                println("Olvidé contraseña")
+            }
         )
     }
 }
 
 @Composable
-fun RegisterScreen(
-    onRegisterClick: (String, String, String) -> Unit,
-    onLoginClick: () -> Unit
+fun LoginScreen(
+    onLoginClick: (String, String) -> Unit,
+    onRegisterClick: () -> Unit,
+    onForgotPasswordClick: () -> Unit
 ) {
     val scrollState = rememberScrollState()
     val focusManager = LocalFocusManager.current
     val alegreyaFamily = getAlegreyaFontFamily()
 
     // Estados del formulario
-    var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-
-    // Errores
-    var confirmPasswordError by remember { mutableStateOf<String?>(null) }
 
     Box(
         modifier = Modifier
@@ -96,12 +99,12 @@ fun RegisterScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
-                .padding(horizontal = 16.dp, vertical = 16.dp),
+                .padding(horizontal = 24.dp, vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            Spacer(modifier = Modifier.height(0.dp))
-
+            // --- 1. LOGOTIPO ---
+            // Mismo tamaño que en Registro para consistencia
             Box(modifier = Modifier.size(220.dp)) {
                 Image(
                     painter = painterResource(Res.drawable.logo_black_stroke),
@@ -110,11 +113,12 @@ fun RegisterScreen(
                     contentScale = ContentScale.Fit
                 )
             }
+
             Spacer(modifier = Modifier.height(0.dp))
 
-            // --- TÍTULO ---
+            // --- 2. TÍTULO ---
             Text(
-                text = "Crear una cuenta",
+                text = "Bienvenido de nuevo", // O "Iniciar Sesión"
                 style = MaterialTheme.typography.headlineMedium.copy(
                     fontFamily = alegreyaFamily,
                     fontSize = 28.sp,
@@ -124,21 +128,15 @@ fun RegisterScreen(
                 )
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(30.dp))
 
-            // --- FORMULARIO ---
+            // --- 3. FORMULARIO ---
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp) // Un poco más de aire que en registro
             ) {
 
-                ReactStyleInput(
-                    label = "Nombre y Apellido",
-                    placeholder = "Alirio Freytez",
-                    value = fullName,
-                    onValueChange = { fullName = it }
-                )
-
+                // Email
                 ReactStyleInput(
                     label = "Dirección de correo",
                     placeholder = "ejemplo:correo@gmail.com",
@@ -147,36 +145,45 @@ fun RegisterScreen(
                     keyboardType = KeyboardType.Email
                 )
 
+                // Contraseña
                 ReactStyleInput(
                     label = "Contraseña",
-                    placeholder = "Contraseña",
+                    placeholder = "********",
                     value = password,
                     onValueChange = { password = it },
-                    isPassword = true
-                )
-
-                ReactStyleInput(
-                    label = "Confirmar Contraseña",
-                    placeholder = "Confirmar Contraseña",
-                    value = confirmPassword,
-                    onValueChange = {
-                        confirmPassword = it
-                        confirmPasswordError = if (it != password) "Las contraseñas no coinciden" else null
-                    },
                     isPassword = true,
                     imeAction = ImeAction.Done,
-                    onAction = { focusManager.clearFocus() },
-                    errorMessage = confirmPasswordError
+                    onAction = {
+                        focusManager.clearFocus()
+                        onLoginClick(email, password)
+                    }
                 )
+
+                // Enlace "Olvidaste tu contraseña"
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    Text(
+                        text = "¿Olvidaste tu contraseña?",
+                        color = ColorDarkText,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Normal,
+                        textDecoration = TextDecoration.Underline,
+                        modifier = Modifier
+                            .clickable { onForgotPasswordClick() }
+                            .padding(vertical = 4.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // --- BOTÓN DE REGISTRO ---
+            // --- 4. BOTÓN DE LOGIN ---
             Button(
                 onClick = {
-                    if (password == confirmPassword && fullName.isNotBlank() && email.isNotBlank()) {
-                        onRegisterClick(fullName, email, password)
+                    if (email.isNotBlank() && password.isNotBlank()) {
+                        onLoginClick(email, password)
                     }
                 },
                 colors = ButtonDefaults.buttonColors(
@@ -190,7 +197,7 @@ fun RegisterScreen(
                 elevation = ButtonDefaults.buttonElevation(0.dp)
             ) {
                 Text(
-                    text = "CREAR TU CUENTA",
+                    text = "INICIAR SESIÓN",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = ColorDarkText,
@@ -198,35 +205,32 @@ fun RegisterScreen(
                 )
             }
 
-            // --- AQUÍ ESTÁ EL CAMBIO DE POSICIÓN ---
-            // Reduje este spacer de 32.dp a 16.dp para subir la sección de "Ya eres miembro"
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            // --- ENLACES LOGIN ---
+            // --- 5. ENLACE A REGISTRO ---
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "¿Ya eres miembro?",
+                    text = "¿Aún no tienes cuenta?",
                     color = ColorDarkText,
                     fontSize = 14.sp
                 )
                 Text(
-                    text = "Inicia sesión ahora",
+                    text = "Regístrate ahora",
                     color = ColorDarkText,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     textDecoration = TextDecoration.Underline,
                     modifier = Modifier
-                        .clickable { onLoginClick() }
-                        .padding(top = 4.dp) // Reduje padding top de 8 a 4
+                        .clickable { onRegisterClick() }
+                        .padding(top = 4.dp)
                 )
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
 
-// --- COMPONENTE INPUT ESTILO REACT ---
+// --- COMPONENTE INPUT ESTILO REACT (Reutilizado) ---
+// Idealmente, mueve esto a un archivo 'SharedComponents.kt'
 @Composable
 private fun ReactStyleInput(
     label: String,
@@ -240,13 +244,9 @@ private fun ReactStyleInput(
     errorMessage: String? = null
 ) {
     var isPasswordVisible by remember { mutableStateOf(false) }
-
-    // Estados para simular el foco del borde (como en CSS focus:border)
     var isFocused by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxWidth()) {
-
-        // Label
         Text(
             text = label,
             color = Color.Black,
@@ -255,24 +255,23 @@ private fun ReactStyleInput(
             fontWeight = FontWeight.Bold
         )
 
-        // Contenedor del Input (Simulamos el borde y fondo aquí)
-        val isError = null
+        // Contenedor del Input (BasicTextField para control total de altura y padding)
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp) // Altura exacta
+                .height(40.dp) // Altura compacta consistente con el registro
                 .background(ColorInputBg, RoundedCornerShape(12.dp))
                 .border(
                     width = 1.dp,
-                    color = if (isError == true) ColorError else if (isFocused) ColorButton else ColorInputBorder,
+                    color = if (errorMessage != null) ColorError else if (isFocused) ColorButton else ColorInputBorder,
                     shape = RoundedCornerShape(12.dp)
                 )
-                .onFocusChanged { isFocused = it.isFocused }, // Detectar foco
+                .onFocusChanged { isFocused = it.isFocused },
             textStyle = TextStyle(
                 color = ColorDarkText,
-                fontSize = 15.sp,
+                fontSize = 15.sp, // Tamaño de letra ajustado
                 fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,
                 fontWeight = FontWeight.Normal
             ),
@@ -280,33 +279,29 @@ private fun ReactStyleInput(
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = imeAction),
             keyboardActions = KeyboardActions(onDone = { onAction() }, onNext = { onAction() }),
             visualTransformation = if (isPassword && !isPasswordVisible) PasswordVisualTransformation() else VisualTransformation.None,
-            cursorBrush = SolidColor(ColorButton), // Color del cursor
+            cursorBrush = SolidColor(ColorButton),
             decorationBox = { innerTextField ->
-                // Row para alinear contenido: Texto a la izq, Icono a la der
                 Row(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = 12.dp), // Padding lateral interno
-                    verticalAlignment = Alignment.CenterVertically // ESTO CENTRA EL TEXTO VERTICALMENTE
+                        .padding(horizontal = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(modifier = Modifier.weight(1f)) {
-                        // Placeholder (se muestra si está vacío)
                         if (value.isEmpty()) {
                             Text(
                                 text = placeholder,
                                 color = Color.Gray.copy(alpha = 0.6f),
-                                fontSize = 14.sp
+                                fontSize = 14.sp // Placeholder ajustado
                             )
                         }
-                        // El campo de texto real
                         innerTextField()
                     }
 
-                    // Icono de Ojo (Trailing Icon)
                     if (isPassword) {
                         IconButton(
                             onClick = { isPasswordVisible = !isPasswordVisible },
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(32.dp)
                         ) {
                             Icon(
                                 imageVector = if (isPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
@@ -320,13 +315,12 @@ private fun ReactStyleInput(
             }
         )
 
-        // Mensaje de Error
         if (errorMessage != null) {
             Text(
                 text = errorMessage,
                 color = ColorError,
-                fontSize = 13.sp,
-                modifier = Modifier.padding(top = 4.dp)
+                fontSize = 12.sp,
+                modifier = Modifier.padding(top = 2.dp)
             )
         }
     }
