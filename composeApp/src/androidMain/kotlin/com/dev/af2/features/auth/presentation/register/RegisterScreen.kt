@@ -45,6 +45,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.foundation.border
 import com.dev.af2.features.auth.presentation.login.LoginPage
+import com.dev.af2.features.auth.presentation.register.RegisterSuccessPage
 // --- PALETA DE COLORES ---
 private val ColorBgWhite = Color.White
 private val ColorDarkText = Color(0xFF423646)
@@ -62,7 +63,7 @@ class RegisterPage : Screen {
         RegisterScreen(
             onRegisterClick = { name, email, password->
                 println("Registro: $name, $email")
-                // navigator.push(HomePage())
+                navigator.push(RegisterSuccessPage())
             },
             onLoginClick = { navigator.push(LoginPage()) }
         )
