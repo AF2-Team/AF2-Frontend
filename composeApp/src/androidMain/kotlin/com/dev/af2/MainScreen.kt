@@ -28,7 +28,7 @@ import androidx.compose.foundation.layout.size
 
 // Importa tu HomeTab real
 import com.dev.af2.features.auth.presentation.HomeTab
-import com.dev.af2.features.auth.presentation.components.HomeHeader
+import com.dev.af2.features.auth.presentation.components.CustomTopBar
 
 
 private val ColorTabBackground = Color(0xFF423646) // DeepPurple de tu paleta
@@ -45,20 +45,15 @@ class MainScreen : Screen {
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
                 topBar = {
-
-                    TopAppBar(
-                        title = {},
-                        actions = {
-
-                        }
-                    )
+                    val tabNavigator = LocalTabNavigator.current
+                    CustomTopBar(tabNavigator)
                 },
                 bottomBar = {
                     NavigationBar(
                         containerColor = ColorTabBackground,
                         tonalElevation = 0.dp,
                     ) {
-                        // --- LOS 4 ÍCONOS SOLICITADOS ---
+                        // --- LOS 4 ÍCONOS ---
                         TabNavigationItem(HomeTab)
                         TabNavigationItem(SearchTab)
                         TabNavigationItem(NotificationsTab)
