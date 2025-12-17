@@ -50,15 +50,10 @@ object HomeTab : Tab {
         }
 
         Scaffold(
-            topBar = {
-                HomeHeader(
-                    onInicioClick = {},
-                    onEtiquetasClick = {}
-                )
-            }
-        ) { paddingValues ->
+
+        ) { innerPadding ->
             LazyColumn(
-                modifier = Modifier.padding(paddingValues)
+                modifier = Modifier
             ) {
                 items(posts) { post ->
                     PostItem(

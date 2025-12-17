@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.size
 
 // Importa tu HomeTab real
 import com.dev.af2.features.auth.presentation.HomeTab
+import com.dev.af2.features.auth.presentation.components.HomeHeader
 
 
 private val ColorTabBackground = Color(0xFF423646) // DeepPurple de tu paleta
@@ -36,13 +37,22 @@ private val ColorIconUnselected = Color.White.copy(alpha = 0.6f)
 class MainScreen : Screen {
     override val key: ScreenKey = uniqueScreenKey
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun Content() {
         // Configuramos el TabNavigator con la pestaña inicial
         TabNavigator(HomeTab) {
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
+                topBar = {
 
+                    TopAppBar(
+                        title = {},
+                        actions = {
+
+                        }
+                    )
+                },
                 bottomBar = {
                     NavigationBar(
                         containerColor = ColorTabBackground,
@@ -55,10 +65,11 @@ class MainScreen : Screen {
                         TabNavigationItem(MessagesTab)
                     }
                 }
+
             ) { innerPadding ->
                 Box(
                     modifier = Modifier.fillMaxSize()
-                        .padding(innerPadding)
+                      //  .padding(innerPadding)
                 ){
                     CurrentTab()
                 }

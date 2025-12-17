@@ -102,7 +102,7 @@ fun PostItem(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(400.dp) // Altura tipo Instagram vertical
+                .aspectRatio(4f/5f) // Altura tipo Instagram vertical
                 .background(Color(0xFFF0F0F0))
         ) {
             Image(
