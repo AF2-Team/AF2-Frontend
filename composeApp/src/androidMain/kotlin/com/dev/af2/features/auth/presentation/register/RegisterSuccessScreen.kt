@@ -35,6 +35,7 @@ import org.jetbrains.compose.resources.painterResource
 import com.dev.af2.features.auth.presentation.register.RegistrationCompletedPage
 import com.dev.af2.core.designsystem.getAlegreyaFontFamily
 import af2.composeapp.generated.resources.Res
+
  // Reutilizamos el logo
 
 // --- PALETA DE COLORES ---
@@ -58,6 +59,7 @@ class RegisterSuccessPage : Screen {
 
                 navigator.popUntilRoot()
                 navigator.push(RegistrationCompletedPage(username))
+
             }
         )
     }

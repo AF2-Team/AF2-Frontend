@@ -23,7 +23,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 
 // Imports de tu proyecto
 import com.dev.af2.core.designsystem.getAlegreyaFontFamily
-import com.dev.af2.features.auth.presentation.login.LoginPage
+import com.dev.af2.MainScreen
 
 // --- PALETA DE COLORES ---
 private val ColorBgWhite = Color.White
@@ -42,7 +42,7 @@ data class RegistrationCompletedPage(val username: String) : Screen {
             onFinishClick = {
                 // Ahora sí, vamos al Login limpiando todo el historial
                 navigator.popUntilRoot()
-                navigator.push(LoginPage())
+                navigator.push(MainScreen())
             }
         )
     }

@@ -29,9 +29,21 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
-            implementation("cafe.adriel.voyager:voyager-navigator:1.0.1")
-            implementation("cafe.adriel.voyager:voyager-transitions:1.0.1") // Para animaciones bonitas
             implementation(compose.materialIconsExtended)
+            // --- CORRECCIÓN VOYAGER ---
+            // Definimos la versión una sola vez para evitar conflictos
+            val voyagerVersion = "1.1.0-beta03"
+
+            // Navegación básica
+            implementation("cafe.adriel.voyager:voyager-navigator:$voyagerVersion")
+
+            // Navegación por Tabs (Resuelve tu error anterior 'Unresolved reference: tab')
+            implementation("cafe.adriel.voyager:voyager-tab-navigator:$voyagerVersion")
+
+            // Transiciones (Resuelve tu error actual 'libs.voyager.transitions')
+            implementation("cafe.adriel.voyager:voyager-transitions:$voyagerVersion")
+
+            // Iconos (Ya lo tenías bien)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
