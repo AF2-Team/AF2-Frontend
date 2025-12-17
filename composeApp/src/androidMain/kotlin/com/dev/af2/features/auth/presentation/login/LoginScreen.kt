@@ -45,6 +45,7 @@ import com.dev.af2.features.auth.presentation.forgotpassword.ForgotPasswordPage
 import com.dev.af2.core.designsystem.getAlegreyaFontFamily
 import af2.composeapp.generated.resources.Res
 import af2.composeapp.generated.resources.logo_black_stroke // El mismo logo
+import com.dev.af2.MainScreen
 
 // --- PALETA DE COLORES (Consistente con Registro) ---
 private val ColorBgWhite = Color.White
@@ -63,7 +64,7 @@ class LoginPage : Screen {
         LoginScreen(
             onLoginClick = { email, pass ->
                 println("Login: $email")
-                // navigator.push(HomePage()) // Ir al Home
+                navigator.push(MainScreen()) // Ir al Home
             },
             onRegisterClick = {
                 navigator.pop() // Volver al registro si vino de allá, o push(RegisterPage())
