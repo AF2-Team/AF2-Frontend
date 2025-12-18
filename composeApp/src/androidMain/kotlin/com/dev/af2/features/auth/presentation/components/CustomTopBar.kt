@@ -20,6 +20,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,7 +34,7 @@ import org.jetbrains.compose.resources.painterResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CustomTopBar(tabNavigator: TabNavigator) {
+fun CustomTopBar(tabNavigator: TabNavigator, scrollBehavior: TopAppBarScrollBehavior) {
     val colorTabBackground = Color(0xFF423646)
     Column() {
         TopAppBar(
@@ -52,7 +53,8 @@ fun CustomTopBar(tabNavigator: TabNavigator) {
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = colorTabBackground,
                 actionIconContentColor = Color.White
-            )
+            ),
+            scrollBehavior = scrollBehavior
         )
         Row(
             Modifier.background(colorTabBackground).fillMaxWidth().padding(bottom = 8.dp),

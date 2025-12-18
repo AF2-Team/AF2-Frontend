@@ -13,10 +13,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.resources.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 
-// Recurso generado
+
 import af2.composeapp.generated.resources.Res
-import af2.composeapp.generated.resources.logo_header// ASEGURATE DE TENER ESTA IMAGEN EN RESOURCES
+import af2.composeapp.generated.resources.logo_header
+
 
 @Composable
 fun HomeHeader(
@@ -31,8 +33,7 @@ fun HomeHeader(
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // 1. Logo a la izquierda
-        // Si no tienes 'logo_header' aún, usa un Box placeholder para que no crashee
+       // Logo a la izquierda
         Image(
             painter = painterResource(Res.drawable.logo_header),
             contentDescription = "Logo Header",
@@ -43,7 +44,7 @@ fun HomeHeader(
 
         Spacer(modifier = Modifier.weight(1f)) // Empuja lo siguiente a la derecha
 
-        // 2. Botones de Navegación (Texto)
+        // Botones de Navegación (Texto)
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = "Inicio",
@@ -54,7 +55,6 @@ fun HomeHeader(
             )
 
             Spacer(modifier = Modifier.width(20.dp))
-
             Text(
                 text = "Etiquetas",
                 fontSize = 16.sp,

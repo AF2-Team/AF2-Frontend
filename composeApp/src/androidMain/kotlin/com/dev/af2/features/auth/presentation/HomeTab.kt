@@ -48,10 +48,6 @@ object HomeTab : Tab {
                 Post("3", "traveler_ve", "", "", "Los atardeceres de Barquisimeto son únicos 🌅", 340, 45, isLiked = true),
             )
         }
-
-        Scaffold(
-
-        ) { innerPadding ->
             LazyColumn(
                 modifier = Modifier
             ) {
@@ -65,6 +61,6 @@ object HomeTab : Tab {
                     )
                 }
             }
-        }
+
     }
 }

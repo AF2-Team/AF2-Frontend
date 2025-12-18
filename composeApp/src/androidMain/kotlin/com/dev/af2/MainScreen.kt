@@ -1,12 +1,11 @@
 package com.dev.af2
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChatBubbleOutline // O Email/Send
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.NotificationsNone // O FavoriteBorder
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -25,7 +24,15 @@ import cafe.adriel.voyager.navigator.tab.TabNavigator
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import androidx.compose.runtime.remember
 import androidx.compose.foundation.layout.size
-
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.expandVertically
 // Importa tu HomeTab real
 import com.dev.af2.features.auth.presentation.HomeTab
 import com.dev.af2.features.auth.presentation.components.CustomTopBar
@@ -40,15 +47,29 @@ class MainScreen : Screen {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun Content() {
+        val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+
+        val isBottomBarVisible by remember {
+            derivedStateOf { scrollBehavior.state.heightOffset > -10f }
+        }
+
+
         // Configuramos el TabNavigator con la pestaña inicial
         TabNavigator(HomeTab) {
             Scaffold(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection),
                 topBar = {
                     val tabNavigator = LocalTabNavigator.current
-                    CustomTopBar(tabNavigator)
+                    CustomTopBar(tabNavigator, scrollBehavior)
                 },
                 bottomBar = {
+                    AnimatedVisibility (
+                        visible = isBottomBarVisible,
+                        enter = slideInVertically { it } + expandVertically() + fadeIn(),
+                        exit = slideOutVertically { it } + shrinkVertically() + fadeOut()
+                    ){
                     NavigationBar(
                         containerColor = ColorTabBackground,
                         tonalElevation = 0.dp,
@@ -58,13 +79,14 @@ class MainScreen : Screen {
                         TabNavigationItem(SearchTab)
                         TabNavigationItem(NotificationsTab)
                         TabNavigationItem(MessagesTab)
-                    }
+                    }}
                 }
 
             ) { innerPadding ->
                 Box(
-                    modifier = Modifier.fillMaxSize()
-                      //  .padding(innerPadding)
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
                 ){
                     CurrentTab()
                 }
