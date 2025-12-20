@@ -12,6 +12,7 @@ import org.jetbrains.compose.resources.Font
 import af2.composeapp.generated.resources.Res
 import af2.composeapp.generated.resources.alegreya_variable
 import af2.composeapp.generated.resources.alegreya_italic_variable
+import af2.composeapp.generated.resources.opensans_italic
 
 
 // 1. Definimos la Familia de Fuentes
@@ -23,6 +24,13 @@ fun getAlegreyaFontFamily(): FontFamily {
         Font(resource = Res.font.alegreya_italic_variable, weight = FontWeight.Normal, style = FontStyle.Italic)
     )
 }
+@Composable
+fun getOpenSansFontFamily(): FontFamily {
+    return FontFamily(
+         Font(resource = Res.font.opensans_italic, weight = FontWeight.Normal, style = FontStyle.Italic)
+    )
+}
+
 
 // 2. Definimos la Tipografía de Material Design (Opcional, pero recomendado)
 // Esto sobreescribe los estilos por defecto (Body, Headline, etc.)
