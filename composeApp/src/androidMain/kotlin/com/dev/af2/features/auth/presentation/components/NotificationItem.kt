@@ -24,7 +24,7 @@ import org.jetbrains.compose.resources.painterResource
 // Imports de tu proyecto
 import com.dev.af2.features.auth.domain.Notification
 import com.dev.af2.features.auth.domain.NotificationType
-import com.dev.af2.core.designsystem.getAlegreyaFontFamily
+import com.dev.af2.core.designsystem.getOpenSansFontFamily
 import af2.composeapp.generated.resources.Res
 import af2.composeapp.generated.resources.logo_watercolor // Avatar Placeholder
 import androidx.compose.ui.tooling.preview.Preview
@@ -39,7 +39,7 @@ fun NotificationItem(
     onItemClick: () -> Unit,
     onButtonClick: () -> Unit // Para seguir/dejar de seguir
 ) {
-    val alegreyaFamily = getAlegreyaFontFamily()
+    val openSansFamily = getOpenSansFontFamily()
 
     Row(
         modifier = Modifier
@@ -93,7 +93,7 @@ fun NotificationItem(
                         }
                     },
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        fontFamily = alegreyaFamily,
+                        fontFamily = openSansFamily,
                         fontSize = 15.sp,
                         lineHeight = 20.sp
                     )

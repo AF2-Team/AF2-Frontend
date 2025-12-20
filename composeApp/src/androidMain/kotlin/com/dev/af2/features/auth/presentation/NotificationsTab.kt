@@ -29,7 +29,7 @@ import cafe.adriel.voyager.navigator.tab.TabOptions
 import com.dev.af2.features.auth.domain.Notification
 import com.dev.af2.features.auth.domain.NotificationType
 import com.dev.af2.features.auth.presentation.components.NotificationItem
-import com.dev.af2.core.designsystem.getAlegreyaFontFamily
+import com.dev.af2.core.designsystem.getOpenSansFontFamily
 
 object NotificationsTab : Tab {
 
@@ -42,7 +42,7 @@ object NotificationsTab : Tab {
 
     @Composable
     override fun Content() {
-        val alegreyaFamily = getAlegreyaFontFamily()
+        val openSansFamily = getOpenSansFontFamily()
 
         // --- DATOS MOCK ---
         val todayNotifications = remember {
@@ -73,7 +73,7 @@ object NotificationsTab : Tab {
                     Text(
                         text = "Notificaciones",
                         style = MaterialTheme.typography.headlineMedium.copy(
-                            fontFamily = alegreyaFamily,
+                            fontFamily = openSansFamily,
                             fontWeight = FontWeight.Bold,
                             fontSize = 24.sp,
                             color = Color.Black
@@ -117,7 +117,9 @@ object NotificationsTab : Tab {
 // Helper para los títulos de sección (Sticky Header style)
 @Composable
 private fun SectionHeader(text: String) {
-    val alegreyaFamily = getAlegreyaFontFamily() // Importarlo si es necesario
+    val openSansFamily = getOpenSansFontFamily()
+
+     // Importarlo si es necesario
     Text(
         text = text,
         style = MaterialTheme.typography.titleMedium.copy(
