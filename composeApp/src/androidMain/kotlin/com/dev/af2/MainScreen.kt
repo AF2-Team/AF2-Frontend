@@ -122,7 +122,7 @@ private fun RowScope.TabNavigationItem(tab: Tab) {
     )
 }
 
-// --- TABS (Placeholder para las pantallas que aún no creas) ---
+// --- TABS (Placeholder para las pantallas que aún estan) ---
 
 // 1. Búsqueda
 object SearchTab : Tab {

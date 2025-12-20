@@ -31,6 +31,9 @@ import cafe.adriel.voyager.navigator.tab.TabNavigator
 import com.dev.af2.features.auth.presentation.HomeTab
 //import com.dev.af2.features.auth.presentation.TagTab
 import org.jetbrains.compose.resources.painterResource
+import af2.composeapp.generated.resources.image_profile
+import androidx.compose.ui.layout.ContentScale.Companion
+import androidx.core.content.contentValuesOf
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,10 +47,11 @@ fun CustomTopBar(tabNavigator: TabNavigator, scrollBehavior: TopAppBarScrollBeha
                 modifier = Modifier.size(32.dp)
             ) },
             actions = {
-                Box(
-                    modifier = Modifier.padding(horizontal = 8.dp).size(32.dp).clip(
-                        CircleShape
-                    ).background(Color.Red)
+                Image(
+                    painter = painterResource(Res.drawable.image_profile),
+                    contentDescription = null,
+                    modifier = Modifier.padding(horizontal = 8.dp).size(32.dp).clip(CircleShape),
+                    contentScale = Companion.Crop,
                 )
             },
             colors = TopAppBarDefaults.topAppBarColors(

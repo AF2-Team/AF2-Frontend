@@ -30,8 +30,8 @@ import org.jetbrains.compose.resources.painterResource
 import com.dev.af2.features.auth.domain.Post
 import com.dev.af2.core.designsystem.getAlegreyaFontFamily
 import af2.composeapp.generated.resources.Res
-import af2.composeapp.generated.resources.logo_watercolor // Usamos imágenes placeholder por ahora
-
+import af2.composeapp.generated.resources.image_post// Usamos imágenes placeholder por ahora
+import af2.composeapp.generated.resources.image_post2
 @Composable
 fun PostItem(
     post: Post,
@@ -59,7 +59,7 @@ fun PostItem(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 // Avatar (Placeholder)
                 Image(
-                    painter = painterResource(Res.drawable.logo_watercolor),
+                    painter = painterResource(Res.drawable.image_post2),
                     contentDescription = null,
                     modifier = Modifier
                         .size(40.dp)
@@ -106,7 +106,7 @@ fun PostItem(
                 .background(Color(0xFFF0F0F0))
         ) {
             Image(
-                painter = painterResource(Res.drawable.logo_watercolor), // Placeholder
+                painter = painterResource(Res.drawable.image_post), // Placeholder
                 contentDescription = "Post Image",
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
