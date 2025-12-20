@@ -36,7 +36,7 @@ import androidx.compose.animation.expandVertically
 // Importa tu HomeTab real
 import com.dev.af2.features.auth.presentation.HomeTab
 import com.dev.af2.features.auth.presentation.components.CustomTopBar
-
+import com.dev.af2.features.auth.presentation.NotificationsTab
 
 private val ColorTabBackground = Color(0xFF423646) // DeepPurple de tu paleta
 private val ColorIconSelected = Color.White
