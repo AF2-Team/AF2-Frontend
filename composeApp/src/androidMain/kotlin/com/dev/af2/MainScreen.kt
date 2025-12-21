@@ -33,11 +33,14 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.expandVertically
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.material.icons.filled.AddBox
 import androidx.compose.runtime.LaunchedEffect
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Shape
 import com.dev.af2.features.auth.presentation.HomeTab
 import com.dev.af2.features.auth.presentation.components.CustomTopBar
@@ -106,6 +109,7 @@ class MainScreen : Screen {
                         exit = slideOutVertically { it } + shrinkVertically() + fadeOut()
                     ){
                     NavigationBar(
+                        modifier = Modifier.fillMaxWidth().requiredHeight(100.dp),
                         containerColor = ColorTabBackground,
                         tonalElevation = 0.dp,
                     ) {
@@ -120,7 +124,7 @@ class MainScreen : Screen {
             ) { innerPadding ->
                 Box(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .fillMaxWidth()
                         .padding(innerPadding)
                 ){
                     CurrentTab()
@@ -144,7 +148,7 @@ private fun RowScope.TabNavigationItem(tab: Tab) {
                 Icon(
                     painter = iconPainter,
                     contentDescription = tab.options.title,
-                    modifier = Modifier.size(32.dp),
+                    modifier = Modifier.size(20.dp),
                     // Color dinámico: Rosa/Morado si seleccionado, Gris oscuro si no
                     tint = if (isSelected) ColorIconSelected else ColorIconUnselected
                 )
