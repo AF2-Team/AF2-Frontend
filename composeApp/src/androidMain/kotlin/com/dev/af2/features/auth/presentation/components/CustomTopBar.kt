@@ -34,11 +34,15 @@ import org.jetbrains.compose.resources.painterResource
 import af2.composeapp.generated.resources.image_profile
 import androidx.compose.ui.layout.ContentScale.Companion
 import androidx.core.content.contentValuesOf
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
+import com.dev.af2.features.auth.presentation.profile.ProfilePage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomTopBar(tabNavigator: TabNavigator, scrollBehavior: TopAppBarScrollBehavior) {
     val colorTabBackground = Color(0xFF423646)
+    val rootNavigator = LocalNavigator.currentOrThrow.parent
     Column() {
         TopAppBar(
             title = { Image(
@@ -50,7 +54,8 @@ fun CustomTopBar(tabNavigator: TabNavigator, scrollBehavior: TopAppBarScrollBeha
                 Image(
                     painter = painterResource(Res.drawable.image_profile),
                     contentDescription = null,
-                    modifier = Modifier.padding(horizontal = 8.dp).size(32.dp).clip(CircleShape),
+                    modifier = Modifier.padding(horizontal = 8.dp).size(32.dp).clip(CircleShape)
+                        .clickable{ rootNavigator?.push(ProfilePage()) },
                     contentScale = Companion.Crop,
                 )
             },
