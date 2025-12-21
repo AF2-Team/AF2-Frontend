@@ -30,8 +30,9 @@ import org.jetbrains.compose.resources.painterResource
 import com.dev.af2.features.auth.domain.Post
 import com.dev.af2.core.designsystem.getAlegreyaFontFamily
 import af2.composeapp.generated.resources.Res
-import af2.composeapp.generated.resources.image_post// Usamos imágenes placeholder por ahora
+import coil3.compose.AsyncImage
 import af2.composeapp.generated.resources.image_post2
+import af2.composeapp.generated.resources.image_post3
 @Composable
 fun PostItem(
     post: Post,
@@ -105,13 +106,25 @@ fun PostItem(
                 .aspectRatio(4f/5f) // Altura tipo Instagram vertical
                 .background(Color(0xFFF0F0F0))
         ) {
-            Image(
-                painter = painterResource(Res.drawable.image_post), // Placeholder
-                contentDescription = "Post Image",
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
+            // LÓGICA: Si hay URL/URI, usa AsyncImage. Si no, usa el placeholder.
+            if (post.imageUrl.isNotEmpty()) {
+                AsyncImage(
+                    model = post.imageUrl, // Carga la URI del dispositivo
+                    contentDescription = "Post Image",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                // Imagen estática para los posts de prueba
+                Image(
+                    painter = painterResource(Res.drawable.image_post3),
+                    contentDescription = "Placeholder",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            }
         }
+
 
         // --- 3. ACCIONES (Like, Comentar, Compartir) ---
         Row(

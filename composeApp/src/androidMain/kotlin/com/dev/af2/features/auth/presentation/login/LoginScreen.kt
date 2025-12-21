@@ -64,7 +64,7 @@ class LoginPage : Screen {
         LoginScreen(
             onLoginClick = { email, pass ->
                 println("Login: $email")
-                navigator.push(MainScreen()) // Ir al Home
+                navigator.replaceAll(MainScreen()) // Ir al Home
             },
             onRegisterClick = {
                 navigator.pop() // Volver al registro si vino de allá, o push(RegisterPage())

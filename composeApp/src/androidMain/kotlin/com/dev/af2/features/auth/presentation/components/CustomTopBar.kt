@@ -64,7 +64,7 @@ fun CustomTopBar(tabNavigator: TabNavigator, scrollBehavior: TopAppBarScrollBeha
             Modifier.background(colorTabBackground).fillMaxWidth().padding(bottom = 8.dp),
             horizontalArrangement = Arrangement.Center
         ) {
-            CustomTopBarItem(tabNavigator = tabNavigator, tabModel = HomeTab)
+            CustomTopBarItem(tabNavigator = tabNavigator, tabModel = HomeTab())
             Spacer(Modifier.width(16.dp))
             //CustomTopBarItem(tabNavigator = tabNavigator, tabModel = TagTab)
         }

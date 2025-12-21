@@ -263,7 +263,7 @@ private fun ReactStyleInput(
             onValueChange = onValueChange,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp) // Altura exacta
+                .height(40.dp) // Altura exacta
                 .background(ColorInputBg, RoundedCornerShape(12.dp))
                 .border(
                     width = 1.dp,

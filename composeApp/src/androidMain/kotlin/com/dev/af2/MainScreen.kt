@@ -33,29 +33,39 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.expandVertically
-// Importa tu HomeTab real
+import androidx.compose.material.icons.filled.AddBox
+import androidx.compose.runtime.LaunchedEffect
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.ui.graphics.Shape
 import com.dev.af2.features.auth.presentation.HomeTab
 import com.dev.af2.features.auth.presentation.components.CustomTopBar
 import com.dev.af2.features.auth.presentation.NotificationsTab
 import com.dev.af2.features.auth.presentation.MessagesTab
+import com.dev.af2.features.auth.presentation.components.CreatePostPage
+
 private val ColorTabBackground = Color(0xFF423646) // DeepPurple de tu paleta
 private val ColorIconSelected = Color.White
 private val ColorIconUnselected = Color.White.copy(alpha = 0.6f)
+private val ColorBlue = Color(0xFF1DA1F2)
 class MainScreen : Screen {
     override val key: ScreenKey = uniqueScreenKey
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun Content() {
-        val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
+        val rootNavigator = LocalNavigator.currentOrThrow
+
+        val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
         val isBottomBarVisible by remember {
             derivedStateOf { scrollBehavior.state.heightOffset > -10f }
         }
 
 
         // Configuramos el TabNavigator con la pestaña inicial
-        TabNavigator(HomeTab) {
+        TabNavigator(HomeTab()) {
             Scaffold(
                 modifier = Modifier
                     .fillMaxSize()
@@ -63,6 +73,31 @@ class MainScreen : Screen {
                 topBar = {
                     val tabNavigator = LocalTabNavigator.current
                     CustomTopBar(tabNavigator, scrollBehavior)
+                },
+                floatingActionButton = {
+                    // Solo mostramos el FAB si la barra de abajo es visible (opcional)
+                    AnimatedVisibility(
+                        visible = isBottomBarVisible,
+                        enter = fadeIn(),
+                        exit = fadeOut()
+                    ) {
+                        FloatingActionButton(
+                            onClick = {
+                                // Navegamos usando el rootNavigator
+                                rootNavigator.push(CreatePostPage())
+                            },
+                            containerColor = ColorBlue, // Azul
+                            contentColor = Color.White,
+                            shape = MaterialTheme.shapes.medium, // Redondo
+                            modifier = Modifier.size(56.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Crear Post",
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
                 },
                 bottomBar = {
                     AnimatedVisibility (
@@ -75,7 +110,7 @@ class MainScreen : Screen {
                         tonalElevation = 0.dp,
                     ) {
                         // --- LOS 4 ÍCONOS ---
-                        TabNavigationItem(HomeTab)
+                        TabNavigationItem(HomeTab())
                         TabNavigationItem(SearchTab)
                         TabNavigationItem(NotificationsTab)
                         TabNavigationItem(MessagesTab)
@@ -120,6 +155,36 @@ private fun RowScope.TabNavigationItem(tab: Tab) {
         ),
         alwaysShowLabel = false // Solo íconos
     )
+}
+
+class AddPostTab : Tab {
+    override val options: TabOptions
+        @Composable
+        get() {
+            val title = "Crear"
+            // Usa el icono de "Más" o "Cámara"
+            val icon = rememberVectorPainter(Icons.Default.AddBox) // O AddCircleOutline
+            return remember { TabOptions(index = 2u, title = title, icon = icon) }
+        }
+
+    @Composable
+    override fun Content() {
+        // Obtenemos el navegador raíz (el padre del TabNavigator)
+        val tabNavigator = LocalTabNavigator.current
+        val rootNavigator = LocalNavigator.currentOrThrow
+
+        // <<--- LA MAGIA ESTÁ AQUÍ --- >>
+        // Usamos LaunchedEffect para que esta acción se ejecute solo una vez
+        // cuando el usuario navega a esta pestaña.
+        LaunchedEffect(Unit) {
+            // 1. LANZAMOS la CreatePostPage a la pila de navegación principal.
+            rootNavigator.push(CreatePostPage())
+
+            // 2. INMEDIATAMENTE DESPUÉS, volvemos a la pestaña anterior (HomeTab).
+            // Esto evita que la pestaña "Add" se quede seleccionada con una pantalla en blanco.
+            tabNavigator.current = HomeTab() // O la pestaña que consideres tu "feed" principal
+        }
+    }
 }
 
 // --- TABS (Placeholder para las pantallas que aún estan) ---

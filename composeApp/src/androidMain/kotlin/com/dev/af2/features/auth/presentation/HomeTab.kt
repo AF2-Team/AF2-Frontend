@@ -12,15 +12,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
+import com.dev.af2.features.auth.data.PostRepository
 
-
-import com.dev.af2.features.auth.domain.Post
-import com.dev.af2.features.auth.presentation.components.HomeHeader
 import com.dev.af2.features.auth.presentation.components.PostItem
 
 
 
-object HomeTab : Tab {
+class HomeTab : Tab {
 
     // Configuración para el BottomBar
     override val options: TabOptions
@@ -41,14 +39,8 @@ object HomeTab : Tab {
     @Composable
     override fun Content() {
         // Datos Mock (Simulando Backend)
-        val posts = remember {
-            listOf(
-                Post("1", "alirio_dev", "", "", "Disfrutando de KMP! 🚀 #Kotlin #Dev", 120, 5),
-                Post("2", "design_pro", "", "", "Nuevo diseño disponible en Figma ✨", 85, 12),
-                Post("3", "traveler_ve", "", "", "Los atardeceres de Barquisimeto son únicos 🌅", 340, 45, isLiked = true),
-            )
-        }
-            LazyColumn(
+        val posts = PostRepository.posts
+        LazyColumn(
                 modifier = Modifier
             ) {
                 items(posts) { post ->
