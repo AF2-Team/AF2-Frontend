@@ -11,6 +11,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
@@ -23,6 +24,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -37,11 +39,11 @@ import coil3.compose.AsyncImage
 import org.jetbrains.compose.resources.painterResource
 
 // Imports de tu proyecto
-import com.dev.af2.core.designsystem.getAlegreyaFontFamily
-import com.dev.af2.features.auth.data.PostRepository
+import com.dev.af2.core.designsystem.getOpenSansFontFamily
 import af2.composeapp.generated.resources.Res
-import af2.composeapp.generated.resources.logo_watercolor
-import af2.composeapp.generated.resources.image_profile // Asegúrate de tener un placeholder o usa logo_watercolor
+import af2.composeapp.generated.resources.image_profile
+import af2.composeapp.generated.resources.image_post4
+import com.dev.af2.features.auth.data.PostRepository
 
 // --- COLORES ---
 private val ColorBgWhite = Color.White
@@ -67,203 +69,250 @@ fun ProfileScreen(
     onBackClick: () -> Unit,
     onPostClick: (String) -> Unit
 ) {
-    val alegreyaFamily = getAlegreyaFontFamily()
+    val openSansFamily = getOpenSansFontFamily()
 
-    // --- ESTADO DEL PERFIL ---
-    // En una app real, esto vendría de un UserViewModel
+    // Estados
     var profileImageUri by remember { mutableStateOf<Uri?>(null) }
     val username = "Luis Carrillo"
     val handle = "@Grindlow"
     val bio = "Mobile Developer | Kotlin Multiplatform Enthusiast 🚀"
 
-    // --- FILTRAR MIS POSTS ---
-    // Obtenemos solo los posts donde el usuario es "Yo" (como definimos en CreatePost)
     val myPosts = remember { PostRepository.posts.filter { it.username == "Yo" } }
 
-    // --- SELECTOR DE FOTO DE PERFIL ---
     val photoLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri -> if (uri != null) profileImageUri = uri }
     )
 
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        username,
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontFamily = alegreyaFamily,
-                            fontWeight = FontWeight.Bold,
-                            color = ColorDarkText
-                        )
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Atrás",
-                            tint = ColorDarkText
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = ColorBgWhite)
-            )
-        },
-        containerColor = ColorBgWhite
-    ) { paddingValues ->
+    // USAMOS UN BOX COMO RAIZ PARA SUPERPONER CAPAS
+    Box(modifier = Modifier.fillMaxSize().background(ColorBgWhite)) {
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
+        // --- CAPA 1: CONTENIDO CON SCROLL (FONDO) ---
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(3),
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 16.dp), // Padding solo abajo
+            horizontalArrangement = Arrangement.spacedBy(1.dp),
+            verticalArrangement = Arrangement.spacedBy(1.dp)
         ) {
 
-            // 1. CABECERA DEL PERFIL
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // AVATAR CON CAMBIO DE FOTO
-                Box(
-                    contentAlignment = Alignment.BottomEnd,
-                    modifier = Modifier
-                        .size(100.dp)
-                        .clickable {
-                            // Abrir galería al tocar la foto
-                            photoLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                        }
-                ) {
-                    // Imagen
-                    if (profileImageUri != null) {
-                        AsyncImage(
-                            model = profileImageUri,
-                            contentDescription = "Foto de perfil",
-                            modifier = Modifier.fillMaxSize().clip(CircleShape),
-                            contentScale = ContentScale.Crop
-                        )
-                    } else {
-                        Image(
-                            painter = painterResource(Res.drawable.image_profile), // O logo_watercolor
-                            contentDescription = "Foto de perfil",
-                            modifier = Modifier.fillMaxSize().clip(CircleShape),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-
-                    // Icono pequeño de "Editar"
+            // ÍTEM 1: HEADER COMPLETO (Banner + Avatar + Info)
+            // span = { GridItemSpan(3) } hace que ocupe todo el ancho
+            item(span = { GridItemSpan(3) }) {
+                Column {
+                    // --- ÁREA DEL BANNER Y AVATAR ---
                     Box(
                         modifier = Modifier
-                            .size(30.dp)
-                            .clip(CircleShape)
-                            .background(ColorAccent)
-                            .border(2.dp, Color.White, CircleShape),
-                        contentAlignment = Alignment.Center
+                            .fillMaxWidth()
+                            .height(240.dp) // Aumentamos altura para que cubra bien el TopBar
                     ) {
+                        // 1. IMAGEN DEL BANNER (Ocupa todo el espacio superior)
+                        Image(
+                            painter = painterResource(Res.drawable.image_post4),
+                            contentDescription = "Banner",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(190.dp) // El banner llega hasta aquí
+                                .align(Alignment.TopCenter)
+                        )
+
+                        // Sombra degradada superior para que se vea el botón atrás
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(80.dp)
+                                .background(
+                                    Brush.verticalGradient(
+                                        colors = listOf(Color.Black.copy(alpha = 0.6f), Color.Transparent)
+                                    )
+                                )
+                                .align(Alignment.TopCenter)
+                        )
+
+                        // 2. AVATAR (Superpuesto)
+                        Box(
+                            contentAlignment = Alignment.BottomEnd,
+                            modifier = Modifier
+                                .size(110.dp) // Un poco más grande
+                                .align(Alignment.BottomCenter) // Alineado abajo del Box contenedor (240dp)
+                                .offset(y = 0.dp)
+                                .clickable {
+                                    photoLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                                }
+                        ) {
+                            // Círculo blanco para el borde
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape)
+                                    .background(ColorBgWhite) // Borde blanco falso
+                                    .padding(4.dp) // Grosor del borde
+                            ) {
+                                if (profileImageUri != null) {
+                                    AsyncImage(
+                                        model = profileImageUri,
+                                        contentDescription = "Perfil",
+                                        modifier = Modifier.fillMaxSize().clip(CircleShape),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                } else {
+                                    Image(
+                                        painter = painterResource(Res.drawable.image_profile),
+                                        contentDescription = "Perfil",
+                                        modifier = Modifier.fillMaxSize().clip(CircleShape),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+                            }
+
+                            // Icono editar
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .offset(x = (-4).dp, y = (-4).dp)
+                                    .clip(CircleShape)
+                                    .background(ColorAccent)
+                                    .border(2.dp, ColorBgWhite, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.AddAPhoto,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    // --- INFO DEL PERFIL ---
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = username, // Nombre (Luis Carrillo)
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                fontFamily = openSansFamily,
+                                fontWeight = FontWeight.Bold,
+                                color = ColorDarkText
+                            )
+                        )
+                        Text(
+                            text = handle, // @Grindlow
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.Gray
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = bio,
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = ColorDarkText,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                lineHeight = 20.sp
+                            ),
+                            modifier = Modifier.padding(horizontal = 24.dp)
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // ESTADÍSTICAS
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            ProfileStat(count = myPosts.size.toString(), label = "Posts")
+                            ProfileStat(count = "1.2k", label = "Seguidores")
+                            ProfileStat(count = "450", label = "Seguidos")
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // BARRA DE PESTAÑAS (Icono Grid)
                         Icon(
-                            imageVector = Icons.Default.AddAPhoto,
-                            contentDescription = "Cambiar foto",
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp)
+                            imageVector = Icons.Default.GridOn,
+                            contentDescription = null,
+                            tint = ColorAccent,
+                            modifier = Modifier.size(28.dp)
+                        )
+                        HorizontalDivider(
+                            color = ColorAccent.copy(alpha = 0.3f),
+                            modifier = Modifier.padding(top = 8.dp, bottom = 2.dp)
                         )
                     }
                 }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // HANDLE & BIO
-                Text(
-                    text = handle,
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = ColorDarkText
-                    )
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = bio,
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = Color.Gray,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                    ),
-                    modifier = Modifier.padding(horizontal = 24.dp)
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // ESTADÍSTICAS
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    ProfileStat(count = myPosts.size.toString(), label = "Posts")
-                    ProfileStat(count = "1.2k", label = "Seguidores")
-                    ProfileStat(count = "450", label = "Seguidos")
-                }
             }
 
-            // 2. BARRA DE PESTAÑAS (Solo visual por ahora: Grid)
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.GridOn,
-                    contentDescription = "Grid",
-                    tint = ColorAccent,
-                    modifier = Modifier.size(28.dp)
-                )
-            }
-            HorizontalDivider(color = ColorAccent.copy(alpha = 0.3f))
-
-            // 3. GRID DE PUBLICACIONES
+            // ÍTEMS: GRID DE FOTOS
             if (myPosts.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Aún no tienes publicaciones", color = Color.Gray)
+                item(span = { GridItemSpan(3) }) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("Aún no tienes publicaciones", color = Color.Gray)
+                    }
                 }
             } else {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(3), // 3 Columnas estilo Instagram
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(1.dp),
-                    horizontalArrangement = Arrangement.spacedBy(1.dp),
-                    verticalArrangement = Arrangement.spacedBy(1.dp)
-                ) {
-                    items(myPosts) { post ->
-                        Box(
-                            modifier = Modifier
-                                .aspectRatio(1f) // Cuadrado perfecto
-                                .background(Color.LightGray)
-                                .clickable { onPostClick(post.id) }
-                        ) {
-                            if (post.imageUrl.isNotEmpty()) {
-                                AsyncImage(
-                                    model = post.imageUrl,
-                                    contentDescription = null,
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentScale = ContentScale.Crop
-                                )
-                            } else {
-                                // Placeholder si no tiene imagen (solo texto)
-                                Box(
-                                    modifier = Modifier.fillMaxSize().padding(4.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        post.description.take(20),
-                                        fontSize = 10.sp,
-                                        color = ColorDarkText
-                                    )
-                                }
+                items(myPosts) { post ->
+                    Box(
+                        modifier = Modifier
+                            .aspectRatio(1f)
+                            .background(Color.LightGray)
+                            .clickable { onPostClick(post.id) }
+                    ) {
+                        if (post.imageUrl.isNotEmpty()) {
+                            AsyncImage(
+                                model = post.imageUrl,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Text("IMG", color = Color.White)
                             }
                         }
                     }
                 }
             }
         }
+
+        // --- CAPA 2: TOP APP BAR TRANSPARENTE (FLOTANTE) ---
+        CenterAlignedTopAppBar(
+            title = {
+                // Título vacío o puedes ponerlo visible solo al scrollear (lógica avanzada)
+                // De momento vacío para ver el banner limpio
+            },
+            navigationIcon = {
+                // Botón con fondo circular semitransparente para que se vea sobre cualquier imagen
+                IconButton(
+                    onClick = onBackClick,
+                    modifier = Modifier
+                        .background(Color.Black.copy(alpha = 0.3f), CircleShape)
+                        .size(40.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Atrás",
+                        tint = Color.White // Blanco para contrastar con el banner
+                    )
+                }
+            },
+            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                containerColor = Color.Transparent, // ¡Transparente!
+                scrolledContainerColor = Color.Transparent
+            ),
+            modifier = Modifier.align(Alignment.TopCenter) // Fijado arriba
+        )
     }
 }
 
