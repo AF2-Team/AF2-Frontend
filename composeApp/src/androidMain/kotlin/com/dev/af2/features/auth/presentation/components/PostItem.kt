@@ -33,6 +33,10 @@ import af2.composeapp.generated.resources.Res
 import coil3.compose.AsyncImage
 import af2.composeapp.generated.resources.image_post2
 import af2.composeapp.generated.resources.image_post3
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarOutline
+import androidx.compose.material.icons.filled.SubdirectoryArrowRight
+
 @Composable
 fun PostItem(
     post: Post,
@@ -154,7 +158,7 @@ fun PostItem(
                 // Compartir
                 IconButton(onClick = onShareClick) {
                     Icon(
-                        imageVector = Icons.Default.Send, // El avioncito de papel
+                        imageVector = Icons.Default.SubdirectoryArrowRight,
                         contentDescription = "Share",
                         tint = Color.Black
                     )
@@ -164,7 +168,7 @@ fun PostItem(
             // Guardar (Favorito)
             IconButton(onClick = { /* Save logic */ }) {
                 Icon(
-                    imageVector = Icons.Default.BookmarkBorder,
+                    imageVector =if (post.isSaved) Icons.Default.Star else Icons.Default.StarOutline,
                     contentDescription = "Save",
                     tint = Color.Black
                 )

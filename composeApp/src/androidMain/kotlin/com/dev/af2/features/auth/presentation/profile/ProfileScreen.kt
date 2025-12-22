@@ -38,13 +38,13 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import coil3.compose.AsyncImage
 import org.jetbrains.compose.resources.painterResource
 
-// Imports de tu proyecto
+import androidx.compose.material.icons.filled.Settings
 import com.dev.af2.core.designsystem.getOpenSansFontFamily
 import af2.composeapp.generated.resources.Res
 import af2.composeapp.generated.resources.image_profile
 import af2.composeapp.generated.resources.image_post4
 import com.dev.af2.features.auth.data.PostRepository
-
+import com.dev.af2.features.auth.presentation.settings.SettingsPage
 // --- COLORES ---
 private val ColorBgWhite = Color.White
 private val ColorDarkText = Color(0xFF423646)
@@ -58,7 +58,8 @@ class ProfilePage : Screen {
         val navigator = LocalNavigator.currentOrThrow
         ProfileScreen(
             onBackClick = { navigator.pop() },
-            onPostClick = { postId -> println("Ver detalle post: $postId") }
+            onPostClick = { postId -> println("Ver detalle post: $postId") },
+            onSettingsClick = { navigator.push(SettingsPage()) }
         )
     }
 }
@@ -67,7 +68,8 @@ class ProfilePage : Screen {
 @Composable
 fun ProfileScreen(
     onBackClick: () -> Unit,
-    onPostClick: (String) -> Unit
+    onPostClick: (String) -> Unit,
+    onSettingsClick: () -> Unit
 ) {
     val openSansFamily = getOpenSansFontFamily()
 
@@ -304,6 +306,21 @@ fun ProfileScreen(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Atrás",
                         tint = Color.White // Blanco para contrastar con el banner
+                    )
+                }
+            },
+            actions = {
+                IconButton(
+                    onClick = onSettingsClick,
+                    modifier = Modifier
+                        .padding(end = 8.dp) // Un poco de margen derecho
+                        .background(Color.Black.copy(alpha = 0.3f), CircleShape)
+                        .size(40.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "Configuración",
+                        tint = Color.White
                     )
                 }
             },
