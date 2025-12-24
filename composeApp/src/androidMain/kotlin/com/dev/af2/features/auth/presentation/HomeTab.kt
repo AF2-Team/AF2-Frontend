@@ -10,9 +10,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import com.dev.af2.features.auth.data.PostRepository
+import com.dev.af2.features.auth.presentation.comments.CommentsPage
 
 import com.dev.af2.features.auth.presentation.components.PostItem
 
@@ -40,14 +43,16 @@ class HomeTab : Tab {
     override fun Content() {
         // Datos Mock (Simulando Backend)
         val posts = PostRepository.posts
+        val rootNavigator = LocalNavigator.currentOrThrow.parent ?: LocalNavigator.currentOrThrow
         LazyColumn(
                 modifier = Modifier
             ) {
                 items(posts) { post ->
                     PostItem(
                         post = post,
+
                         onLikeClick = { println("Like post ${post.id}") },
-                        onCommentClick = { println("Comment post ${post.id}") },
+                        onCommentClick = {rootNavigator.push(CommentsPage(post.id))},
                         onShareClick = { println("Share post ${post.id}") },
                         onProfileClick = { println("Profile ${post.username}") }
                     )
