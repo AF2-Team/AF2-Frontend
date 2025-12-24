@@ -34,6 +34,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 // Imports de tu proyecto
 import com.dev.af2.core.designsystem.getOpenSansFontFamily
 import com.dev.af2.features.auth.presentation.login.LoginPage
+import com.dev.af2.features.auth.presentation.settings.changepassword.ChangePasswordPage
 
 // --- COLORES ---
 private val ColorBgWhite = Color.White
@@ -66,7 +67,7 @@ fun SettingsScreen(
     onLogoutClick: () -> Unit
 ) {
     val openSansFamily = getOpenSansFontFamily()
-
+    val navigator = LocalNavigator.currentOrThrow
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -114,7 +115,7 @@ fun SettingsScreen(
                 SettingsItem(
                     icon = Icons.Default.Lock,
                     title = "Cambiar contraseña",
-                    onClick = { /* Navegar a seguridad */ }
+                    onClick = { navigator.push(ChangePasswordPage()) }
                 )
             }
 
