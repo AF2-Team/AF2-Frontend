@@ -1,24 +1,36 @@
 package com.dev.af2.features.auth.presentation.profile
 
 
+import androidx.compose.ui.composed
+import androidx.compose.ui.platform.debugInspectorInfo
+import androidx.compose.ui.unit.Dp
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddAPhoto
+import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.GridOn
+import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -36,19 +49,22 @@ import cafe.adriel.voyager.core.screen.uniqueScreenKey
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import coil3.compose.AsyncImage
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 
-import androidx.compose.material.icons.filled.Settings
+// Imports de tu proyecto
 import com.dev.af2.core.designsystem.getOpenSansFontFamily
+import com.dev.af2.features.auth.data.PostRepository
+import com.dev.af2.features.auth.presentation.settings.SettingsPage
 import af2.composeapp.generated.resources.Res
 import af2.composeapp.generated.resources.image_profile
 import af2.composeapp.generated.resources.image_post4
-import com.dev.af2.features.auth.data.PostRepository
-import com.dev.af2.features.auth.presentation.settings.SettingsPage
+
 // --- COLORES ---
 private val ColorBgWhite = Color.White
 private val ColorDarkText = Color(0xFF423646)
 private val ColorAccent = Color(0xFFBCA1BD)
+private val ColorGrayText = Color(0xFF888888)
 
 class ProfilePage : Screen {
     override val key: ScreenKey = uniqueScreenKey
@@ -64,7 +80,7 @@ class ProfilePage : Screen {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ProfileScreen(
     onBackClick: () -> Unit,
@@ -72,54 +88,64 @@ fun ProfileScreen(
     onSettingsClick: () -> Unit
 ) {
     val openSansFamily = getOpenSansFontFamily()
+    val scope = rememberCoroutineScope()
 
-    // Estados
+    // Estados de Perfil
     var profileImageUri by remember { mutableStateOf<Uri?>(null) }
     val username = "Luis Carrillo"
     val handle = "@Grindlow"
     val bio = "Mobile Developer | Kotlin Multiplatform Enthusiast 🚀"
 
+    // Datos
     val myPosts = remember { PostRepository.posts.filter { it.username == "Yo" } }
+    // Mocks para otras pestañas (Favoritos, Seguidores...)
+    val savedPosts = remember { PostRepository.posts.take(2) }
+    val followersCount = 1200
+    val followingCount = 450
 
     val photoLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri -> if (uri != null) profileImageUri = uri }
     )
 
-    // USAMOS UN BOX COMO RAIZ PARA SUPERPONER CAPAS
+    // --- PAGER STATE ---
+    // Definimos las 4 pestañas
+    val tabs = listOf(
+        ProfileTabItem.Posts,
+        ProfileTabItem.Saved,
+        ProfileTabItem.Following,
+        ProfileTabItem.Followers
+    )
+    val pagerState = rememberPagerState(pageCount = { tabs.size })
+
     Box(modifier = Modifier.fillMaxSize().background(ColorBgWhite)) {
 
-        // --- CAPA 1: CONTENIDO CON SCROLL (FONDO) ---
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
+        // Usamos LazyColumn como contenedor principal para que toda la pantalla scrollee junta
+        LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 16.dp), // Padding solo abajo
-            horizontalArrangement = Arrangement.spacedBy(1.dp),
-            verticalArrangement = Arrangement.spacedBy(1.dp)
+            contentPadding = PaddingValues(bottom = 16.dp)
         ) {
 
-            // ÍTEM 1: HEADER COMPLETO (Banner + Avatar + Info)
-            // span = { GridItemSpan(3) } hace que ocupe todo el ancho
-            item(span = { GridItemSpan(3) }) {
+            // --- HEADER DEL PERFIL (Item 1) ---
+            item {
                 Column {
-                    // --- ÁREA DEL BANNER Y AVATAR ---
+                    // Banner + Avatar
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(240.dp) // Aumentamos altura para que cubra bien el TopBar
+                            .height(240.dp)
                     ) {
-                        // 1. IMAGEN DEL BANNER (Ocupa todo el espacio superior)
                         Image(
                             painter = painterResource(Res.drawable.image_post4),
                             contentDescription = "Banner",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(190.dp) // El banner llega hasta aquí
+                                .height(190.dp)
                                 .align(Alignment.TopCenter)
                         )
 
-                        // Sombra degradada superior para que se vea el botón atrás
+                        // Sombra superior para botones
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -132,24 +158,22 @@ fun ProfileScreen(
                                 .align(Alignment.TopCenter)
                         )
 
-                        // 2. AVATAR (Superpuesto)
+                        // Avatar
                         Box(
                             contentAlignment = Alignment.BottomEnd,
                             modifier = Modifier
-                                .size(110.dp) // Un poco más grande
-                                .align(Alignment.BottomCenter) // Alineado abajo del Box contenedor (240dp)
-                                .offset(y = 0.dp)
+                                .size(110.dp)
+                                .align(Alignment.BottomCenter)
                                 .clickable {
                                     photoLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                                 }
                         ) {
-                            // Círculo blanco para el borde
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .clip(CircleShape)
-                                    .background(ColorBgWhite) // Borde blanco falso
-                                    .padding(4.dp) // Grosor del borde
+                                    .background(ColorBgWhite)
+                                    .padding(4.dp)
                             ) {
                                 if (profileImageUri != null) {
                                     AsyncImage(
@@ -168,7 +192,6 @@ fun ProfileScreen(
                                 }
                             }
 
-                            // Icono editar
                             Box(
                                 modifier = Modifier
                                     .size(32.dp)
@@ -188,7 +211,7 @@ fun ProfileScreen(
                         }
                     }
 
-                    // --- INFO DEL PERFIL ---
+                    // Info Texto
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -197,7 +220,7 @@ fun ProfileScreen(
                     ) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = username, // Nombre (Luis Carrillo)
+                            text = username,
                             style = MaterialTheme.typography.headlineSmall.copy(
                                 fontFamily = openSansFamily,
                                 fontWeight = FontWeight.Bold,
@@ -205,7 +228,7 @@ fun ProfileScreen(
                             )
                         )
                         Text(
-                            text = handle, // @Grindlow
+                            text = handle,
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 fontWeight = FontWeight.SemiBold,
                                 color = Color.Gray
@@ -221,66 +244,73 @@ fun ProfileScreen(
                             ),
                             modifier = Modifier.padding(horizontal = 24.dp)
                         )
-
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        // ESTADÍSTICAS
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly
-                        ) {
-                            ProfileStat(count = myPosts.size.toString(), label = "Posts")
-                            ProfileStat(count = "1.2k", label = "Seguidores")
-                            ProfileStat(count = "450", label = "Seguidos")
-                        }
-
                         Spacer(modifier = Modifier.height(16.dp))
+                    }
+                }
+            }
 
-                        // BARRA DE PESTAÑAS (Icono Grid)
-                        Icon(
-                            imageVector = Icons.Default.GridOn,
-                            contentDescription = null,
-                            tint = ColorAccent,
-                            modifier = Modifier.size(28.dp)
+            // --- TABS (STICKY HEADER O SIMILAR) ---
+            item {
+                TabRow(
+                    selectedTabIndex = pagerState.currentPage,
+                    containerColor = ColorBgWhite,
+                    contentColor = ColorAccent,
+                    indicator = { tabPositions ->
+                        TabRowDefaults.SecondaryIndicator(
+                            Modifier.tabIndicatorOffset(pagerState.currentPage, tabPositions),
+                            color = ColorAccent
                         )
-                        HorizontalDivider(
-                            color = ColorAccent.copy(alpha = 0.3f),
-                            modifier = Modifier.padding(top = 8.dp, bottom = 2.dp)
+                    }
+                ) {
+                    tabs.forEachIndexed { index, tabItem ->
+                        Tab(
+                            selected = pagerState.currentPage == index,
+                            onClick = {
+                                scope.launch { pagerState.animateScrollToPage(index) }
+                            },
+                            icon = {
+                                Icon(
+                                    imageVector = tabItem.icon,
+                                    contentDescription = tabItem.title,
+                                    tint = if (pagerState.currentPage == index) ColorAccent else Color.Gray
+                                )
+                            },
+                            // Opcional: mostrar texto si quieres, por ahora solo icono es más limpio
+                            // text = { Text(tabItem.title) }
                         )
                     }
                 }
             }
 
-            // ÍTEMS: GRID DE FOTOS
-            if (myPosts.isEmpty()) {
-                item(span = { GridItemSpan(3) }) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("Aún no tienes publicaciones", color = Color.Gray)
-                    }
-                }
-            } else {
-                items(myPosts) { post ->
-                    Box(
-                        modifier = Modifier
-                            .aspectRatio(1f)
-                            .background(Color.LightGray)
-                            .clickable { onPostClick(post.id) }
-                    ) {
-                        if (post.imageUrl.isNotEmpty()) {
-                            AsyncImage(
-                                model = post.imageUrl,
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Text("IMG", color = Color.White)
+            // --- CONTENIDO DEL PAGER (Item) ---
+            item {
+                // Calculamos una altura fija mínima para el pager o dejamos que crezca
+                // En LazyColumn, items internos no pueden tener altura infinita.
+                // Truco: Usamos un height fijo alto o una lógica de custom layout.
+                // Para simplificar ahora, le daremos una altura fija grande,
+                // o mejor, mostramos el contenido directamente según el estado sin Pager vertical.
+
+                // NOTA: HorizontalPager dentro de LazyColumn puede ser conflictivo con gestos.
+                // Sin embargo, para este diseño, funciona si la altura está definida.
+
+                Box(modifier = Modifier.height(500.dp)) { // Altura arbitraria para el área de contenido
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier.fillMaxSize(),
+                        verticalAlignment = Alignment.Top
+                    ) { page ->
+                        when (tabs[page]) {
+                            ProfileTabItem.Posts -> {
+                                PostsGridSection(posts = myPosts, onPostClick = onPostClick)
+                            }
+                            ProfileTabItem.Saved -> {
+                                PostsGridSection(posts = savedPosts, onPostClick = onPostClick)
+                            }
+                            ProfileTabItem.Following -> {
+                                UserListSection(count = followingCount, type = "Siguiendo")
+                            }
+                            ProfileTabItem.Followers -> {
+                                UserListSection(count = followersCount, type = "Seguidores")
                             }
                         }
                     }
@@ -288,64 +318,132 @@ fun ProfileScreen(
             }
         }
 
-        // --- CAPA 2: TOP APP BAR TRANSPARENTE (FLOTANTE) ---
+        // --- TOP BAR FLOTANTE ---
         CenterAlignedTopAppBar(
-            title = {
-                // Título vacío o puedes ponerlo visible solo al scrollear (lógica avanzada)
-                // De momento vacío para ver el banner limpio
-            },
+            title = { },
             navigationIcon = {
-                // Botón con fondo circular semitransparente para que se vea sobre cualquier imagen
                 IconButton(
                     onClick = onBackClick,
                     modifier = Modifier
                         .background(Color.Black.copy(alpha = 0.3f), CircleShape)
                         .size(40.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Atrás",
-                        tint = Color.White // Blanco para contrastar con el banner
-                    )
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, "Atrás", tint = Color.White)
                 }
             },
             actions = {
                 IconButton(
                     onClick = onSettingsClick,
                     modifier = Modifier
-                        .padding(end = 8.dp) // Un poco de margen derecho
+                        .padding(end = 8.dp)
                         .background(Color.Black.copy(alpha = 0.3f), CircleShape)
                         .size(40.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = "Configuración",
-                        tint = Color.White
-                    )
+                    Icon(Icons.Default.Settings, "Configuración", tint = Color.White)
                 }
             },
             colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                containerColor = Color.Transparent, // ¡Transparente!
+                containerColor = Color.Transparent,
                 scrolledContainerColor = Color.Transparent
             ),
-            modifier = Modifier.align(Alignment.TopCenter) // Fijado arriba
+            modifier = Modifier.align(Alignment.TopCenter)
         )
     }
 }
 
+// --- COMPONENTES AUXILIARES ---
+
+// 1. Grid de Posts (Reutilizable para Publicaciones y Favoritos)
 @Composable
-fun ProfileStat(count: String, label: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = count,
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.Bold,
-                color = ColorDarkText
-            )
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray)
-        )
+fun PostsGridSection(
+    posts: List<com.dev.af2.features.auth.domain.Post>, // Asegúrate del import correcto
+    onPostClick: (String) -> Unit
+) {
+    if (posts.isEmpty()) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("No hay publicaciones", color = Color.Gray)
+        }
+    } else {
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(3),
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(1.dp),
+            horizontalArrangement = Arrangement.spacedBy(1.dp),
+            verticalArrangement = Arrangement.spacedBy(1.dp)
+        ) {
+            items(posts) { post ->
+                Box(
+                    modifier = Modifier
+                        .aspectRatio(1f)
+                        .background(Color.LightGray)
+                        .clickable { onPostClick(post.id) }
+                ) {
+                    if (post.imageUrl.isNotEmpty()) {
+                        AsyncImage(
+                            model = post.imageUrl,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        // Placeholder bonito
+                        Box(
+                            modifier = Modifier.fillMaxSize().background(Color(0xFFEEEEEE)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.GridOn, null, tint = Color.Gray)
+                        }
+                    }
+                }
+            }
+        }
     }
+}
+
+// 2. Lista de Usuarios (Para Seguidores/Siguiendo) - Placeholder visual
+@Composable
+fun UserListSection(count: Int, type: String) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = count.toString(),
+            style = MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Bold, color = ColorDarkText)
+        )
+        Text(
+            text = type,
+            style = MaterialTheme.typography.titleMedium.copy(color = Color.Gray)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text("(Lista de usuarios próximamente)", fontSize = 12.sp, color = Color.LightGray)
+    }
+}
+
+// 3. Definición de Tabs
+sealed class ProfileTabItem(val icon: ImageVector, val title: String) {
+    object Posts : ProfileTabItem(Icons.Default.GridOn, "Publicaciones")
+    object Saved : ProfileTabItem(Icons.Default.BookmarkBorder, "Guardados")
+    object Following : ProfileTabItem(Icons.Default.PersonAdd, "Siguiendo") // Icono aproximado
+    object Followers : ProfileTabItem(Icons.Default.Group, "Seguidores")
+}
+
+
+
+fun Modifier.tabIndicatorOffset(
+    currentTabPosition: Int,
+    tabPositions: List<TabPosition>
+): Modifier = composed(
+    inspectorInfo = debugInspectorInfo {
+        name = "tabIndicatorOffset"
+        value = currentTabPosition
+    }
+) {
+    val currentTabWidth = tabPositions[currentTabPosition].width
+    val indicatorOffset = tabPositions[currentTabPosition].left
+    fillMaxWidth()
+        .wrapContentSize(Alignment.BottomStart)
+        .offset(x = indicatorOffset)
+        .width(currentTabWidth)
 }
