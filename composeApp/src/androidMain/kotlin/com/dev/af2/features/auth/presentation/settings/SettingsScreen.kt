@@ -35,6 +35,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.dev.af2.core.designsystem.getOpenSansFontFamily
 import com.dev.af2.features.auth.presentation.login.LoginPage
 import com.dev.af2.features.auth.presentation.settings.changepassword.ChangePasswordPage
+import com.dev.af2.features.auth.presentation.settings.changeusername.ChangeUsernamePage
 
 // --- COLORES ---
 private val ColorBgWhite = Color.White
@@ -107,8 +108,8 @@ fun SettingsScreen(
             item {
                 SettingsItem(
                     icon = Icons.Default.Person,
-                    title = "Editar Perfil",
-                    onClick = { /* Navegar a editar perfil */ }
+                    title = "Cambiar nombre",
+                    onClick = { navigator.push(ChangeUsernamePage())}
                 )
             }
             item {
