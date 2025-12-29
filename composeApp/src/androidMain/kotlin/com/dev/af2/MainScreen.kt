@@ -42,11 +42,13 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Shape
+import cafe.adriel.voyager.navigator.Navigator
 import com.dev.af2.features.auth.presentation.HomeTab
 import com.dev.af2.features.auth.presentation.components.CustomTopBar
 import com.dev.af2.features.auth.presentation.NotificationsTab
 import com.dev.af2.features.auth.presentation.MessagesTab
 import com.dev.af2.features.auth.presentation.components.CreatePostPage
+import com.dev.af2.features.auth.presentation.components.SearchPage
 
 private val ColorTabBackground = Color(0xFF423646) // DeepPurple de tu paleta
 private val ColorIconSelected = Color.White
@@ -206,9 +208,8 @@ object SearchTab : Tab {
     @Composable
     override fun Content() {
         // Aquí iría tu SearchScreen() real
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
-            Text("Pantalla de Búsqueda")
-        }
+        val navigator = LocalNavigator.currentOrThrow
+        Navigator(SearchPage())
     }
 }
 
