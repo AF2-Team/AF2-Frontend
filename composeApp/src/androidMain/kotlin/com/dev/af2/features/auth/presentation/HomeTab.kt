@@ -18,7 +18,8 @@ import com.dev.af2.features.auth.data.PostRepository
 import com.dev.af2.features.auth.presentation.comments.CommentsPage
 
 import com.dev.af2.features.auth.presentation.components.PostItem
-
+import com.dev.af2.features.auth.presentation.components.UserProfilePage
+import com.dev.af2.features.auth.presentation.profile.ProfilePage
 
 
 class HomeTab : Tab {
@@ -54,10 +55,16 @@ class HomeTab : Tab {
                         onLikeClick = { println("Like post ${post.id}") },
                         onCommentClick = {rootNavigator.push(CommentsPage(post.id))},
                         onShareClick = { println("Share post ${post.id}") },
-                        onProfileClick = { println("Profile ${post.username}") }
-                    )
-                }
+                        onProfileClick = {
+                            if (post.username== "Yo" || post.username== "Luis Carrillo"){
+                              rootNavigator.push(ProfilePage())
+                            } else{ rootNavigator.push(
+                                UserProfilePage(
+                                    username = post.username,
+                                    userAvatar = post.userAvatar )
+                            )
+                                } })
             }
 
     }
-}
+} }
