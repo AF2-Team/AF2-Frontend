@@ -34,6 +34,9 @@ import androidx.compose.ui.unit.Dp
 import com.dev.af2.features.auth.data.PostRepository
 import com.dev.af2.features.auth.presentation.components.PostItem
 import com.dev.af2.core.designsystem.getAlegreyaFontFamily
+import com.dev.af2.features.auth.presentation.components.SearchTagsSection
+import kotlin.String
+import kotlin.Unit
 
 // --- COLORES ---
 private val ColorBgWhite = Color.White
@@ -204,9 +207,9 @@ fun TagDetailScreen(
                         }
                     }
                     1 -> { // ETIQUETAS
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("Lista de Etiquetas relacionadas", color = Color.Gray)
-                        }
+                        SearchTagsSection(
+                            onTagClick = {}
+                        )
                     }
                     2 -> { // PERFILES
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
