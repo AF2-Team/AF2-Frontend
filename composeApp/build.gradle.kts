@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    kotlin("plugin.serialization") version "2.0.0"
 }
 
 kotlin {
@@ -31,24 +32,22 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(compose.materialIconsExtended)
-            // ... otras dependencias
             implementation("io.coil-kt.coil3:coil-compose:3.3.0")
             implementation("io.coil-kt.coil3:coil-network-okhttp:3.3.0") // Necesario para cargar imágenes desde URLs
+            implementation("io.ktor:ktor-client-core:3.3.3")
+            implementation("io.ktor:ktor-client-cio:3.3.3")
+            implementation("io.ktor:ktor-client-logging:3.3.3")
+            implementation("io.ktor:ktor-client-content-negotiation:3.3.3")
+            implementation("io.ktor:ktor-serialization-kotlinx-json:3.3.3")
 
-            // --- CORRECCIÓN VOYAGER ---
-            // Definimos la versión una sola vez para evitar conflictos
+
             val voyagerVersion = "1.1.0-beta03"
 
-            // Navegación básica
+
             implementation("cafe.adriel.voyager:voyager-navigator:$voyagerVersion")
-
-            // Navegación por Tabs (Resuelve tu error anterior 'Unresolved reference: tab')
             implementation("cafe.adriel.voyager:voyager-tab-navigator:$voyagerVersion")
-
-            // Transiciones (Resuelve tu error actual 'libs.voyager.transitions')
             implementation("cafe.adriel.voyager:voyager-transitions:$voyagerVersion")
-
-            // Iconos (Ya lo tenías bien)
+            implementation("cafe.adriel.voyager:voyager-screenmodel:${voyagerVersion}")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

@@ -34,9 +34,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import org.jetbrains.compose.resources.painterResource
 import androidx.compose.foundation.text.KeyboardActions
-
 import com.dev.af2.core.designsystem.getAlegreyaFontFamily
-
 import af2.composeapp.generated.resources.Res
 import af2.composeapp.generated.resources.logo_black_stroke
 import androidx.compose.foundation.text.BasicTextField
@@ -45,7 +43,9 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.foundation.border
 import com.dev.af2.features.auth.presentation.login.LoginPage
-import com.dev.af2.features.auth.presentation.register.RegisterSuccessPage
+import cafe.adriel.voyager.core.model.rememberScreenModel
+import androidx.compose.runtime.collectAsState
+
 // --- PALETA DE COLORES ---
 private val ColorBgWhite = Color.White
 private val ColorDarkText = Color(0xFF423646)
@@ -60,20 +60,34 @@ class RegisterPage : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        RegisterScreen(
-            onRegisterClick = { name, email, password->
-                println("Registro: $name, $email")
+
+        val screenModel = rememberScreenModel { RegisterScreenModel() }
+        val state by screenModel.state.collectAsState()
+
+        LaunchedEffect(state) {
+            if (state is RegisterState.Success) {
                 navigator.push(RegisterSuccessPage())
+                screenModel.resetState()
+            }
+        }
+
+        RegisterScreen(
+            state = state,
+            onRegisterClick = { name, email, username, password->
+                screenModel.register(name, email, username, password)
             },
-            onLoginClick = { navigator.push(LoginPage()) }
+            onLoginClick = { navigator.push(LoginPage()) },
+            onClearError={ screenModel.resetState() }
         )
     }
 }
 
 @Composable
 fun RegisterScreen(
-    onRegisterClick: (String, String, String) -> Unit,
-    onLoginClick: () -> Unit
+    onRegisterClick: (String, String, String, String) -> Unit,
+    onLoginClick: () -> Unit,
+    onClearError: () -> Unit,
+    state: RegisterState,
 ) {
     val scrollState = rememberScrollState()
     val focusManager = LocalFocusManager.current
@@ -82,6 +96,7 @@ fun RegisterScreen(
     // Estados del formulario
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
@@ -140,6 +155,14 @@ fun RegisterScreen(
                     onValueChange = { fullName = it }
                 )
 
+
+                ReactStyleInput(
+                    label = "Nombre de usuario",
+                    placeholder = "alirio_dev",
+                    value = username,
+                    onValueChange = { username = it; onClearError() }
+                )
+
                 ReactStyleInput(
                     label = "Dirección de correo",
                     placeholder = "ejemplo:correo@gmail.com",
@@ -176,10 +199,39 @@ fun RegisterScreen(
             // --- BOTÓN DE REGISTRO ---
             Button(
                 onClick = {
-                    if (password == confirmPassword && fullName.isNotBlank() && email.isNotBlank()) {
-                        onRegisterClick(fullName, email, password)
+                    println("DEBUG_UI: --- INTENTO DE REGISTRO ---")
+
+                    // Imprimimos el valor actual de cada campo
+                    println("DEBUG_UI: Nombre: '$fullName'")
+                    println("DEBUG_UI: Usuario: '$username'")
+                    println("DEBUG_UI: Email: '$email'")
+                    println("DEBUG_UI: Password: '$password'")
+                    println("DEBUG_UI: Confirmar: '$confirmPassword'")
+
+                    // Validaciones individuales
+                    val nameValid = fullName.isNotBlank()
+                    val userValid = username.isNotBlank()
+                    val emailValid = email.isNotBlank()
+                    val passValid = password.isNotBlank()
+                    val passMatch = password == confirmPassword
+
+                    // Reporte de errores
+                    if (!nameValid) println("DEBUG_UI: ❌ Error: El nombre está vacío")
+                    if (!userValid) println("DEBUG_UI: ❌ Error: El usuario está vacío (¿Agregaste el Input visual para el usuario?)")
+                    if (!emailValid) println("DEBUG_UI: ❌ Error: El email está vacío")
+                    if (!passValid) println("DEBUG_UI: ❌ Error: La contraseña está vacía")
+                    if (!passMatch) println("DEBUG_UI: ❌ Error: Las contraseñas NO coinciden")
+
+                    val isValid = nameValid && userValid && emailValid && passValid && passMatch
+
+                    if (isValid) {
+                        println("DEBUG_UI: ✅ TODO VALIDO. Enviando petición...")
+                        onRegisterClick(fullName, email, username, password)
+                    } else {
+                        println("DEBUG_UI: ⛔ VALIDACIÓN FALLIDA. No se enviará nada.")
                     }
                 },
+                enabled = state !is RegisterState.Loading,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = ColorButton,
                     contentColor = ColorDarkText
@@ -190,17 +242,23 @@ fun RegisterScreen(
                     .height(48.dp),
                 elevation = ButtonDefaults.buttonElevation(0.dp)
             ) {
-                Text(
-                    text = "CREAR TU CUENTA",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = ColorDarkText,
-                    letterSpacing = 1.sp
-                )
+                if (state is RegisterState.Loading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = ColorDarkText,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = "CREAR TU CUENTA",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = ColorDarkText,
+                        letterSpacing = 1.sp
+                    )
+                }
             }
 
-            // --- AQUÍ ESTÁ EL CAMBIO DE POSICIÓN ---
-            // Reduje este spacer de 32.dp a 16.dp para subir la sección de "Ya eres miembro"
             Spacer(modifier = Modifier.height(16.dp))
 
             // --- ENLACES LOGIN ---
@@ -218,7 +276,7 @@ fun RegisterScreen(
                     textDecoration = TextDecoration.Underline,
                     modifier = Modifier
                         .clickable { onLoginClick() }
-                        .padding(top = 4.dp) // Reduje padding top de 8 a 4
+                        .padding(top = 4.dp)
                 )
             }
 
