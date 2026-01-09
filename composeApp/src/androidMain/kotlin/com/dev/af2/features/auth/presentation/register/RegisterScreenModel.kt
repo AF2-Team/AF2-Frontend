@@ -9,44 +9,57 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-// Estados posibles de la UI
-sealed class RegisterState {
-    data object Idle : RegisterState()
-    data object Loading : RegisterState()
-    data object Success : RegisterState()
-    data class Error(val message: String) : RegisterState()
-}
+data class RegisterUiState(
+    val isLoading: Boolean = false,
+    val isSuccess: Boolean = false,
+    val usernameError: String? = null, // Error específico para el usuario
+    val emailError: String? = null,    // Error específico para el email
+    val generalError: String? = null   // Error genérico (ej: sin internet)
+)
 
 class RegisterScreenModel : ScreenModel {
     private val repository = AuthRepository()
 
-    private val _state = MutableStateFlow<RegisterState>(RegisterState.Idle)
-    val state: StateFlow<RegisterState> = _state.asStateFlow()
-
+    private val _state = MutableStateFlow(RegisterUiState())
+    val state: StateFlow<RegisterUiState> = _state.asStateFlow()
 
     fun register(name: String, email: String, username: String, password: String) {
         screenModelScope.launch {
-            println("DEBUG_MODEL: A. Función register llamada")
-            _state.value = RegisterState.Loading
+            // Reiniciamos errores y ponemos loading
+            _state.value = RegisterUiState(isLoading = true)
 
-            val request = RegisterRequest(
-                name = name,
-                email = email,
-                username = username,
-                password = password
-            )
-
+            val request = RegisterRequest(name, email, password, username)
             val result = repository.register(request)
 
             result.onSuccess {
-                _state.value = RegisterState.Success
+                _state.value = RegisterUiState(isSuccess = true)
             }.onFailure { error ->
-                _state.value = RegisterState.Error(error.message ?: "Error desconocido")
+                val msg = error.message ?: "Error desconocido"
+                println("DEBUG_MODEL: Error recibido -> $msg")
+
+                val newState = when {
+                    // El backend envía "Username already taken", así que buscamos "Username"
+                    msg.contains("Username", ignoreCase = true) -> RegisterUiState(
+                        usernameError = "Este usuario ya existe, intenta con otro."
+                    )
+                    // Probablemente envíe "Email already taken" o similar
+                    msg.contains("Email", ignoreCase = true) -> RegisterUiState(
+                        emailError = "Este correo ya está registrado."
+                    )
+                    else -> RegisterUiState(generalError = msg)
+                }
+                _state.value = newState
             }
         }
     }
 
-    fun resetState() {
-        _state.value = RegisterState.Idle
+    // Función para limpiar errores cuando el usuario empieza a escribir de nuevo
+    fun clearErrors() {
+        // Mantenemos el estado actual pero quitamos los errores
+        _state.value = _state.value.copy(
+            usernameError = null,
+            emailError = null,
+            generalError = null
+        )
     }
 }

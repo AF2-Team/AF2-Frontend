@@ -26,8 +26,17 @@ data class AuthResponse(
     val token: String
 )
 
-// Para manejar errores del backend
 @Serializable
-data class ErrorResponse(
-    val message: String
+data class BackendErrorWrapper(
+    val success: Boolean,
+    val error: BackendErrorDetail? = null
+)
+
+@Serializable
+data class BackendErrorDetail(
+    val name: String? = null,
+    val message: String, // "Username already taken" viene aquí
+    val userMessage: String? = null,
+    val code: String? = null,
+    val statusCode: Int? = null
 )

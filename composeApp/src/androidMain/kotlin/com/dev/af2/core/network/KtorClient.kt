@@ -14,7 +14,7 @@ import io.ktor.client.plugins.HttpTimeout
 
 object NetworkModule {
 
-    private const val BASE_URL = "http://:3000/api/v1/" //ip del dispositivo movil fisico, no lo pongo porque es data sensible, recordar buscar con ipconfig
+    private const val BASE_URL = "https://af2-backend-d36s.onrender.com/api/v1/" //ip del dispositivo movil fisico, no lo pongo porque es data sensible, recordar buscar con ipconfig
 
     val client = HttpClient {
         install(ContentNegotiation) {

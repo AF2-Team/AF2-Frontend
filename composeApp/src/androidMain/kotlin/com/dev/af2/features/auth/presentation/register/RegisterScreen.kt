@@ -64,10 +64,9 @@ class RegisterPage : Screen {
         val screenModel = rememberScreenModel { RegisterScreenModel() }
         val state by screenModel.state.collectAsState()
 
-        LaunchedEffect(state) {
-            if (state is RegisterState.Success) {
+        LaunchedEffect(state.isSuccess) {
+            if (state.isSuccess) {
                 navigator.push(RegisterSuccessPage())
-                screenModel.resetState()
             }
         }
 
@@ -77,17 +76,18 @@ class RegisterPage : Screen {
                 screenModel.register(name, email, username, password)
             },
             onLoginClick = { navigator.push(LoginPage()) },
-            onClearError={ screenModel.resetState() }
+            onClearError={ screenModel.clearErrors() }
         )
     }
 }
 
 @Composable
 fun RegisterScreen(
+    state: RegisterUiState,
     onRegisterClick: (String, String, String, String) -> Unit,
     onLoginClick: () -> Unit,
     onClearError: () -> Unit,
-    state: RegisterState,
+
 ) {
     val scrollState = rememberScrollState()
     val focusManager = LocalFocusManager.current
@@ -128,6 +128,7 @@ fun RegisterScreen(
             }
             Spacer(modifier = Modifier.height(0.dp))
 
+
             // --- TÍTULO ---
             Text(
                 text = "Crear una cuenta",
@@ -147,12 +148,23 @@ fun RegisterScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
+                if (state.generalError != null) {
+                    Text(
+                        text = state.generalError,
+                        color = ColorError,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(bottom = 8.dp),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+
 
                 ReactStyleInput(
                     label = "Nombre y Apellido",
                     placeholder = "Alirio Freytez",
                     value = fullName,
-                    onValueChange = { fullName = it }
+                    onValueChange = { fullName = it;onClearError() }
                 )
 
 
@@ -160,15 +172,18 @@ fun RegisterScreen(
                     label = "Nombre de usuario",
                     placeholder = "alirio_dev",
                     value = username,
-                    onValueChange = { username = it; onClearError() }
+                    onValueChange = { username = it; onClearError() },
+                    errorMessage = state.usernameError
+
                 )
 
                 ReactStyleInput(
                     label = "Dirección de correo",
                     placeholder = "ejemplo:correo@gmail.com",
                     value = email,
-                    onValueChange = { email = it },
-                    keyboardType = KeyboardType.Email
+                    onValueChange = { email = it; onClearError() },
+                    keyboardType = KeyboardType.Email,
+                    errorMessage = state.emailError
                 )
 
                 ReactStyleInput(
@@ -231,7 +246,7 @@ fun RegisterScreen(
                         println("DEBUG_UI: ⛔ VALIDACIÓN FALLIDA. No se enviará nada.")
                     }
                 },
-                enabled = state !is RegisterState.Loading,
+                enabled = !state.isLoading,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = ColorButton,
                     contentColor = ColorDarkText
@@ -242,7 +257,7 @@ fun RegisterScreen(
                     .height(48.dp),
                 elevation = ButtonDefaults.buttonElevation(0.dp)
             ) {
-                if (state is RegisterState.Loading) {
+                if (state.isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
                         color = ColorDarkText,
@@ -315,7 +330,7 @@ private fun ReactStyleInput(
         )
 
         // Contenedor del Input (Simulamos el borde y fondo aquí)
-        val isError = null
+        val isError = errorMessage != null
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
