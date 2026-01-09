@@ -2,10 +2,9 @@ package com.dev.af2.features.auth.data
 
 import com.dev.af2.core.network.NetworkModule
 import com.dev.af2.features.auth.data.remote.AuthResponse
-import com.dev.af2.features.auth.data.remote.BackendErrorResponse
 import com.dev.af2.features.auth.data.remote.BackendErrorWrapper
 import com.dev.af2.features.auth.data.remote.BaseResponse
-import com.dev.af2.features.auth.data.remote.ErrorResponse
+import com.dev.af2.features.auth.data.remote.LoginRequest
 import com.dev.af2.features.auth.data.remote.RegisterRequest
 import io.ktor.client.call.body
 import io.ktor.client.request.post
@@ -53,6 +52,30 @@ class AuthRepository {
         } catch (e: Exception) {
             println("DEBUG_REPO: ❌ EXCEPCIÓN: ${e.message}")
             e.printStackTrace()
+            Result.failure(e)
+        }
+    }
+
+    suspend fun login(request: LoginRequest): Result<AuthResponse> {
+        return try {
+
+            val response: HttpResponse = client.post("auth/login") {
+                setBody(request)
+            }
+
+            if (response.status.isSuccess()) {
+                val wrapper = response.body<BaseResponse<AuthResponse>>()
+                Result.success(wrapper.data)
+            } else {
+                val errorMsg = try {
+                    val errorWrapper = response.body<BackendErrorWrapper>()
+                    errorWrapper.error?.message ?: "Credenciales inválidas"
+                } catch (e: Exception) {
+                    "Error del servidor: ${response.status.value}"
+                }
+                Result.failure(Exception(errorMsg))
+            }
+        } catch (e: Exception) {
             Result.failure(e)
         }
     }

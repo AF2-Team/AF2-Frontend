@@ -15,7 +15,11 @@ data class RegisterRequest(
     val password: String,
     val username: String
 )
-
+@Serializable
+data class LoginRequest(
+    val email: String, // O 'username', dependiendo de cómo lo pida tu backend
+    val password: String
+)
 // Respuesta que el backend
 @Serializable
 data class AuthResponse(

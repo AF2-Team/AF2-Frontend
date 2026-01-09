@@ -46,6 +46,11 @@ import com.dev.af2.core.designsystem.getAlegreyaFontFamily
 import af2.composeapp.generated.resources.Res
 import af2.composeapp.generated.resources.logo_black_stroke // El mismo logo
 import com.dev.af2.MainScreen
+import cafe.adriel.voyager.core.model.ScreenModel
+import cafe.adriel.voyager.core.model.screenModelScope
+import androidx.compose.runtime.collectAsState
+import cafe.adriel.voyager.core.model.rememberScreenModel
+import com.dev.af2.features.auth.presentation.register.RegisterPage
 
 // --- PALETA DE COLORES (Consistente con Registro) ---
 private val ColorBgWhite = Color.White
@@ -61,27 +66,35 @@ class LoginPage : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        LoginScreen(
-            onLoginClick = { email, pass ->
-                println("Login: $email")
-                navigator.replaceAll(MainScreen()) // Ir al Home
-            },
-            onRegisterClick = {
-                navigator.pop() // Volver al registro si vino de allá, o push(RegisterPage())
-            },
-            onForgotPasswordClick = {
-                navigator.push(ForgotPasswordPage()) // Implementar después
-                println("Olvidé contraseña")
+        val screenModel = rememberScreenModel { LoginScreenModel() } // O getScreenModel()
+        val state by screenModel.state.collectAsState()
+
+        LaunchedEffect(state.isSuccess) {
+            if (state.isSuccess) {
+                // AQUÍ ES DONDE ENTRAS A LA APP REAL
+                 navigator.replaceAll(MainScreen())
+                println("LOGIN EXITOSO: Navegando al Home...")
+
             }
+        }
+
+        LoginScreen(
+            state = state,
+            onLoginClick = { email, pass -> screenModel.login(email, pass) },
+            onRegisterClick = { navigator.push(RegisterPage()) },
+            onForgotPasswordClick = { /* Navegar a recuperar pass */ },
+            onClearError = { screenModel.clearErrors() }
         )
     }
 }
 
 @Composable
 fun LoginScreen(
+    state: LoginUiState,
     onLoginClick: (String, String) -> Unit,
     onRegisterClick: () -> Unit,
-    onForgotPasswordClick: () -> Unit
+    onForgotPasswordClick: () -> Unit,
+    onClearError: () -> Unit
 ) {
     val scrollState = rememberScrollState()
     val focusManager = LocalFocusManager.current
@@ -137,13 +150,23 @@ fun LoginScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp) // Un poco más de aire que en registro
             ) {
 
+                if (state.generalError != null) {
+                    Text(
+                        text = state.generalError,
+                        color = ColorError,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                }
                 // Email
                 ReactStyleInput(
                     label = "Dirección de correo",
                     placeholder = "ejemplo:correo@gmail.com",
                     value = email,
                     onValueChange = { email = it },
-                    keyboardType = KeyboardType.Email
+                    keyboardType = KeyboardType.Email,
+                    errorMessage =  state.emailError
                 )
 
                 // Contraseña
@@ -153,11 +176,7 @@ fun LoginScreen(
                     value = password,
                     onValueChange = { password = it },
                     isPassword = true,
-                    imeAction = ImeAction.Done,
-                    onAction = {
-                        focusManager.clearFocus()
-                        onLoginClick(email, password)
-                    }
+                    errorMessage = state.passwordError
                 )
 
                 // Enlace "Olvidaste tu contraseña"
@@ -187,6 +206,7 @@ fun LoginScreen(
                         onLoginClick(email, password)
                     }
                 },
+                enabled = !state.isLoading,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = ColorButton,
                     contentColor = ColorDarkText
@@ -197,14 +217,22 @@ fun LoginScreen(
                     .height(48.dp),
                 elevation = ButtonDefaults.buttonElevation(0.dp)
             ) {
-                Text(
-                    text = "INICIAR SESIÓN",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = ColorDarkText,
-                    letterSpacing = 1.sp
-                )
-            }
+                if (state.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = ColorDarkText, // Usamos color oscuro para que contraste
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = "INICIAR SESIÓN",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = ColorDarkText,
+                        letterSpacing = 1.sp
+                    )
+                }
+                }
 
             Spacer(modifier = Modifier.height(24.dp))
 
