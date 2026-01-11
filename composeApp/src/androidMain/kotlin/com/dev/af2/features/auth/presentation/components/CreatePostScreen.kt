@@ -142,9 +142,7 @@ fun CreatePostContent(
                     // Botón "Publicar" (Solo activo si hay contenido)
                     TextButton(
                         onClick = {
-                            onPostClick(description, selectedImageUri)
-
-                            onCloseClick()},
+                            onPostClick(description, selectedImageUri)},
                         enabled = (description.isNotBlank() || selectedImageUri != null) && !isLoading,
                         colors = ButtonDefaults.textButtonColors(
                             contentColor = ColorButton,
