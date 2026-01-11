@@ -10,7 +10,7 @@ import kotlinx.serialization.json.*
 @Serializable
 data class User(
     @SerialName("_id") val id: String,
-    val username: String = "Usuario Desconocido", // Valores por defecto para evitar crashes
+    val username: String, // Valores por defecto para evitar crashes
     val avatar: String? = null,
     val email: String? = null
 )
@@ -53,8 +53,7 @@ object PostAuthorSerializer : KSerializer<User> {
 data class Post(
     @SerialName("_id") val id: String,
 
-    // --- AQUÍ ESTÁ EL TRUCO ---
-    // Le decimos a Kotlin: "Usa mi lógica especial para leer este campo"
+    @SerialName("user")
     @Serializable(with = PostAuthorSerializer::class)
     val author: User,
 
