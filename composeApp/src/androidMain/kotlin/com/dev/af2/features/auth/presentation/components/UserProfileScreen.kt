@@ -1,5 +1,4 @@
-package com.dev.af2.features.auth.presentation.components
-
+package com.dev.af2.features.auth.presentation.screens // Sugerencia: Mover a .screens si no está ahí
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -36,7 +35,7 @@ import org.jetbrains.compose.resources.painterResource
 
 // Imports de tu proyecto
 import com.dev.af2.core.designsystem.getOpenSansFontFamily
-import com.dev.af2.features.auth.data.PostRepository
+import com.dev.af2.features.auth.domain.Post // Asegúrate de que este import sea correcto
 import af2.composeapp.generated.resources.Res
 import af2.composeapp.generated.resources.image_profile
 import af2.composeapp.generated.resources.image_post4
@@ -51,7 +50,7 @@ private val ColorBlue = Color(0xFF1DA1F2)
 // Recibimos datos del usuario a visitar
 data class UserProfilePage(
     val username: String,
-    val userAvatar: String = "" // Opcional si ya la tienes
+    val userAvatar: String = ""
 ) : Screen {
     override val key: ScreenKey = uniqueScreenKey
 
@@ -80,15 +79,16 @@ fun UserProfileScreen(
     // --- ESTADO (Simulado) ---
     var isFollowing by remember { mutableStateOf(false) }
 
-    // Filtramos los posts de ESTE usuario específico
     val userPosts = remember(username) {
-        PostRepository.posts.filter { it.username == username }
+        // En el futuro: screenModel.getUserPosts(username)
+        // Asegúrate de que Post aquí se refiera al modelo actualizado
+        emptyList<Post>()
     }
 
     // Datos Mock del perfil visitado
     val handle = "@${username.lowercase().replace(" ", "_")}"
     val bio = "Amante de la fotografía y el diseño. Viajando por el mundo 🌍"
-    val followersCount = if (isFollowing) 1201 else 1200 // Simular cambio
+    val followersCount = if (isFollowing) 1201 else 1200
 
     Box(modifier = Modifier.fillMaxSize().background(ColorBgWhite)) {
 
@@ -110,9 +110,9 @@ fun UserProfileScreen(
                             .fillMaxWidth()
                             .height(240.dp)
                     ) {
-                        // Banner (Estático por ahora, o podrías recibirlo)
+                        // Banner
                         Image(
-                            painter = painterResource(Res.drawable.image_post4), // Banner genérico
+                            painter = painterResource(Res.drawable.image_post4),
                             contentDescription = "Banner",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
@@ -134,14 +134,13 @@ fun UserProfileScreen(
                                 .align(Alignment.TopCenter)
                         )
 
-                        // Avatar (Sin opción de editar)
+                        // Avatar
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
                                 .size(110.dp)
                                 .align(Alignment.BottomCenter)
                         ) {
-                            // Círculo blanco borde
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -157,7 +156,6 @@ fun UserProfileScreen(
                                         contentScale = ContentScale.Crop
                                     )
                                 } else {
-                                    // Placeholder si no hay avatar
                                     Image(
                                         painter = painterResource(Res.drawable.logo_watercolor),
                                         contentDescription = "Perfil",
@@ -211,11 +209,10 @@ fun UserProfileScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // --- BOTONES DE ACCIÓN (Seguir / Mensaje) ---
+                        // --- BOTONES DE ACCIÓN ---
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            // Botón Seguir
                             Button(
                                 onClick = { isFollowing = !isFollowing },
                                 colors = ButtonDefaults.buttonColors(
@@ -233,7 +230,6 @@ fun UserProfileScreen(
                                 )
                             }
 
-                            // Botón Mensaje
                             Button(
                                 onClick = { /* Ir a chat */ },
                                 colors = ButtonDefaults.buttonColors(
@@ -263,7 +259,6 @@ fun UserProfileScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Icono Grid (Visual)
                         Icon(
                             imageVector = Icons.Default.GridOn,
                             contentDescription = null,
@@ -292,21 +287,25 @@ fun UserProfileScreen(
                 }
             } else {
                 items(userPosts) { post ->
+                    // --- CORRECCIÓN CLAVE AQUÍ ---
+                    // Antes: val mainImage = post.images.firstOrNull()
+                    // Ahora: Buscamos en 'media' o usamos 'mediaUrl'
+                    val mainImage = post.media.firstOrNull()?.url ?: post.mediaUrl
+
                     Box(
                         modifier = Modifier
                             .aspectRatio(1f)
                             .background(Color.LightGray)
                             .clickable { onPostClick(post.id) }
                     ) {
-                        if (post.imageUrl.isNotEmpty()) {
+                        if (!mainImage.isNullOrBlank()) {
                             AsyncImage(
-                                model = post.imageUrl,
+                                model = mainImage,
                                 contentDescription = null,
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.Crop
                             )
                         } else {
-                            // Placeholder
                             Image(
                                 painter = painterResource(Res.drawable.logo_watercolor),
                                 contentDescription = null,
@@ -319,7 +318,7 @@ fun UserProfileScreen(
             }
         }
 
-        // --- CAPA 2: TOP APP BAR TRANSPARENTE ---
+        // --- CAPA 2: TOP APP BAR ---
         CenterAlignedTopAppBar(
             title = { },
             navigationIcon = {
@@ -337,7 +336,6 @@ fun UserProfileScreen(
                 }
             },
             actions = {
-                // Menú de opciones (Reportar, Bloquear, etc.)
                 IconButton(
                     onClick = { /* Menú */ },
                     modifier = Modifier

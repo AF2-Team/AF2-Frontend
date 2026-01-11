@@ -5,13 +5,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarOutline
+import androidx.compose.material.icons.filled.SubdirectoryArrowRight
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -26,16 +25,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.resources.painterResource
 
-// Imports de tu proyecto
+// Asegúrate de importar tu modelo actualizado
 import com.dev.af2.features.auth.domain.Post
 import com.dev.af2.core.designsystem.getAlegreyaFontFamily
 import af2.composeapp.generated.resources.Res
 import coil3.compose.AsyncImage
-import af2.composeapp.generated.resources.image_post2
+// Asegúrate de que estos recursos existan en tu proyecto
 import af2.composeapp.generated.resources.image_post3
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.StarOutline
-import androidx.compose.material.icons.filled.SubdirectoryArrowRight
+import af2.composeapp.generated.resources.image_profile
 
 @Composable
 fun PostItem(
@@ -46,6 +43,12 @@ fun PostItem(
     onProfileClick: () -> Unit
 ) {
     val alegreyaFamily = getAlegreyaFontFamily()
+
+    // LÓGICA DE MEDIA:
+    // 1. Buscamos en el array nuevo 'media'.
+    // 2. Si está vacío, intentamos usar 'mediaUrl' (posts antiguos).
+    val mediaItem = post.media.firstOrNull()
+    val finalImageUrl = mediaItem?.url ?: post.mediaUrl
 
     Column(
         modifier = Modifier
@@ -62,9 +65,11 @@ fun PostItem(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // Avatar (Placeholder)
+                // AVATAR
+                // Nota: Como 'user' es un ID string por ahora, usaremos el placeholder.
+                // Cuando actualices el modelo a objeto User, cambia esto por post.author.avatar
                 Image(
-                    painter = painterResource(Res.drawable.image_post2),
+                    painter = painterResource(Res.drawable.image_profile),
                     contentDescription = null,
                     modifier = Modifier
                         .size(40.dp)
@@ -73,17 +78,19 @@ fun PostItem(
                         .clickable { onProfileClick() },
                     contentScale = ContentScale.Crop
                 )
+
                 Spacer(modifier = Modifier.width(10.dp))
 
                 Column {
+                    // USERNAME
+                    // Nota: Aquí iría post.author.username si el backend devuelve el objeto.
                     Text(
-                        text = post.username,
+                        text = "Usuario", // Placeholder temporal hasta tener el objeto User
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp,
                         color = Color(0xFF2D2D2D),
                         modifier = Modifier.clickable { onProfileClick() }
                     )
-                    // Ubicación o subtítulo opcional
                     Text(
                         text = "Barquisimeto, VE",
                         fontSize = 12.sp,
@@ -92,45 +99,34 @@ fun PostItem(
                 }
             }
 
-            // Botón Seguir (Pequeño y sutil)
             Text(
                 text = "Seguir",
-                color = Color(0xFF1291EB), // Tu color de acento
+                color = Color(0xFF1291EB),
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp,
-                modifier = Modifier.clickable { /* TODO: Lógica seguir */ }
+                modifier = Modifier.clickable { /* TODO */ }
             )
         }
 
         // --- 2. IMAGEN DEL POST ---
-        // Aquí usaríamos AsyncImage(model = post.imageUrl) con Coil en el futuro
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(4f/5f) // Altura tipo Instagram vertical
-                .background(Color(0xFFF0F0F0))
-        ) {
-            // LÓGICA: Si hay URL/URI, usa AsyncImage. Si no, usa el placeholder.
-            if (post.imageUrl.isNotEmpty()) {
+        // Solo mostramos el Box si hay una imagen válida
+        if (!finalImageUrl.isNullOrBlank()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(4f/5f) // Formato vertical típico de redes
+                    .background(Color(0xFFF0F0F0))
+            ) {
                 AsyncImage(
-                    model = post.imageUrl, // Carga la URI del dispositivo
+                    model = finalImageUrl,
                     contentDescription = "Post Image",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            } else {
-                // Imagen estática para los posts de prueba
-                Image(
-                    painter = painterResource(Res.drawable.image_post3),
-                    contentDescription = "Placeholder",
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
             }
         }
 
-
-        // --- 3. ACCIONES (Like, Comentar, Compartir) ---
+        // --- 3. ACCIONES ---
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -139,15 +135,15 @@ fun PostItem(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // Like
                 IconButton(onClick = onLikeClick) {
+                    // Asumimos que likesCount > 0 es likeado visualmente por ahora
+                    // ya que isLiked no venía en el JSON
                     Icon(
-                        imageVector = if (post.isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        imageVector = Icons.Default.FavoriteBorder,
                         contentDescription = "Like",
-                        tint = if (post.isLiked) Color.Red else Color.Black
+                        tint = Color.Black
                     )
                 }
-                // Comentar
                 IconButton(onClick = onCommentClick) {
                     Icon(
                         imageVector = Icons.Outlined.ChatBubbleOutline,
@@ -155,7 +151,6 @@ fun PostItem(
                         tint = Color.Black
                     )
                 }
-                // Compartir
                 IconButton(onClick = onShareClick) {
                     Icon(
                         imageVector = Icons.Default.SubdirectoryArrowRight,
@@ -165,10 +160,9 @@ fun PostItem(
                 }
             }
 
-            // Guardar (Favorito)
             IconButton(onClick = { /* Save logic */ }) {
                 Icon(
-                    imageVector =if (post.isSaved) Icons.Default.Star else Icons.Default.StarOutline,
+                    imageVector = Icons.Default.StarOutline,
                     contentDescription = "Save",
                     tint = Color.Black
                 )
@@ -177,34 +171,38 @@ fun PostItem(
 
         // --- 4. TEXTO Y LIKES ---
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            Text(
-                text = "${post.likesCount} Me gusta",
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp
-            )
+            if (post.likesCount > 0) {
+                Text(
+                    text = "${post.likesCount} Me gusta",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+            }
 
-            Spacer(modifier = Modifier.height(6.dp))
+            // CORRECCIÓN: Usamos post.text
+            if (post.text.isNotBlank()) {
+                Text(
+                    text = post.text,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontFamily = alegreyaFamily,
+                        fontSize = 15.sp,
+                        lineHeight = 20.sp
+                    ),
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+            }
 
-            // Descripción con el nombre de usuario en negrita
-            Text(
-                text = post.description, // En un futuro concatenamos buildAnnotatedString
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    fontFamily = alegreyaFamily,
-                    fontSize = 15.sp,
-                    lineHeight = 20.sp
-                ),
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = "Ver los ${post.commentsCount} comentarios",
-                color = Color.Gray,
-                fontSize = 14.sp,
-                modifier = Modifier.clickable { onCommentClick() }
-            )
+            if (post.commentsCount > 0) {
+                Text(
+                    text = "Ver los ${post.commentsCount} comentarios",
+                    color = Color.Gray,
+                    fontSize = 14.sp,
+                    modifier = Modifier.clickable { onCommentClick() }
+                )
+            }
         }
     }
 }

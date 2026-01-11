@@ -33,10 +33,14 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import org.jetbrains.compose.resources.painterResource
 import coil3.compose.AsyncImage
 import com.dev.af2.features.auth.data.PostRepository
-import cafe.adriel.voyager.navigator.tab.TabNavigator// Imports de tu proyecto
+import coil3.compose.AsyncImage
 import com.dev.af2.core.designsystem.getOpenSansFontFamily
 import af2.composeapp.generated.resources.Res
 import af2.composeapp.generated.resources.image_profile
+import android.content.Context
+import androidx.compose.ui.platform.LocalContext
+import cafe.adriel.voyager.core.model.rememberScreenModel
+import kotlinx.coroutines.launch
 
 // --- COLORES ---
 private val ColorBgWhite = Color.White
@@ -50,23 +54,58 @@ class CreatePostPage : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-
-
-        CreatePostScreen(
-            onCloseClick = { navigator.pop()},
-            onPostClick = { description, imageUri ->
-                PostRepository.addPost(description, imageUri)
+        val context = LocalContext.current
+        val screenModel = rememberScreenModel { CreatePostScreenModel() }
+        val state by screenModel.state.collectAsState()
+        val scope = rememberCoroutineScope()
+        // Manejo de éxito
+        LaunchedEffect(state.isSuccess) {
+            if (state.isSuccess) {
+                // Volver al home o cerrar pantalla
                 navigator.pop()
             }
+        }
+
+        CreatePostContent(
+            isLoading = state.isLoading,
+            error = state.error,
+            onPostClick = { text, uri ->
+
+                scope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                    val imageBytes = if (uri != null) {
+                        readBytesFromUri(context, uri)
+                    } else {
+                        null
+                    }
+
+                    val imagesList = if (imageBytes != null) listOf(imageBytes) else emptyList()
+
+                    // Volvemos al hilo principal para llamar al ScreenModel
+                    screenModel.createPost(content = text, images = imagesList)
+                }
+            },
+            onCloseClick = { navigator.pop() }
         )
+    }
+    private fun readBytesFromUri(context: Context, uri: Uri): ByteArray? {
+        return try {
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                inputStream.readBytes()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreatePostScreen(
-    onCloseClick: () -> Unit,
-    onPostClick: (String, Uri?) -> Unit // Usamos Uri de Android
+fun CreatePostContent(
+    isLoading: Boolean,
+    error: String?,
+    onPostClick: (String, Uri?) -> Unit,
+    onCloseClick: () -> Unit
 ) {
     val openSansFamily = getOpenSansFontFamily()
 
@@ -106,7 +145,7 @@ fun CreatePostScreen(
                             onPostClick(description, selectedImageUri)
 
                             onCloseClick()},
-                        enabled = description.isNotBlank() || selectedImageUri != null,
+                        enabled = (description.isNotBlank() || selectedImageUri != null) && !isLoading,
                         colors = ButtonDefaults.textButtonColors(
                             contentColor = ColorButton,
                             disabledContentColor = Color.Gray

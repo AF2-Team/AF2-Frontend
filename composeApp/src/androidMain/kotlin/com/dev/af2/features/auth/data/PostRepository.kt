@@ -3,34 +3,81 @@ package com.dev.af2.features.auth.data
 
 import androidx.compose.runtime.mutableStateListOf
 import com.dev.af2.features.auth.domain.Post
+import com.dev.af2.core.network.NetworkModule
+import com.dev.af2.core.network.TokenManager
+import com.dev.af2.features.auth.data.remote.BaseResponse
+import io.ktor.client.call.body
+import io.ktor.client.request.forms.formData
+import io.ktor.client.request.forms.submitFormWithBinaryData
+import io.ktor.client.request.get
+import io.ktor.client.request.header
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
+import io.ktor.http.isSuccess
 
-// Este objeto actúa como una base de datos en memoria.
-// Al ser 'object', es único en toda la app (Singleton).
-object PostRepository {
+class PostRepository {
+    private val client = NetworkModule.client
 
-    // mutableStateListOf es MÁGICO: avisa automáticamente a la UI cuando cambia.
-    private val _posts = mutableStateListOf<Post>(
-        Post("1", "alirio_dev", "", "", "Disfrutando de KMP! 🚀 #Kotlin #Dev", 120, 5),
-        Post("2", "design_pro", "", "", "Nuevo diseño disponible en Figma ✨", 85, 12),
-        Post("3", "traveler_ve", "", "", "Los atardeceres de Barquisimeto son únicos 🌅", 340, 45, isLiked = true)
-    )
+    // Recibe el texto y una lista de imágenes en Bytes (ByteArray)
+    suspend fun createPost(content: String, imagesBytes: List<ByteArray>): Result<Post> {
+        return try {
+            val token = TokenManager.token ?: throw Exception("No estás logueado")
 
-    // Exponemos la lista como solo lectura para evitar modificaciones externas directas
-    val posts: List<Post> get() = _posts
+            // Endpoint del backend: POST /api/v1/posts
+            val response = client.submitFormWithBinaryData(
+                url = "post",
+                formData = formData {
+                    // 1. Enviamos el texto
+                    append("content", content)
 
-    fun addPost(description: String, imageUri: Any?) {
-        val newPost = Post(
-            id = System.currentTimeMillis().toString(),
-            username = "Yo", // Usuario actual
-            userAvatar = "", // Aquí iría tu avatar
-            imageUrl = imageUri?.toString() ?: "", // Convertimos URI a String
-            description = description,
-            likesCount = 0,
-            commentsCount = 0,
-            isLiked = false,
-            isSaved = false
-        )
-        // Agregamos al inicio de la lista (índice 0) para que salga arriba
-        _posts.add(0, newPost)
+                    // 2. Enviamos las imágenes ( backend espera el campo "images")
+                    imagesBytes.forEachIndexed { index, bytes ->
+                        append("media", bytes, Headers.build {
+                            append(HttpHeaders.ContentType, "image/jpeg") // Asumimos JPEG
+                            append(HttpHeaders.ContentDisposition, "filename=\"image_$index.jpg\"")
+                        })
+                    }
+                }
+            ) {
+                // 3. ¡CRUCIAL! Enviamos el Token en la cabecera
+                header("Authorization", "Bearer $token")
+            }
+
+            if (response.status.isSuccess()) {
+                val wrapper = response.body<BaseResponse<Post>>()
+                Result.success(wrapper.data)
+            } else {
+                Result.failure(Exception("Error al crear post: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            println("DEBUG_POST: Error: ${e.message}")
+            Result.failure(e)
+        }
+    }
+    suspend fun getPosts(): Result<List<Post>> {
+        return try {
+            val token = TokenManager.token
+
+            // Si no hay token, quizás no deberíamos permitir ver el feed,
+            // pero por ahora lo dejamos opcional o lanzamos error.
+
+            val response: HttpResponse = client.get("post") { // Asumiendo ruta GET /api/v1/posts
+                if (token != null) {
+                    header("Authorization", "Bearer $token")
+                }
+            }
+
+            if (response.status.isSuccess()) {
+                // Desempaquetamos la respuesta del backend
+                val wrapper = response.body<BaseResponse<List<Post>>>()
+                Result.success(wrapper.data)
+            } else {
+                Result.failure(Exception("Error al obtener posts: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            println("DEBUG_REPO: Error getPosts: ${e.message}")
+            Result.failure(e)
+        }
     }
 }

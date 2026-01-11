@@ -192,16 +192,25 @@ fun TagDetailScreen(
                             }
 
                             // --- LISTA DE POSTS (MOCK) ---
-                            val posts = PostRepository.posts // Usamos los mismos posts por ahora
-                            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                                items(posts) { post ->
-                                    PostItem(
-                                        post = post,
-                                        onLikeClick = {},
-                                        onCommentClick = {},
-                                        onShareClick = {},
-                                        onProfileClick = {}
-                                    )
+                            val posts = emptyList<com.dev.af2.features.auth.domain.Post>()
+                            if (posts.isEmpty()) {
+                                Box(
+                                    modifier = Modifier.fillMaxSize().padding(32.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text("No hay publicaciones con #$tag", color = Color.Gray)
+                                }
+                            } else {
+                                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                                    items(posts) { post ->
+                                        PostItem(
+                                            post = post,
+                                            onLikeClick = {},
+                                            onCommentClick = {},
+                                            onShareClick = {},
+                                            onProfileClick = {}
+                                        )
+                                    }
                                 }
                             }
                         }

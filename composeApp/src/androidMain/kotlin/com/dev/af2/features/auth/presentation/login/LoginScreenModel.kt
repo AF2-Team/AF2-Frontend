@@ -2,12 +2,15 @@ package com.dev.af2.features.auth.presentation.login
 
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
+import com.dev.af2.core.network.TokenManager
 import com.dev.af2.features.auth.data.AuthRepository
 import com.dev.af2.features.auth.data.remote.LoginRequest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+
+
 
 
 data class LoginUiState(
@@ -32,6 +35,7 @@ class LoginScreenModel : ScreenModel {
             val result = repository.login(request)
 
             result.onSuccess {
+                TokenManager.token = it.token
                 _state.value = LoginUiState(isSuccess = true)
             }.onFailure { error ->
                 val msg = error.message ?: "Error desconocido"
