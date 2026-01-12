@@ -1,6 +1,5 @@
 package com.dev.af2.features.auth.presentation.settings.changepassword
 
-
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -26,9 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -36,7 +33,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
@@ -44,18 +40,17 @@ import cafe.adriel.voyager.core.screen.ScreenKey
 import cafe.adriel.voyager.core.screen.uniqueScreenKey
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import kotlinx.coroutines.delay
-
+import cafe.adriel.voyager.core.model.rememberScreenModel
 import com.dev.af2.core.designsystem.getAlegreyaFontFamily
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.delay
 
 // --- COLORES EXACTOS DEL REGISTER/LOGIN ---
 private val ColorBgWhite = Color.White
 private val ColorDarkText = Color(0xFF423646)
-private val ColorInputBg = Color(0xFFF)
+private val ColorInputBg = Color(0xFFF0F0F0) // Corregido: Faltaban 0s en tu código original
 private val ColorInputBorder = Color(0xFF918991)
-private val ColorBrand = Color(0xFFBCA1BD) // Color Marca
-private val ColorBlueSuccess = Color(0xFF1DA1F2) // Azul para éxito
+private val ColorBrand = Color(0xFFBCA1BD)
+private val ColorBlueSuccess = Color(0xFF1DA1F2)
 private val ColorError = Color(0xFFEF4444)
 private val ColorGrayText = Color(0xFF888888)
 
@@ -65,8 +60,26 @@ class ChangePasswordPage : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
+        val screenModel = rememberScreenModel { ChangePasswordScreenModel() }
+        val state by screenModel.state.collectAsState()
+
+        // Lógica de navegación segura
+        LaunchedEffect(state.isSuccess) {
+            if (state.isSuccess) {
+                delay(1500) // Esperamos un poco para que se vea el "¡Listo!"
+                navigator.pop()
+            }
+        }
+
         ChangePasswordScreen(
-            onBackClick = { navigator.pop() }
+            isLoading = state.isLoading,
+            isSuccess = state.isSuccess,
+            error = state.error,
+            onSaveClick = { current, new, confirm ->
+                screenModel.changePassword(current, new, confirm)
+            },
+            onBackClick = { navigator.pop() },
+            onClearError = { screenModel.clearError() }
         )
     }
 }
@@ -74,19 +87,25 @@ class ChangePasswordPage : Screen {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChangePasswordScreen(
-    onBackClick: () -> Unit
+    modifier: Modifier = Modifier,
+    isLoading: Boolean,
+    isSuccess: Boolean,
+    error: String?,
+    onSaveClick: (String, String, String) -> Unit,
+    onBackClick: () -> Unit, // Agregado para que funcione el botón atrás
+    onClearError: () -> Unit
 ) {
     val alegreyaFamily = getAlegreyaFontFamily()
     val scrollState = rememberScrollState()
 
-    // Estados
+    // Estados del Formulario
     var currentPassword by remember { mutableStateOf("") }
     var newPassword by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
-    // Estados UI
-    var isLoading by remember { mutableStateOf(false) }
-    var isSuccess by remember { mutableStateOf(false) }
+    val isCurrentPasswordError = error?.contains("actual", ignoreCase = true) == true ||
+            error?.contains("incorrecta", ignoreCase = true) == true
+
 
     // Validaciones
     val hasMinLength = newPassword.length >= 8
@@ -99,6 +118,11 @@ fun ChangePasswordScreen(
             hasMinLength && hasUpperCase && hasNumber && hasSpecialChar &&
             passwordsMatch
 
+    // Limpiar error al escribir
+    LaunchedEffect(currentPassword, newPassword, confirmPassword) {
+        if (error != null) onClearError()
+    }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -107,7 +131,7 @@ fun ChangePasswordScreen(
                         "Cambiar Contraseña",
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontFamily = alegreyaFamily,
-                            fontStyle = FontStyle.Italic, // Fiel al estilo Register
+                            fontStyle = FontStyle.Italic,
                             fontWeight = FontWeight.Medium,
                             color = ColorDarkText,
                             fontSize = 24.sp
@@ -132,18 +156,18 @@ fun ChangePasswordScreen(
                                 isLoading -> "Loading"
                                 else -> "Button"
                             },
-                            transitionSpec = { fadeIn() togetherWith fadeOut() }
+                            transitionSpec = { fadeIn() togetherWith fadeOut() },
+                            label = "ButtonAnimation"
                         ) { state ->
                             when (state) {
                                 "Button" -> {
                                     TextButton(
                                         onClick = {
-                                            isLoading = true
-                                            // Simulación
+                                            onSaveClick(currentPassword, newPassword, confirmPassword)
                                         },
                                         enabled = isFormValid,
                                         colors = ButtonDefaults.textButtonColors(
-                                            contentColor = ColorBrand, // Morado marca
+                                            contentColor = ColorBrand,
                                             disabledContentColor = Color.LightGray
                                         )
                                     ) {
@@ -156,15 +180,10 @@ fun ChangePasswordScreen(
                                         color = ColorBlueSuccess,
                                         strokeWidth = 2.dp
                                     )
-                                    LaunchedEffect(Unit) {
-                                        delay(2000)
-                                        isLoading = false
-                                        isSuccess = true
-                                    }
                                 }
                                 "Success" -> {
                                     Text(
-                                        "¡Listo!", // Mensaje corto para TopBar
+                                        "¡Listo!",
                                         color = ColorBlueSuccess,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 16.sp,
@@ -188,6 +207,16 @@ fun ChangePasswordScreen(
                 .verticalScroll(scrollState)
                 .padding(horizontal = 24.dp, vertical = 16.dp)
         ) {
+            // Mostrar Error Global si existe (del backend)
+            if (error != null) {
+                Text(
+                    text = error,
+                    color = ColorError,
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(bottom = 16.dp).align(Alignment.CenterHorizontally)
+                )
+            }
+
             // Instrucciones
             Text(
                 text = "Tu contraseña debe tener al menos 8 caracteres e incluir una combinación de números, letras y caracteres especiales.",
@@ -198,12 +227,14 @@ fun ChangePasswordScreen(
                 modifier = Modifier.padding(bottom = 24.dp)
             )
 
-            // Input 1: Actual (Usando estilo React)
+            // Input 1: Actual
             ReactStylePasswordInput(
                 label = "Contraseña actual",
                 value = currentPassword,
                 onValueChange = { currentPassword = it },
-                imeAction = ImeAction.Next
+                imeAction = ImeAction.Next,
+                isError = isCurrentPasswordError,
+                errorMessage = if (isCurrentPasswordError) error else null
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -238,27 +269,15 @@ fun ChangePasswordScreen(
                 isError = confirmPassword.isNotEmpty() && !passwordsMatch,
                 errorMessage = if (confirmPassword.isNotEmpty() && !passwordsMatch) "Las contraseñas no coinciden" else null
             )
-
-            // Mensaje completo de éxito (si quieres que aparezca abajo también)
-            if (isSuccess) {
-                Spacer(modifier = Modifier.height(24.dp))
-                Text(
-                    text = "Listo, tu contraseña ha sido actualizada",
-                    color = ColorBlueSuccess,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
-            }
         }
     }
 }
 
-// --- ITEM REQUISITO ---
+// --- COMPONENTES AUXILIARES (Sin cambios de estilo) ---
+
 @Composable
 private fun RequirementItem(isMet: Boolean, text: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        // Círculo pequeño o Check
         Icon(
             imageVector = if (isMet) Icons.Default.Check else Icons.Default.Circle,
             contentDescription = null,
@@ -276,7 +295,6 @@ private fun RequirementItem(isMet: Boolean, text: String) {
     }
 }
 
-
 @Composable
 private fun ReactStylePasswordInput(
     label: String,
@@ -290,7 +308,6 @@ private fun ReactStylePasswordInput(
     var isFocused by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        // Label externa negra
         Text(
             text = label,
             color = Color.Black,
@@ -299,18 +316,17 @@ private fun ReactStylePasswordInput(
             fontWeight = FontWeight.Bold
         )
 
-        // BasicTextField con altura fija y bordes manuales
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp) // Altura idéntica al registro
+                .height(50.dp)
                 .background(ColorInputBg)
                 .onFocusChanged { isFocused = it.isFocused },
             textStyle = TextStyle(
                 color = ColorDarkText,
-                fontSize = 15.sp, // Tamaño letra consistente
+                fontSize = 15.sp,
                 fontWeight = FontWeight.Normal
             ),
             singleLine = true,
@@ -336,7 +352,6 @@ private fun ReactStylePasswordInput(
                         innerTextField()
                     }
 
-                    // Icono Ojo
                     IconButton(
                         onClick = { isPasswordVisible = !isPasswordVisible },
                         modifier = Modifier.size(32.dp)
@@ -350,16 +365,12 @@ private fun ReactStylePasswordInput(
                     }
                 }
             }
-
         )
 
-        // --- LÍNEA INFERIOR PERSONALIZADA ---
-        // Un Box simple que actúa como nuestra línea.
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(1.dp) // Grosor de la línea
-                // Cambiamos el color de la línea basándonos en el estado, igual que antes.
+                .height(1.dp)
                 .background(if (isError) ColorError else if (isFocused) ColorBrand else ColorInputBorder)
         )
 

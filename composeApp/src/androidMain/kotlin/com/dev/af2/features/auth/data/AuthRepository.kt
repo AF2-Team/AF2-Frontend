@@ -1,16 +1,22 @@
 package com.dev.af2.features.auth.data
 
 import com.dev.af2.core.network.NetworkModule
+import com.dev.af2.core.network.TokenManager
 import com.dev.af2.features.auth.data.remote.AuthResponse
 import com.dev.af2.features.auth.data.remote.BackendErrorWrapper
 import com.dev.af2.features.auth.data.remote.BaseResponse
 import com.dev.af2.features.auth.data.remote.LoginRequest
 import com.dev.af2.features.auth.data.remote.RegisterRequest
 import io.ktor.client.call.body
+import io.ktor.client.request.header
+import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 import io.ktor.http.isSuccess
+
 
 //Recordar borrar prints de depuración
 class AuthRepository {
@@ -76,6 +82,38 @@ class AuthRepository {
                 Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    suspend fun changePassword(currentPass: String, newPass: String): Result<Boolean> {
+        return try {
+            val token = TokenManager.token ?: throw Exception("No autenticado")
+
+            val response = client.post("auth/change-password") {
+                header("Authorization", "Bearer $token")
+                contentType(ContentType.Application.Json)
+                setBody(mapOf(
+                    "currentPassword" to currentPass,
+                    "newPassword" to newPass
+                ))
+            }
+
+            if (response.status.isSuccess()) {
+                Result.success(true)
+            } else {
+                // --- PARSEO INTELIGENTE DEL ERROR ---
+                val errorMsg = try {
+                    // Usamos la misma estructura que en Login/Register para extraer el mensaje limpio
+                    val errorWrapper = response.body<BackendErrorWrapper>()
+                    errorWrapper.error?.message ?: "Error desconocido"
+                } catch (e: Exception) {
+                    // Si falla el JSON, devolvemos el error HTTP estándar
+                    "Error del servidor: ${response.status.value}"
+                }
+                Result.failure(Exception(errorMsg))
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
             Result.failure(e)
         }
     }
