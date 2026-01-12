@@ -117,4 +117,30 @@ class AuthRepository {
             Result.failure(e)
         }
     }
+
+    suspend fun forgotPassword(email: String): Result<Boolean> {
+        return try {
+            val response = client.post("auth/forgot-password") {
+                contentType(ContentType.Application.Json)
+                setBody(mapOf("email" to email))
+            }
+
+            if (response.status.isSuccess()) {
+                // El backend devuelve { "resetToken": "..." }
+                // Por seguridad, en el front solo decimos "Enviado"
+                Result.success(true)
+            } else {
+                val errorMsg = try {
+                    val errorWrapper = response.body<BackendErrorWrapper>()
+                    errorWrapper.error?.message ?: "Error desconocido"
+                } catch (e: Exception) {
+                    "Error del servidor: ${response.status.value}"
+                }
+                Result.failure(Exception(errorMsg))
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Result.failure(e)
+        }
+    }
 }

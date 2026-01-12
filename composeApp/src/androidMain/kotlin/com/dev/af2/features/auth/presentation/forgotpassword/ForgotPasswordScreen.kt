@@ -3,7 +3,6 @@ package com.dev.af2.features.auth.presentation.forgotpassword
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,7 +12,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -36,19 +34,20 @@ import cafe.adriel.voyager.core.screen.uniqueScreenKey
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import org.jetbrains.compose.resources.painterResource
-
-// Imports de tu proyecto
+import cafe.adriel.voyager.core.model.rememberScreenModel
 import com.dev.af2.core.designsystem.getAlegreyaFontFamily
 import af2.composeapp.generated.resources.Res
 import af2.composeapp.generated.resources.logo_black_stroke
+import kotlinx.coroutines.delay
 
-// --- PALETA DE COLORES (Consistente) ---
+// --- COLORES ---
 private val ColorBgWhite = Color.White
 private val ColorDarkText = Color(0xFF423646)
 private val ColorInputBg = Color(0xFFFAF7F7)
 private val ColorInputBorder = Color(0xFF918991)
 private val ColorButton = Color(0xFFBCA1BD)
 private val ColorError = Color(0xFFEF4444)
+private val ColorSuccess = Color(0xFF1DA1F2) // Azul para éxito
 
 class ForgotPasswordPage : Screen {
     override val key: ScreenKey = uniqueScreenKey
@@ -56,27 +55,50 @@ class ForgotPasswordPage : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
+        val screenModel = rememberScreenModel { ForgotPasswordScreenModel() }
+        val state by screenModel.state.collectAsState()
+
+        // Manejo de navegación segura al completar
+        LaunchedEffect(state.isSuccess) {
+            if (state.isSuccess) {
+                delay(2000) // Esperamos 2 segundos para que el usuario lea "Enviado"
+                navigator.pop() // Volvemos al Login
+            }
+        }
+
         ForgotPasswordScreen(
+            isLoading = state.isLoading,
+            isSuccess = state.isSuccess,
+            serverError = state.error,
             onBackClick = { navigator.pop() },
             onSubmitClick = { email ->
-                println("Recuperar para: $email")
-                // Aquí podrías navegar a una pantalla de confirmación o mostrar un Toast/Snackbar
-                // navigator.push(ResetPasswordSuccessPage())
-            }
+                screenModel.sendResetLink(email)
+            },
+            onClearError = { screenModel.clearError() }
         )
     }
 }
 
 @Composable
 fun ForgotPasswordScreen(
+    isLoading: Boolean,
+    isSuccess: Boolean,
+    serverError: String?,
     onBackClick: () -> Unit,
-    onSubmitClick: (String) -> Unit
+    onSubmitClick: (String) -> Unit,
+    onClearError: () -> Unit
 ) {
     val scrollState = rememberScrollState()
     val alegreyaFamily = getAlegreyaFontFamily()
 
     var email by remember { mutableStateOf("") }
-    var emailError by remember { mutableStateOf<String?>(null) }
+    var localEmailError by remember { mutableStateOf<String?>(null) }
+
+    // Limpiamos errores cuando el usuario escribe
+    LaunchedEffect(email) {
+        if (localEmailError != null) localEmailError = null
+        if (serverError != null) onClearError()
+    }
 
     Box(
         modifier = Modifier
@@ -91,7 +113,7 @@ fun ForgotPasswordScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            // --- HEADER: Botón Atrás (Alineado a la izquierda) ---
+            // --- HEADER: Botón Atrás ---
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -107,7 +129,7 @@ fun ForgotPasswordScreen(
                 }
             }
 
-            // --- 1. LOGO (Más pequeño para dar prioridad al mensaje) ---
+            // --- 1. LOGO ---
             Box(modifier = Modifier.size(250.dp)) {
                 Image(
                     painter = painterResource(Res.drawable.logo_black_stroke),
@@ -145,6 +167,28 @@ fun ForgotPasswordScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
+            // --- MENSAJES DE ESTADO (Error Global o Éxito) ---
+            if (serverError != null) {
+                Text(
+                    text = serverError,
+                    color = ColorError,
+                    fontSize = 14.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+            }
+
+            if (isSuccess) {
+                Text(
+                    text = "¡Instrucciones enviadas! Revisa tu correo.",
+                    color = ColorSuccess,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+            }
+
             // --- 3. FORMULARIO ---
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -154,14 +198,14 @@ fun ForgotPasswordScreen(
                     label = "Dirección de correo",
                     placeholder = "ejemplo:correo@gmail.com",
                     value = email,
-                    onValueChange = {
-                        email = it
-                        emailError = null // Limpiar error al escribir
-                    },
+                    onValueChange = { email = it },
                     keyboardType = KeyboardType.Email,
                     imeAction = ImeAction.Done,
-                    onAction = { onSubmitClick(email) },
-                    errorMessage = emailError
+                    onAction = {
+                        if (!isLoading && !isSuccess) onSubmitClick(email)
+                    },
+                    // Prioridad: Error local > Error servidor (si aplica)
+                    errorMessage = localEmailError
                 )
             }
 
@@ -170,15 +214,17 @@ fun ForgotPasswordScreen(
             // --- 4. BOTÓN DE ACCIÓN ---
             Button(
                 onClick = {
-                    if (email.isNotBlank() && email.contains("@")) {
-                        onSubmitClick(email)
+                    if (email.isBlank() || !email.contains("@")) {
+                        localEmailError = "Ingresa un correo válido"
                     } else {
-                        emailError = "Ingresa un correo válido"
+                        onSubmitClick(email)
                     }
                 },
+                enabled = !isLoading && !isSuccess,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = ColorButton,
-                    contentColor = ColorDarkText
+                    contentColor = ColorDarkText,
+                    disabledContainerColor = ColorButton.copy(alpha = 0.5f)
                 ),
                 shape = RoundedCornerShape(30.dp),
                 modifier = Modifier
@@ -186,20 +232,27 @@ fun ForgotPasswordScreen(
                     .height(48.dp),
                 elevation = ButtonDefaults.buttonElevation(0.dp)
             ) {
-                Text(
-                    text = "ENVIAR INSTRUCCIONES",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = ColorDarkText,
-                    letterSpacing = 1.sp
-                )
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = ColorBgWhite,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = if (isSuccess) "ENVIADO" else "ENVIAR INSTRUCCIONES",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = ColorDarkText,
+                        letterSpacing = 1.sp
+                    )
+                }
             }
         }
     }
 }
 
 // --- COMPONENTE REUTILIZADO (INPUT COMPACTO) ---
-// Nota: En un proyecto real, esto debería estar en un archivo separado 'SharedComponents.kt'
 @Composable
 private fun ReactStyleInput(
     label: String,
@@ -222,7 +275,6 @@ private fun ReactStyleInput(
             fontWeight = FontWeight.Bold
         )
 
-        // BasicTextField para control total
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
@@ -276,4 +328,3 @@ private fun ReactStyleInput(
         }
     }
 }
-

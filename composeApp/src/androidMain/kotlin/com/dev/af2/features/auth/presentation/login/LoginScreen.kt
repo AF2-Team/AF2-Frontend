@@ -82,7 +82,7 @@ class LoginPage : Screen {
             state = state,
             onLoginClick = { email, pass -> screenModel.login(email, pass) },
             onRegisterClick = { navigator.push(RegisterPage()) },
-            onForgotPasswordClick = { /* Navegar a recuperar pass */ },
+            onForgotPasswordClick = { navigator.push(ForgotPasswordPage())² },
             onClearError = { screenModel.clearErrors() }
         )
     }
