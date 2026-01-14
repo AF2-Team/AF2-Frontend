@@ -49,6 +49,8 @@ fun PostItem(
     // 2. Si está vacío, intentamos usar 'mediaUrl' (posts antiguos).
     val mediaItem = post.media.firstOrNull()
     val finalImageUrl = mediaItem?.url ?: post.mediaUrl
+    val avatarUrl = post.author.avatar
+        ?: "https://ui-avatars.com/api/?name=${post.author.name}&background=random&color=fff"
 
     Column(
         modifier = Modifier
@@ -65,12 +67,9 @@ fun PostItem(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // AVATAR
-                // Nota: Como 'user' es un ID string por ahora, usaremos el placeholder.
-                // Cuando actualices el modelo a objeto User, cambia esto por post.author.avatar
-                Image(
-                    painter = painterResource(Res.drawable.image_profile),
-                    contentDescription = null,
+                AsyncImage(
+                    model = avatarUrl,
+                    contentDescription = "Avatar de ${post.author.username}",
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
@@ -85,7 +84,7 @@ fun PostItem(
                     // USERNAME
                     // Nota: Aquí iría post.author.username si el backend devuelve el objeto.
                     Text(
-                        text = "Usuario", // Placeholder temporal hasta tener el objeto User
+                        text = "@${post.author.username}", // Placeholder temporal hasta tener el objeto User
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp,
                         color = Color(0xFF2D2D2D),
