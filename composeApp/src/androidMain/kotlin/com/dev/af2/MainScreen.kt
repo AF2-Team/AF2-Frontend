@@ -49,7 +49,8 @@ import com.dev.af2.features.auth.presentation.NotificationsTab
 import com.dev.af2.features.auth.presentation.MessagesTab
 import com.dev.af2.features.auth.presentation.components.CreatePostPage
 import com.dev.af2.features.auth.presentation.components.SearchPage
-
+import androidx.compose.runtime.collectAsState // <--- IMPORTANTE
+import cafe.adriel.voyager.core.model.rememberScreenModel
 private val ColorTabBackground = Color(0xFF423646) // DeepPurple de tu paleta
 private val ColorIconSelected = Color.White
 private val ColorIconUnselected = Color.White.copy(alpha = 0.6f)
@@ -60,7 +61,8 @@ class MainScreen : Screen {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun Content() {
-
+        val screenModel = rememberScreenModel { MainScreenModel() }
+        val currentUser by screenModel.currentUser.collectAsState()
         val rootNavigator = LocalNavigator.currentOrThrow
 
         val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
@@ -77,7 +79,9 @@ class MainScreen : Screen {
                     .nestedScroll(scrollBehavior.nestedScrollConnection),
                 topBar = {
                     val tabNavigator = LocalTabNavigator.current
-                    CustomTopBar(tabNavigator, scrollBehavior)
+                    CustomTopBar(tabNavigator = tabNavigator,
+                        scrollBehavior = scrollBehavior,
+                        userAvatarUrl = null)
                 },
                 floatingActionButton = {
                     // Solo mostramos el FAB si la barra de abajo es visible (opcional)
