@@ -40,7 +40,9 @@ fun PostItem(
     onLikeClick: () -> Unit,
     onCommentClick: () -> Unit,
     onShareClick: () -> Unit,
-    onProfileClick: () -> Unit
+    onProfileClick: () -> Unit,
+    onFollowClick: (String) -> Unit
+
 ) {
     val alegreyaFamily = getAlegreyaFontFamily()
 
@@ -97,10 +99,10 @@ fun PostItem(
                     )
                 }
             }
-
+            val isFollowing = post.author.isFollowing
             Text(
-                text = "Seguir",
-                color = Color(0xFF1291EB),
+                text = if (isFollowing) "Siguiendo" else "Seguir",
+                color = if (isFollowing) Color.Gray else Color(0xFF1291EB),
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp,
                 modifier = Modifier.clickable { /* TODO */ }
@@ -138,9 +140,9 @@ fun PostItem(
                     // Asumimos que likesCount > 0 es likeado visualmente por ahora
                     // ya que isLiked no venía en el JSON
                     Icon(
-                        imageVector = Icons.Default.FavoriteBorder,
+                        imageVector = if (post.isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                         contentDescription = "Like",
-                        tint = Color.Black
+                        tint = if (post.isLiked) Color.Red else Color.Black
                     )
                 }
                 IconButton(onClick = onCommentClick) {

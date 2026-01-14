@@ -13,7 +13,8 @@ data class PostUser(
     val username: String,
     @SerialName("avatarUrl")
     val avatar: String? = null,
-    val email: String? = null
+    val email: String? = null,
+    var isFollowing: Boolean = false
 )
 
 object PostAuthorSerializer : KSerializer<PostUser> {
@@ -60,6 +61,7 @@ data class Post(
 
     val type: String = "post",
     val likesCount: Int = 0,
+    val isLiked: Boolean = false,
     val commentsCount: Int = 0,
     val repostsCount: Int = 0,
     val createdAt: String? = null

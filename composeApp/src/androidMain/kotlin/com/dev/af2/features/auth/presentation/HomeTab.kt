@@ -70,7 +70,7 @@ class HomeTab : Tab {
                     items(state.posts) { post ->
                         PostItem(
                             post = post,
-                            onLikeClick = { println("Like post ${post.id}") },
+                            onLikeClick = { screenModel.toggleLike(post.id) },
                             onCommentClick = { rootNavigator.push(CommentsPage(post.id)) },
                             onShareClick = { println("Share post ${post.id}") },
                             onProfileClick = {
@@ -93,6 +93,9 @@ class HomeTab : Tab {
                                         )
                                     )
                                 }
+                            },
+                            onFollowClick = { userId ->
+                                screenModel.toggleFollow(userId) // <--- Conectamos aquí
                             }
                         )
                     }

@@ -37,7 +37,8 @@ import com.dev.af2.core.designsystem.getAlegreyaFontFamily
 import com.dev.af2.features.auth.presentation.components.SearchTagsSection
 import kotlin.String
 import kotlin.Unit
-
+import cafe.adriel.voyager.core.model.ScreenModel
+import cafe.adriel.voyager.core.model.screenModelScope
 // --- COLORES ---
 private val ColorBgWhite = Color.White
 private val ColorDarkText = Color(0xFF423646)
@@ -208,7 +209,8 @@ fun TagDetailScreen(
                                             onLikeClick = {},
                                             onCommentClick = {},
                                             onShareClick = {},
-                                            onProfileClick = {}
+                                            onProfileClick = {},
+                                            onFollowClick = {}
                                         )
                                     }
                                 }

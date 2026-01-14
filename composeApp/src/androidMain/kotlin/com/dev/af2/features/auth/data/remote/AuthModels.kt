@@ -62,3 +62,9 @@ data class User(
     val followingCount: Int = 0,
     val postsCount: Int = 0
 )
+
+@Serializable
+data class LikeResponse(
+    val liked: Boolean,
+    val likesCount: Int
+)

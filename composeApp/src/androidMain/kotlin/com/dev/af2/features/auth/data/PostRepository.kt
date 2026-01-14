@@ -4,11 +4,13 @@ import com.dev.af2.features.auth.domain.Post
 import com.dev.af2.core.network.NetworkModule
 import com.dev.af2.core.network.TokenManager
 import com.dev.af2.features.auth.data.remote.BaseResponse
+import com.dev.af2.features.auth.data.remote.LikeResponse
 import io.ktor.client.call.body
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.post
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
@@ -84,4 +86,23 @@ class PostRepository {
         }
     }
 
+    suspend fun toggleLike(postId: String): Result<LikeResponse> {
+        return try {
+            val token = TokenManager.token ?: throw Exception("No autenticado")
+
+            // Llamada POST a /api/v1/post/{id}/like
+            val response = client.post("post/$postId/like") {
+                header("Authorization", "Bearer $token")
+            }
+
+            if (response.status.isSuccess()) {
+                val wrapper = response.body<BaseResponse<LikeResponse>>()
+                Result.success(wrapper.data)
+            } else {
+                Result.failure(Exception("Error like: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
