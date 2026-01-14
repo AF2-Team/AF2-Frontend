@@ -16,8 +16,8 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
-
-
+import io.ktor.client.request.get
+import com.dev.af2.features.auth.data.remote.User
 //Recordar borrar prints de depuración
 class AuthRepository {
     private val client = NetworkModule.client
@@ -133,6 +133,33 @@ class AuthRepository {
                 val errorMsg = try {
                     val errorWrapper = response.body<BackendErrorWrapper>()
                     errorWrapper.error?.message ?: "Error desconocido"
+                } catch (e: Exception) {
+                    "Error del servidor: ${response.status.value}"
+                }
+                Result.failure(Exception(errorMsg))
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Result.failure(e)
+        }
+    }
+    suspend fun getMe(): Result<User> {
+        return try {
+            val token = TokenManager.token ?: throw Exception("No autenticado")
+
+
+            val response = client.get("user/me") {
+                header("Authorization", "Bearer $token")
+            }
+
+            if (response.status.isSuccess()) {
+                val wrapper = response.body<BaseResponse<User>>()
+                Result.success(wrapper.data)
+            } else {
+                // ... manejo de errores igual ...
+                val errorMsg = try {
+                    val errorWrapper = response.body<BackendErrorWrapper>()
+                    errorWrapper.error?.message ?: "Error al obtener perfil"
                 } catch (e: Exception) {
                     "Error del servidor: ${response.status.value}"
                 }

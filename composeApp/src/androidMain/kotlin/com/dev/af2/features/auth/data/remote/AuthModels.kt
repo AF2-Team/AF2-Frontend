@@ -1,7 +1,7 @@
 package com.dev.af2.features.auth.data.remote
 
 import kotlinx.serialization.Serializable
-
+import kotlinx.serialization.SerialName
 @Serializable
 data class BaseResponse<T>(
     val success: Boolean,
@@ -43,4 +43,22 @@ data class BackendErrorDetail(
     val userMessage: String? = null,
     val code: String? = null,
     val statusCode: Int? = null
+)
+
+@Serializable
+data class User(
+    @SerialName("_id") val id: String,
+    val name: String,
+    val username: String,
+    val email: String,
+
+
+    @SerialName("avatarUrl") val avatar: String? = null,
+
+    val bio: String? = null,
+
+
+    val followersCount: Int = 0,
+    val followingCount: Int = 0,
+    val postsCount: Int = 0
 )
