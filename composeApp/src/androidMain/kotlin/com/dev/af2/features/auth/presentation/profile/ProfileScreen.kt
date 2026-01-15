@@ -64,7 +64,7 @@ private val ColorBgWhite = Color.White
 private val ColorDarkText = Color(0xFF423646)
 private val ColorAccent = Color(0xFFBCA1BD)
 
-class ProfilePage : Screen {
+class ProfilePage(val userId: String? = null) : Screen {
     override val key: ScreenKey = uniqueScreenKey
 
     @Composable
@@ -81,7 +81,9 @@ class ProfilePage : Screen {
             onBackClick = { navigator.pop() },
             onPostClick = { postId -> println("Ver detalle post: $postId") },
             onSettingsClick = { navigator.push(SettingsPage()) },
-            onRetry = { screenModel.fetchProfile() }
+            onRetry = { screenModel.fetchProfile() },
+            isMyProfile = userId == null
+
         )
     }
 }
@@ -95,7 +97,8 @@ fun ProfileScreen(
     onBackClick: () -> Unit,
     onPostClick: (String) -> Unit,
     onSettingsClick: () -> Unit,
-    onRetry: () -> Unit
+    onRetry: () -> Unit,
+    isMyProfile: Boolean
 ) {
     val openSansFamily = getOpenSansFontFamily()
     val scope = rememberCoroutineScope()

@@ -1,10 +1,10 @@
 package com.dev.af2.features.auth.presentation.components
 
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,12 +12,14 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -25,6 +27,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.screen.ScreenKey
 import cafe.adriel.voyager.core.screen.uniqueScreenKey
@@ -33,6 +36,11 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 
 // Imports de tu proyecto
 import com.dev.af2.core.designsystem.getAlegreyaFontFamily
+import com.dev.af2.features.auth.data.remote.User
+import com.dev.af2.features.auth.domain.SearchFilter
+import com.dev.af2.features.auth.domain.Tag
+import com.dev.af2.features.auth.presentation.comments.CommentsPage
+import com.dev.af2.features.auth.presentation.profile.ProfilePage // Asumiendo que existe
 
 // --- COLORES ---
 private val ColorBgWhite = Color.White
@@ -46,104 +54,177 @@ class SearchPage : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
+        val screenModel = rememberScreenModel { SearchScreenModel() }
+
         SearchScreen(
-            onTagClick = { tag ->
-                // Navegar al detalle de la etiqueta
-                navigator.push(TagDetailPage(tag))
-            }
+            screenModel = screenModel,
+            onTagClick = { tag -> navigator.push(TagDetailPage(tag.name)) }, // Ajusta según tu TagDetailPage
+            onUserClick = { user -> navigator.push(ProfilePage(user.id)) }, // Ajusta según tu ProfilePage
+            onPostClick = { post -> navigator.push(CommentsPage(post.id)) }
         )
     }
 }
 
 @Composable
 fun SearchScreen(
-    onTagClick: (String) -> Unit
+    screenModel: SearchScreenModel,
+    onTagClick: (Tag) -> Unit,
+    onUserClick: (User) -> Unit,
+    onPostClick: (com.dev.af2.features.auth.domain.Post) -> Unit
 ) {
-    val alegreyaFamily = getAlegreyaFontFamily()
-    var searchText by remember { mutableStateOf("") }
-    var isSearchActive by remember { mutableStateOf(false) }
+    val state by screenModel.state.collectAsState()
 
-    // Mocks
+    // Mocks para cuando no hay búsqueda (Historial visual)
     val recentSearches = listOf("#arte", "diseño ui", "#kotlin", "viajes")
-    val followedTags = listOf("fantasia", "accion", "romance", "sci-fi")
 
     Scaffold(
         topBar = {
-            // Barra de Búsqueda Personalizada
             Surface(
                 color = ColorBgWhite,
-                shadowElevation = 4.dp
+                shadowElevation = 0.dp // Quitamos elevación para un look más limpio con los chips
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    SearchInput(
-                        value = searchText,
-                        onValueChange = { searchText = it },
-                        onFocusChange = { isSearchActive = it },
-                        onClearClick = { searchText = "" }
-                    )
+                Column {
+                    // 1. INPUT BÚSQUEDA
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        SearchInput(
+                            value = state.query,
+                            onValueChange = { screenModel.onQueryChange(it) },
+                            onClearClick = { screenModel.onQueryChange("") }
+                        )
+                    }
+
+                    // 2. FILTROS (CHIPS) - Solo visibles si hay texto o intención de búsqueda
+                    if (state.query.isNotEmpty()) {
+                        SearchFilterChips(
+                            activeFilter = state.activeFilter,
+                            onFilterSelect = { screenModel.onFilterChange(it) }
+                        )
+                        HorizontalDivider(color = ColorInputBg, thickness = 1.dp)
+                    }
                 }
             }
         },
         containerColor = ColorBgWhite
     ) { paddingValues ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp)
         ) {
-            // 1. RESULTADOS DE BÚSQUEDA (Si está escribiendo)
-            if (searchText.isNotEmpty()) {
-                item {
-                    Text(
-                        "Resultados para \"$searchText\"",
-                        style = MaterialTheme.typography.titleMedium.copy(color = Color.Gray),
-                        modifier = Modifier.padding(vertical = 16.dp)
-                    )
-                }
-                // Aquí irían los resultados reales filtrados
-            } else {
-                // 2. BÚSQUEDAS RECIENTES
-                if (recentSearches.isNotEmpty()) {
-                    item {
-                        SectionTitle("Recientes")
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 16.dp)
+            ) {
+                // CASO A: MOSTRAR RESULTADOS REALES
+                if (state.query.isNotEmpty()) {
+                    if (state.users.isEmpty() && state.posts.isEmpty() && state.tags.isEmpty() && !state.isLoading) {
+                        item {
+                            Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                                Text("No se encontraron resultados", color = Color.Gray)
+                            }
+                        }
                     }
-                    items(recentSearches) { search ->
-                        RecentSearchItem(text = search, onClick = { searchText = search })
+
+                    // 1. USUARIOS
+                    if (state.users.isNotEmpty()) {
+                        item { SectionTitle("Personas", Modifier.padding(start = 16.dp, top = 16.dp)) }
+                        items(state.users) { user ->
+                            UserResultItem(user = user, onClick = { onUserClick(user) })
+                        }
                     }
-                }
 
-                item { Spacer(modifier = Modifier.height(24.dp)) }
+                    // 2. TAGS
+                    if (state.tags.isNotEmpty()) {
+                        item { SectionTitle("Etiquetas", Modifier.padding(start = 16.dp, top = 16.dp)) }
+                        items(state.tags) { tag ->
+                            TagResultItem(tag = tag, onClick = { onTagClick(tag) })
+                        }
+                    }
 
-                // 3. ETIQUETAS QUE SIGUES
-                item {
-                    SectionTitle("Etiquetas que sigues")
-                }
-                // Grid simple o FlowRow para etiquetas
-                item {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        followedTags.forEach { tag ->
-                            TagItem(tag = tag, onClick = { onTagClick(tag) })
+                    // 3. POSTS
+                    if (state.posts.isNotEmpty()) {
+                        item { SectionTitle("Publicaciones", Modifier.padding(start = 16.dp, top = 16.dp)) }
+                        items(state.posts) { post ->
+                            PostItem(
+                                post = post,
+                                onLikeClick = {},
+                                onCommentClick = { onPostClick(post) },
+                                onShareClick = {},
+                                onProfileClick = {},
+                                onFollowClick = {}
+                            )
+                            HorizontalDivider(thickness = 4.dp, color = ColorInputBg)
                         }
                     }
                 }
+                // CASO B: MOSTRAR HISTORIAL (MOCK)
+                else {
+                    item { Spacer(modifier = Modifier.height(16.dp)) }
+                    item { SectionTitle("Recientes", Modifier.padding(horizontal = 16.dp)) }
+                    items(recentSearches) { search ->
+                        RecentSearchItem(
+                            text = search,
+                            onClick = { screenModel.onQueryChange(search) }
+                        )
+                    }
+                }
+            }
+
+            // LOADER SUPERPUESTO
+            if (state.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = ColorAccent
+                )
             }
         }
     }
 }
 
-// --- COMPONENTES ---
+// --- COMPONENTES AUXILIARES ---
+
+@Composable
+private fun SearchFilterChips(
+    activeFilter: SearchFilter,
+    onFilterSelect: (SearchFilter) -> Unit
+) {
+    LazyRow(
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.padding(bottom = 12.dp)
+    ) {
+        items(SearchFilter.values()) { filter ->
+            val isSelected = activeFilter == filter
+            val bgColor = if (isSelected) ColorAccent else ColorInputBg
+            val textColor = if (isSelected) Color.White else ColorDarkText
+
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(50))
+                    .background(bgColor)
+                    .clickable { onFilterSelect(filter) }
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                Text(
+                    text = filter.label,
+                    color = textColor,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                    fontSize = 14.sp
+                )
+            }
+        }
+    }
+}
 
 @Composable
 private fun SearchInput(
     value: String,
     onValueChange: (String) -> Unit,
-    onFocusChange: (Boolean) -> Unit,
     onClearClick: () -> Unit
 ) {
     BasicTextField(
@@ -152,8 +233,7 @@ private fun SearchInput(
         modifier = Modifier
             .fillMaxWidth()
             .height(44.dp)
-            .background(ColorInputBg, RoundedCornerShape(22.dp))
-            .onFocusChanged { onFocusChange(it.isFocused) },
+            .background(ColorInputBg, RoundedCornerShape(22.dp)),
         textStyle = TextStyle(color = ColorDarkText, fontSize = 16.sp),
         singleLine = true,
         cursorBrush = SolidColor(ColorAccent),
@@ -185,14 +265,14 @@ private fun SearchInput(
 }
 
 @Composable
-private fun SectionTitle(text: String) {
+private fun SectionTitle(text: String, modifier: Modifier = Modifier) {
     Text(
         text = text,
         style = MaterialTheme.typography.titleMedium.copy(
             fontWeight = FontWeight.Bold,
             color = ColorDarkText
         ),
-        modifier = Modifier.padding(bottom = 12.dp)
+        modifier = modifier.padding(bottom = 8.dp)
     )
 }
 
@@ -202,7 +282,7 @@ private fun RecentSearchItem(text: String, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(vertical = 8.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(Icons.Default.History, null, tint = Color.Gray, modifier = Modifier.size(20.dp))
@@ -213,16 +293,16 @@ private fun RecentSearchItem(text: String, onClick: () -> Unit) {
     }
 }
 
+// Adaptado para usar el objeto Tag real
 @Composable
-private fun TagItem(tag: String, onClick: () -> Unit) {
+private fun TagResultItem(tag: Tag, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(vertical = 8.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Icono de Hash con fondo
         Box(
             modifier = Modifier
                 .size(40.dp)
@@ -232,12 +312,55 @@ private fun TagItem(tag: String, onClick: () -> Unit) {
             Icon(Icons.Default.Tag, null, tint = ColorDarkText)
         }
         Spacer(modifier = Modifier.width(12.dp))
-        Text(
-            text = "#$tag", // Añadimos el # visualmente
-            style = MaterialTheme.typography.bodyLarge.copy(
-                fontWeight = FontWeight.Bold,
-                color = ColorDarkText
+        Column {
+            Text(
+                text = "#${tag.name}",
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = ColorDarkText
+                )
             )
-        )
+            Text(
+                text = "${tag.postsCount} posts",
+                style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray)
+            )
+        }
+    }
+}
+
+// Nuevo componente para mostrar usuarios
+@Composable
+private fun UserResultItem(user: User, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Avatar Placeholder (usar AsyncImage después)
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(Color.LightGray),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(Icons.Default.Person, null, tint = Color.White)
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        Column {
+            Text(
+                text = user.name,
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = ColorDarkText
+                )
+            )
+            Text(
+                text = "@${user.username}",
+                style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray)
+            )
+        }
     }
 }
