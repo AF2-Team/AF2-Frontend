@@ -2,74 +2,117 @@ package com.dev.af2.features.auth.presentation
 
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
+import com.dev.af2.features.auth.data.AuthRepository
 import com.dev.af2.features.auth.data.FollowRepository
 import com.dev.af2.features.auth.data.PostRepository
+import com.dev.af2.features.auth.data.remote.User
 import com.dev.af2.features.auth.domain.Post
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 data class HomeUiState(
-    val isLoading: Boolean = true, // Empieza cargando
+    val isLoading: Boolean = true,
     val posts: List<Post> = emptyList(),
-    val error: String? = null
+    val error: String? = null,
+    val currentUser: User? = null // [IMPORTANTE] Aquí se guarda quién soy yo
 )
 
 class HomeScreenModel : ScreenModel {
+    // Asegúrate de que los nombres de los métodos en tus Repos coincidan
     private val repository = PostRepository()
     private val followRepository = FollowRepository()
+    private val authRepository = AuthRepository()
 
     private val _state = MutableStateFlow(HomeUiState())
     val state = _state.asStateFlow()
 
     init {
-        // Cargar posts automáticamente al iniciar
-        loadPosts()
+        loadData()
     }
 
-    fun loadPosts() {
+    // [MODIFICADO] Ahora carga el Usuario Y los Posts
+    fun loadData() {
         screenModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, error = null)
 
-            val result = repository.getPosts()
+            // 1. Obtenemos el usuario actual (para saber qué posts son míos)
+            // Si tu AuthRepository no tiene getMe(), usa getProfile() o similar
+            val currentUserResult = authRepository.getMe()
+            val myUser = currentUserResult.getOrNull()
 
-            result.onSuccess { posts ->
-                _state.value = HomeUiState(isLoading = false, posts = posts)
+            // 2. Obtenemos los posts (Feed)
+            // Nota: En pasos anteriores llamamos a esto getFeed(), aquí usas getPosts().
+            // Asegúrate de que coincida con tu PostRepository.
+            val postsResult = repository.getPosts()
+
+            postsResult.onSuccess { posts ->
+                _state.value = HomeUiState(
+                    isLoading = false,
+                    posts = posts,
+                    currentUser = myUser // Guardamos el usuario
+                )
             }.onFailure { e ->
-                _state.value = HomeUiState(isLoading = false, error = e.message)
+                _state.value = HomeUiState(
+                    isLoading = false,
+                    error = e.message,
+                    currentUser = myUser // Aún si falla el feed, guardamos el usuario si cargó
+                )
             }
         }
     }
-    fun toggleFollow(userId: String) {
-        // Función auxiliar para actualizar la lista (sirve para la actualización y para el rollback)
-        fun updateListInState() {
-            // 1. Obtenemos la lista actual
-            val currentPosts = _state.value.posts
 
-            // 2. Creamos la nueva lista modificada
+    // [NUEVO] Eliminar Post
+    fun deletePost(post: Post) {
+        screenModelScope.launch {
+            repository.deletePost(post.id).onSuccess {
+                // Actualización visual inmediata: Quitamos el post de la lista
+                val newList = _state.value.posts.filter { it.id != post.id }
+                _state.value = _state.value.copy(posts = newList)
+            }.onFailure {
+                println("Error eliminando post: ${it.message}")
+                // Opcional: Mostrar error en un Snackbar state
+            }
+        }
+    }
+
+    // [NUEVO] Editar Post
+    fun updatePost(post: Post, newText: String) {
+        screenModelScope.launch {
+            repository.updatePost(post.id, newText).onSuccess { updatedPost ->
+                // Actualización visual: Reemplazamos el viejo por el nuevo
+                val newList = _state.value.posts.map {
+                    if (it.id == post.id) updatedPost else it
+                }
+                _state.value = _state.value.copy(posts = newList)
+            }.onFailure {
+                println("Error actualizando post: ${it.message}")
+            }
+        }
+    }
+
+    // --- TUS FUNCIONES ORIGINALES (INTACTAS) ---
+
+    fun toggleFollow(userId: String) {
+        fun updateListInState() {
+            val currentPosts = _state.value.posts
             val updatedPosts = currentPosts.map { post ->
                 if (post.author.id == userId) {
-                    // Invertimos el valor de isFollowing
                     post.copy(author = post.author.copy(isFollowing = !post.author.isFollowing))
                 } else {
                     post
                 }
             }
-
-            // 3. Actualizamos el estado con la nueva lista
             _state.value = _state.value.copy(posts = updatedPosts)
         }
 
-        // --- PASO 1: Actualización Optimista (Visual inmediata) ---
         updateListInState()
 
-        // --- PASO 2: Llamada al Backend ---
         screenModelScope.launch {
             followRepository.toggleFollow(userId)
                 .onFailure {
-                    // --- PASO 3: Si falla, revertimos el cambio (Rollback) ---
                     println("Error follow: ${it.message}")
-                    updateListInState() // Volvemos a ejecutar para invertir de nuevo
+                    updateListInState()
                 }
         }
     }
@@ -77,13 +120,11 @@ class HomeScreenModel : ScreenModel {
     fun toggleLike(postId: String) {
         val currentPosts = _state.value.posts
 
-        // 1. Actualización Optimista (Calculamos el nuevo estado localmente)
+        // Optimista
         val optimizedPosts = currentPosts.map { post ->
             if (post.id == postId) {
                 val newLiked = !post.isLiked
-                // Si ahora es liked, sumamos 1. Si no, restamos 1.
                 val newCount = if (newLiked) post.likesCount + 1 else maxOf(0, post.likesCount - 1)
-
                 post.copy(isLiked = newLiked, likesCount = newCount)
             } else {
                 post
@@ -91,11 +132,10 @@ class HomeScreenModel : ScreenModel {
         }
         _state.value = _state.value.copy(posts = optimizedPosts)
 
-        // 2. Llamada al API
+        // API
         screenModelScope.launch {
             repository.toggleLike(postId)
                 .onSuccess { response ->
-                    // 3. Confirmación (Usamos el dato real del servidor si queremos ser precisos)
                     val confirmedPosts = _state.value.posts.map { post ->
                         if (post.id == postId) {
                             post.copy(isLiked = response.liked, likesCount = response.likesCount)
@@ -106,9 +146,8 @@ class HomeScreenModel : ScreenModel {
                     _state.value = _state.value.copy(posts = confirmedPosts)
                 }
                 .onFailure {
-                    // 4. Rollback si falla
                     println("Error like: ${it.message}")
-                    _state.value = _state.value.copy(posts = currentPosts) // Volvemos al original
+                    _state.value = _state.value.copy(posts = currentPosts)
                 }
         }
     }

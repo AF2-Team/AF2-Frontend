@@ -46,7 +46,8 @@ object PostAuthorSerializer : KSerializer<PostUser> {
 
 @Serializable
 data class Post(
-    @SerialName("_id") val id: String,
+    @SerialName("_                                                                 " +
+            "id") val id: String,
 
     @SerialName("user")
     @Serializable(with = PostAuthorSerializer::class)

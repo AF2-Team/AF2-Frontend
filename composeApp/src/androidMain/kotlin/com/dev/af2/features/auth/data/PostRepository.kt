@@ -7,11 +7,13 @@ import com.dev.af2.features.auth.data.remote.BaseResponse
 import com.dev.af2.features.auth.data.remote.LikeResponse
 import com.dev.af2.features.auth.domain.Comment
 import io.ktor.client.call.body
+import io.ktor.client.request.delete
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
@@ -141,6 +143,42 @@ class PostRepository {
                 Result.success(wrapper.data)
             } else {
                 Result.failure(Exception("Error fetching comments"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    suspend fun deletePost(postId: String): Result<Boolean> {
+        return try {
+            val token = TokenManager.token
+            val response = client.delete("post/$postId") {
+                header("Authorization", "Bearer $token")
+            }
+
+            if (response.status.isSuccess()) {
+                Result.success(true)
+            } else {
+                Result.failure(Exception("Error deleting post: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun updatePost(postId: String, newText: String): Result<Post> {
+        return try {
+            val token = TokenManager.token
+            val response = client.put("post/$postId") {
+                header("Authorization", "Bearer $token")
+                contentType(ContentType.Application.Json)
+                setBody(mapOf("text" to newText))
+            }
+
+            if (response.status.isSuccess()) {
+                val wrapper = response.body<BaseResponse<Post>>()
+                Result.success(wrapper.data)
+            } else {
+                Result.failure(Exception("Error updating post: ${response.status}"))
             }
         } catch (e: Exception) {
             Result.failure(e)
