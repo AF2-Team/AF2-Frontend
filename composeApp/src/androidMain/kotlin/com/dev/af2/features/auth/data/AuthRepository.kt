@@ -6,6 +6,7 @@ import com.dev.af2.features.auth.data.remote.AuthResponse
 import com.dev.af2.features.auth.data.remote.BackendErrorWrapper
 import com.dev.af2.features.auth.data.remote.BaseResponse
 import com.dev.af2.features.auth.data.remote.LoginRequest
+import com.dev.af2.features.auth.data.remote.ProfileResponse
 import com.dev.af2.features.auth.data.remote.RegisterRequest
 import io.ktor.client.call.body
 import io.ktor.client.request.header
@@ -153,20 +154,25 @@ class AuthRepository {
             }
 
             if (response.status.isSuccess()) {
-                val wrapper = response.body<BaseResponse<User>>()
-                Result.success(wrapper.data)
+                // AQUI EL CAMBIO: Leemos ProfileResponse, no User directo
+                val wrapper = response.body<BaseResponse<ProfileResponse>>()
+
+                // Combinamos los datos.
+                // Como tu objeto User ya tiene campos followersCount/followingCount/postsCount,
+                // podemos actualizarlos con lo que viene en 'stats' para que la UI los muestre.
+                val profileData = wrapper.data
+                val userWithStats = profileData.user.copy(
+                    followersCount = profileData.stats?.followers ?: profileData.user.followersCount,
+                    followingCount = profileData.stats?.following ?: profileData.user.followingCount,
+                    postsCount = profileData.stats?.posts ?: profileData.user.postsCount
+                )
+
+                Result.success(userWithStats)
             } else {
-                // ... manejo de errores igual ...
-                val errorMsg = try {
-                    val errorWrapper = response.body<BackendErrorWrapper>()
-                    errorWrapper.error?.message ?: "Error al obtener perfil"
-                } catch (e: Exception) {
-                    "Error del servidor: ${response.status.value}"
-                }
-                Result.failure(Exception(errorMsg))
+                Result.failure(Exception("Error fetching profile"))
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            println("DEBUG_REPO: Error getMe: ${e.message}")
             Result.failure(e)
         }
     }

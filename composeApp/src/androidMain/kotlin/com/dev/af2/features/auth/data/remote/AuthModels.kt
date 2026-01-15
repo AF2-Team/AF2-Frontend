@@ -47,7 +47,7 @@ data class BackendErrorDetail(
 
 @Serializable
 data class User(
-    @SerialName("_id") val id: String,
+    @SerialName("id") val id: String,
     val name: String,
     val username: String,
     val email: String,
@@ -67,4 +67,23 @@ data class User(
 data class LikeResponse(
     val liked: Boolean,
     val likesCount: Int
+)
+@Serializable
+data class ProfileResponse(
+    val user: User,
+    val stats: UserStats? = null,
+    val viewer: UserViewer? = null
+)
+
+@Serializable
+data class UserStats(
+    val posts: Int = 0,
+    val followers: Int = 0,
+    val following: Int = 0
+)
+
+@Serializable
+data class UserViewer(
+    val isFollowing: Boolean = false,
+    val isBlocked: Boolean = false
 )
