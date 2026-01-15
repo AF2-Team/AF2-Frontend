@@ -1,8 +1,6 @@
 package com.dev.af2.features.auth.presentation.components
 
-
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -26,28 +24,40 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.resources.painterResource
 
+// Importa tu modelo actualizado
 import com.dev.af2.features.auth.domain.Comment
 import com.dev.af2.core.designsystem.getOpenSansFontFamily
 import af2.composeapp.generated.resources.Res
 import af2.composeapp.generated.resources.berserk
-import androidx.compose.ui.layout.onSizeChanged
 
 @Composable
 fun CommentItem(
     comment: Comment,
-    onLikeClick: (Comment) -> Unit
+    onLikeClick: (Comment) -> Unit = {} // Por defecto vacío hasta implementar likes en comments
 ) {
     val openSansFamily = getOpenSansFontFamily()
+
+    // Extraemos datos de forma segura según el nuevo modelo
+    val username = comment.user.username
+    val commentText = comment.text
+    // La fecha viene cruda del backend (ISO string).
+    // Idealmente usarías una función helper para convertirla a "hace 2h".
+    // Por ahora mostramos "Hace un momento" o el string crudo recortado.
+    val timeDisplay = "Reciente"
+
+    // Mockeamos likes por ahora porque el backend aún no manda likes de comentarios
+    val likesCount = 0
+    val isLiked = false
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.Top // Alineación arriba por si el texto es largo
+        verticalAlignment = Alignment.Top
     ) {
-        // 1. Avatar
+        // 1. Avatar (Usamos placeholder, luego puedes poner AsyncImage con comment.user.avatar)
         Image(
-            painter = painterResource(Res.drawable.berserk), // Placeholder
+            painter = painterResource(Res.drawable.berserk),
             contentDescription = null,
             modifier = Modifier
                 .size(36.dp)
@@ -57,16 +67,16 @@ fun CommentItem(
 
         Spacer(modifier = Modifier.width(12.dp))
 
-        // 2. Contenido (Usuario + Texto + Metadata)
+        // 2. Contenido
         Column(modifier = Modifier.weight(1f)) {
-            // Texto rico: Usuario en negrita + Comentario
+            // Usuario + Texto
             Text(
                 text = buildAnnotatedString {
                     withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = Color(0xFF2D2D2D))) {
-                        append(comment.username)
+                        append(username) // Usamos el username extraído
                     }
                     append(" ")
-                    append(comment.text)
+                    append(commentText)
                 },
                 style = MaterialTheme.typography.bodyMedium.copy(
                     fontFamily = openSansFamily,
@@ -78,20 +88,23 @@ fun CommentItem(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Metadata: Tiempo, Likes, Responder
+            // Metadata
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = comment.timestamp,
+                    text = timeDisplay,
                     style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray, fontSize = 12.sp)
                 )
-                Spacer(modifier = Modifier.width(16.dp))
-                if (comment.likesCount > 0) {
+
+                // Mostrar likes solo si hay (lógica visual lista para el futuro)
+                if (likesCount > 0) {
+                    Spacer(modifier = Modifier.width(16.dp))
                     Text(
-                        text = "${comment.likesCount} me gusta",
+                        text = "$likesCount me gusta",
                         style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray, fontSize = 12.sp)
                     )
-                    Spacer(modifier = Modifier.width(16.dp))
                 }
+
+                Spacer(modifier = Modifier.width(16.dp))
                 Text(
                     text = "Responder",
                     style = MaterialTheme.typography.bodySmall.copy(
@@ -103,16 +116,16 @@ fun CommentItem(
             }
         }
 
-        // 3. Botón Like (Corazón pequeño a la derecha)
+        // 3. Botón Like (Visualmente listo, funcionalmente pendiente de backend)
         IconButton(
-            onClick = {onLikeClick(comment)},
+            onClick = { onLikeClick(comment) },
             modifier = Modifier.size(20.dp).align(Alignment.CenterVertically)
         ) {
             Icon(
-                imageVector = if (comment.isLiked) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
+                imageVector = if (isLiked) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
                 contentDescription = "Like comentario",
-                tint = if (comment.isLiked) Color.Red else Color.Gray,
-                modifier = Modifier.size(14.dp) // Icono muy sutil
+                tint = if (isLiked) Color.Red else Color.Gray,
+                modifier = Modifier.size(14.dp)
             )
         }
     }

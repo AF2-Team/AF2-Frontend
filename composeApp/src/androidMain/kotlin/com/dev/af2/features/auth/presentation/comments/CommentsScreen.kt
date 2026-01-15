@@ -1,6 +1,5 @@
 package com.dev.af2.features.auth.presentation.comments
 
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -22,14 +21,14 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.screen.ScreenKey
 import cafe.adriel.voyager.core.screen.uniqueScreenKey
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 
-// Imports
-import com.dev.af2.features.auth.domain.Comment
+// Imports de tu proyecto
 import com.dev.af2.features.auth.presentation.components.CommentItem
 import com.dev.af2.core.designsystem.getOpenSansFontFamily
 
@@ -38,16 +37,17 @@ private val ColorBgWhite = Color.White
 private val ColorDarkText = Color(0xFF423646)
 private val ColorAccent = Color(0xFFBCA1BD)
 
-// Argumento: postId para saber qué comentarios cargar
 data class CommentsPage(val postId: String) : Screen {
     override val key: ScreenKey = uniqueScreenKey
 
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
+        val screenModel = rememberScreenModel { CommentsScreenModel(postId) }
+
         CommentsScreen(
             onBackClick = { navigator.pop() },
-            postId = postId
+            screenModel = screenModel
         )
     }
 }
@@ -56,23 +56,15 @@ data class CommentsPage(val postId: String) : Screen {
 @Composable
 fun CommentsScreen(
     onBackClick: () -> Unit,
-    postId: String
+    screenModel: CommentsScreenModel
 ) {
     val openSansFamily = getOpenSansFontFamily()
 
+    // Conectamos con el estado real del backend
+    val state by screenModel.state.collectAsState()
 
-    // Estado del input
+    // Estado del input local
     var commentText by remember { mutableStateOf("") }
-
-    // Mock Data (Lista mutable para simular agregar)
-    val comments = remember {
-        mutableStateListOf(
-            Comment("1", "sofia_design", "", "¡Me encanta esta foto! 😍", "2h", 12,isLiked = false),
-            Comment("2", "carlos_dev", "", "El uso de colores es genial.", "5h", 3, true),
-            Comment("3", "maria_art", "", "¿Dónde fue tomada?", "1d", 0,isLiked = false),
-            Comment("4", "john_doe", "", "🔥", "2d", 1,isLiked = false)
-        )
-    }
 
     Scaffold(
         topBar = {
@@ -110,11 +102,11 @@ fun CommentsScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 12.dp)
-                        .navigationBarsPadding() // Importante para no tapar con gestos
-                        .imePadding(), // Sube con el teclado
+                        .navigationBarsPadding()
+                        .imePadding(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Avatar Usuario Actual (Mini)
+                    // Avatar Usuario Actual (Mini) - Placeholder
                     Box(
                         modifier = Modifier
                             .size(32.dp)
@@ -124,7 +116,7 @@ fun CommentsScreen(
 
                     Spacer(modifier = Modifier.width(12.dp))
 
-                    // Input
+                    // Input (Restaurado a tu configuración original)
                     BasicTextField(
                         value = commentText,
                         onValueChange = { commentText = it },
@@ -152,60 +144,80 @@ fun CommentsScreen(
 
                     Spacer(modifier = Modifier.width(8.dp))
 
-                    // Botón Publicar (Solo visible si hay texto)
-                    if (commentText.isNotBlank()) {
+                    // Botón Publicar
+                    // Se muestra si hay texto o si se está enviando (para mostrar el loader)
+                    if (commentText.isNotBlank() || state.isSending) {
                         IconButton(
                             onClick = {
-                                // Agregar comentario mock
-                                comments.add(
-                                    Comment(
-                                        id = System.currentTimeMillis().toString(),
-                                        username = "Yo",
-                                        userAvatar = "",
-                                        text = commentText,
-                                        timestamp = "Ahora"
-                                    )
-                                )
-                                commentText = "" // Limpiar
+                                if (!state.isSending) {
+                                    screenModel.sendComment(commentText)
+                                    commentText = "" // Limpiar input
+                                }
                             },
-                            modifier = Modifier.size(40.dp)
+                            modifier = Modifier.size(40.dp),
+                            enabled = !state.isSending
                         ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.Send,
-                                contentDescription = "Enviar",
-                                tint = ColorAccent
-                            )
+                            if (state.isSending) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    color = ColorAccent,
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.Send,
+                                    contentDescription = "Enviar",
+                                    tint = ColorAccent
+                                )
+                            }
                         }
                     }
                 }
             }
         }
     ) { paddingValues ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
-            contentPadding = PaddingValues(bottom = 16.dp)
+                .padding(paddingValues)
         ) {
-            items(comments) { comment ->
-                CommentItem(
-                    comment = comment,
-                    onLikeClick = {  clickedComment ->
-                        // 1. Encuentra el índice del comentario que fue clickeado en la lista.
-                        val index = comments.indexOf(clickedComment)
-                        if (index != -1) {
-                            // 2. Crea una COPIA del comentario con la propiedad 'isLiked' invertida.
-                            //    Nunca modifiques el estado directamente.
-                            val updatedComment = clickedComment.copy(
-                                isLiked = !clickedComment.isLiked,
-                                // 3. (Opcional pero recomendado) Actualiza el contador de likes.
-                                likesCount = if (!clickedComment.isLiked) clickedComment.likesCount + 1 else clickedComment.likesCount - 1
-                            )
-                            // 4. Reemplaza el comentario antiguo por el actualizado en la lista.
-                            //    Como 'comments' es una lista mutable de estado, Compose detectará
-                            //    este cambio y redibujará el item afectado.
-                            comments[index] = updatedComment
-                        } }
+            if (state.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = ColorAccent
+                )
+            } else if (state.comments.isEmpty()) {
+                Column(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("No hay comentarios aún", color = Color.Gray)
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 16.dp)
+                ) {
+                    items(state.comments) { comment ->
+                        CommentItem(
+                            comment = comment,
+                            onLikeClick = { /* Pendiente implementar likes en comentarios */ }
+                        )
+                    }
+                }
+            }
+
+            // Error Snackbar
+            state.error?.let { error ->
+                Text(
+                    text = error,
+                    color = Color.Red,
+                    fontSize = 12.sp,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(8.dp)
+                        .background(Color.White.copy(alpha = 0.9f), RoundedCornerShape(4.dp))
+                        .padding(8.dp)
                 )
             }
         }

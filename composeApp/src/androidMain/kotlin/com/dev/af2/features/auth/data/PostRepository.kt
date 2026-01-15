@@ -5,15 +5,19 @@ import com.dev.af2.core.network.NetworkModule
 import com.dev.af2.core.network.TokenManager
 import com.dev.af2.features.auth.data.remote.BaseResponse
 import com.dev.af2.features.auth.data.remote.LikeResponse
+import com.dev.af2.features.auth.domain.Comment
 import io.ktor.client.call.body
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
+import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
+import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 
 class PostRepository {
@@ -100,6 +104,43 @@ class PostRepository {
                 Result.success(wrapper.data)
             } else {
                 Result.failure(Exception("Error like: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun createComment(postId: String, text: String): Result<Comment> {
+        return try {
+            val token = TokenManager.token
+            val response = client.post("post/$postId/comment") { // Llamamos a la ruta que creamos en Post
+                header("Authorization", "Bearer $token")
+                contentType(ContentType.Application.Json)
+                setBody(mapOf("text" to text))
+            }
+            if (response.status.isSuccess()) {
+                val wrapper = response.body<BaseResponse<Comment>>()
+                Result.success(wrapper.data)
+            } else {
+                Result.failure(Exception("Error comment: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // Leer
+    suspend fun getComments(postId: String): Result<List<Comment>> {
+        return try {
+            val token = TokenManager.token
+            val response = client.get("post/$postId/comments") {
+                header("Authorization", "Bearer $token")
+            }
+            if (response.status.isSuccess()) {
+                val wrapper = response.body<BaseResponse<List<Comment>>>()
+                Result.success(wrapper.data)
+            } else {
+                Result.failure(Exception("Error fetching comments"))
             }
         } catch (e: Exception) {
             Result.failure(e)
