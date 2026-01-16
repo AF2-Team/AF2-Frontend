@@ -33,6 +33,8 @@ data class AuthResponse(
 @Serializable
 data class BackendErrorWrapper(
     val success: Boolean,
+    val message: String? = null,
+    val details: Map<String, List<String>>? = null,
     val error: BackendErrorDetail? = null
 )
 
