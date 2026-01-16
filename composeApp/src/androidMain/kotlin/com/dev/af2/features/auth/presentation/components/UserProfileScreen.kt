@@ -40,6 +40,7 @@ import com.dev.af2.features.auth.presentation.comments.CommentsPage
 import af2.composeapp.generated.resources.Res
 import af2.composeapp.generated.resources.image_post4
 import af2.composeapp.generated.resources.logo_watercolor
+import com.dev.af2.features.auth.presentation.components.UserFeedScreen
 import com.dev.af2.features.auth.presentation.components.UserProfileScreenModel
 
 // --- COLORES ---
@@ -68,7 +69,12 @@ data class UserProfilePage(
             screenModel = screenModel,
             onBackClick = { navigator.pop() },
             // Al hacer click, vamos a los comentarios del post
-            onPostClick = { postId -> navigator.push(CommentsPage(postId)) }
+            onPostClick = { postId -> navigator.push(
+                UserFeedScreen(
+                    userId = userId,
+                    initialPostId = postId
+                )
+            ) }
         )
     }
 }
