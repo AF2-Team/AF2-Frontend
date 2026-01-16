@@ -15,11 +15,10 @@ data class HomeUiState(
     val isLoading: Boolean = true,
     val posts: List<Post> = emptyList(),
     val error: String? = null,
-    val currentUser: User? = null // [IMPORTANTE] Aquí se guarda quién soy yo
+    val currentUser: User? = null
 )
 
 class HomeScreenModel : ScreenModel {
-    // Asegúrate de que los nombres de los métodos en tus Repos coincidan
     private val repository = PostRepository()
     private val followRepository = FollowRepository()
     private val authRepository = AuthRepository()
@@ -31,56 +30,45 @@ class HomeScreenModel : ScreenModel {
         loadData()
     }
 
-    // [MODIFICADO] Ahora carga el Usuario Y los Posts
     fun loadData() {
         screenModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, error = null)
 
-            // 1. Obtenemos el usuario actual (para saber qué posts son míos)
-            // Si tu AuthRepository no tiene getMe(), usa getProfile() o similar
             val currentUserResult = authRepository.getMe()
             val myUser = currentUserResult.getOrNull()
 
-            // 2. Obtenemos los posts (Feed)
-            // Nota: En pasos anteriores llamamos a esto getFeed(), aquí usas getPosts().
-            // Asegúrate de que coincida con tu PostRepository.
             val postsResult = repository.getPosts()
 
             postsResult.onSuccess { posts ->
                 _state.value = HomeUiState(
                     isLoading = false,
                     posts = posts,
-                    currentUser = myUser // Guardamos el usuario
+                    currentUser = myUser
                 )
             }.onFailure { e ->
                 _state.value = HomeUiState(
                     isLoading = false,
                     error = e.message,
-                    currentUser = myUser // Aún si falla el feed, guardamos el usuario si cargó
+                    currentUser = myUser
                 )
             }
         }
     }
 
-    // [NUEVO] Eliminar Post
     fun deletePost(post: Post) {
         screenModelScope.launch {
             repository.deletePost(post.id).onSuccess {
-                // Actualización visual inmediata: Quitamos el post de la lista
                 val newList = _state.value.posts.filter { it.id != post.id }
                 _state.value = _state.value.copy(posts = newList)
             }.onFailure {
                 println("Error eliminando post: ${it.message}")
-                // Opcional: Mostrar error en un Snackbar state
             }
         }
     }
 
-    // [NUEVO] Editar Post
     fun updatePost(post: Post, newText: String) {
         screenModelScope.launch {
             repository.updatePost(post.id, newText).onSuccess { updatedPost ->
-                // Actualización visual: Reemplazamos el viejo por el nuevo
                 val newList = _state.value.posts.map {
                     if (it.id == post.id) updatedPost else it
                 }
@@ -91,14 +79,20 @@ class HomeScreenModel : ScreenModel {
         }
     }
 
-    // --- TUS FUNCIONES ORIGINALES (INTACTAS) ---
-
+    // --- CORRECCIÓN AQUÍ ---
     fun toggleFollow(userId: String) {
-        fun updateListInState() {
-            val currentPosts = _state.value.posts
-            val updatedPosts = currentPosts.map { post ->
+        val currentPosts = _state.value.posts
+
+        // 1. Averiguamos el estado actual buscando cualquier post de ese usuario
+        // (Si isFollowing es true, significa que lo queremos dejar de seguir)
+        val isCurrentlyFollowing = currentPosts.find { it.author.id == userId }?.author?.isFollowing ?: false
+
+        // Función auxiliar para actualizar visualmente todos los posts de ese autor
+        fun updateState(isFollowingNow: Boolean) {
+            val updatedPosts = _state.value.posts.map { post ->
                 if (post.author.id == userId) {
-                    post.copy(author = post.author.copy(isFollowing = !post.author.isFollowing))
+                    // Actualizamos el estado isFollowing del autor dentro del post
+                    post.copy(author = post.author.copy(isFollowing = isFollowingNow))
                 } else {
                     post
                 }
@@ -106,21 +100,30 @@ class HomeScreenModel : ScreenModel {
             _state.value = _state.value.copy(posts = updatedPosts)
         }
 
-        updateListInState()
+        // 2. Optimista: Invertimos el estado visualmente YA
+        updateState(!isCurrentlyFollowing)
 
+        // 3. Llamada a la API correcta según el estado
         screenModelScope.launch {
-            followRepository.toggleFollow(userId)
-                .onFailure {
-                    println("Error follow: ${it.message}")
-                    updateListInState()
-                }
+            val result = if (isCurrentlyFollowing) {
+                // Si ya lo seguía, llamamos a UNFOLLOW
+                followRepository.unfollowUser(userId)
+            } else {
+                // Si no lo seguía, llamamos a FOLLOW
+                followRepository.followUser(userId)
+            }
+
+            result.onFailure {
+                println("Error al cambiar follow: ${it.message}")
+                // 4. Si falla, revertimos al estado original (Rollback)
+                updateState(isCurrentlyFollowing)
+            }
         }
     }
 
     fun toggleLike(postId: String) {
         val currentPosts = _state.value.posts
 
-        // Optimista
         val optimizedPosts = currentPosts.map { post ->
             if (post.id == postId) {
                 val newLiked = !post.isLiked
@@ -132,7 +135,6 @@ class HomeScreenModel : ScreenModel {
         }
         _state.value = _state.value.copy(posts = optimizedPosts)
 
-        // API
         screenModelScope.launch {
             repository.toggleLike(postId)
                 .onSuccess { response ->

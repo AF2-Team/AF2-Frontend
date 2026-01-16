@@ -1,4 +1,4 @@
-package com.dev.af2.features.auth.presentation.screens // Sugerencia: Mover a .screens si no está ahí
+package com.dev.af2.features.auth.presentation.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -25,6 +25,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.screen.ScreenKey
 import cafe.adriel.voyager.core.screen.uniqueScreenKey
@@ -35,21 +36,21 @@ import org.jetbrains.compose.resources.painterResource
 
 // Imports de tu proyecto
 import com.dev.af2.core.designsystem.getOpenSansFontFamily
-import com.dev.af2.features.auth.domain.Post // Asegúrate de que este import sea correcto
+import com.dev.af2.features.auth.presentation.comments.CommentsPage
 import af2.composeapp.generated.resources.Res
-import af2.composeapp.generated.resources.image_profile
 import af2.composeapp.generated.resources.image_post4
 import af2.composeapp.generated.resources.logo_watercolor
+import com.dev.af2.features.auth.presentation.components.UserProfileScreenModel
 
 // --- COLORES ---
 private val ColorBgWhite = Color.White
 private val ColorDarkText = Color(0xFF423646)
 private val ColorAccent = Color(0xFFBCA1BD)
-private val ColorBlue = Color(0xFF1DA1F2)
 
-// Recibimos datos del usuario a visitar
+// [CAMBIO] Recibimos userId para poder cargar los datos reales
 data class UserProfilePage(
-    val username: String,
+    val userId: String,
+    val username: String, // Texto inicial mientras carga
     val userAvatar: String = ""
 ) : Screen {
     override val key: ScreenKey = uniqueScreenKey
@@ -57,11 +58,17 @@ data class UserProfilePage(
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
+
+        // [CAMBIO] Iniciamos el modelo con el ID
+        val screenModel = rememberScreenModel { UserProfileScreenModel(userId) }
+
         UserProfileScreen(
-            username = username,
-            userAvatar = userAvatar,
+            initialUsername = username,
+            initialAvatar = userAvatar,
+            screenModel = screenModel,
             onBackClick = { navigator.pop() },
-            onPostClick = { postId -> println("Ver post $postId") }
+            // Al hacer click, vamos a los comentarios del post
+            onPostClick = { postId -> navigator.push(CommentsPage(postId)) }
         )
     }
 }
@@ -69,249 +76,266 @@ data class UserProfilePage(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserProfileScreen(
-    username: String,
-    userAvatar: String,
+    initialUsername: String,
+    initialAvatar: String,
+    screenModel: UserProfileScreenModel, // Recibimos el modelo
     onBackClick: () -> Unit,
     onPostClick: (String) -> Unit
 ) {
     val openSansFamily = getOpenSansFontFamily()
 
-    // --- ESTADO (Simulado) ---
-    var isFollowing by remember { mutableStateOf(false) }
+    // [CAMBIO] Observamos el estado real del backend
+    val state by screenModel.state.collectAsState()
 
-    val userPosts = remember(username) {
-        // En el futuro: screenModel.getUserPosts(username)
-        // Asegúrate de que Post aquí se refiera al modelo actualizado
-        emptyList<Post>()
-    }
+    // Lógica de datos: Si state.user es nulo (cargando), usamos los iniciales
+    val user = state.user
+    val displayUsername = user?.username ?: initialUsername
+    val displayName = user?.name ?: displayUsername
+    val displayAvatar = user?.avatar ?: initialAvatar
+    val bio = user?.bio ?: "Sin biografía"
 
-    // Datos Mock del perfil visitado
-    val handle = "@${username.lowercase().replace(" ", "_")}"
-    val bio = "Amante de la fotografía y el diseño. Viajando por el mundo 🌍"
-    val followersCount = if (isFollowing) 1201 else 1200
+    // Contadores reales
+    val postsCount = state.posts.size
+    val followersCount = user?.followersCount ?: 0
+    val followingCount = user?.followingCount ?: 0
+
+    // Estado local para seguimiento (visual)
+    val isFollowing = state.isFollowing
 
     Box(modifier = Modifier.fillMaxSize().background(ColorBgWhite)) {
 
-        // --- CAPA 1: CONTENIDO ---
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(1.dp),
-            verticalArrangement = Arrangement.spacedBy(1.dp)
-        ) {
+        // Si está cargando y no hay posts, mostramos loader
+        if (state.isLoading && state.posts.isEmpty()) {
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.Center),
+                color = ColorAccent
+            )
+        } else {
+            // --- CAPA 1: CONTENIDO ---
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(1.dp),
+                verticalArrangement = Arrangement.spacedBy(1.dp)
+            ) {
 
-            // ÍTEM 1: HEADER (Banner + Info)
-            item(span = { GridItemSpan(3) }) {
-                Column {
-                    // --- BANNER Y AVATAR ---
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(240.dp)
-                    ) {
-                        // Banner
-                        Image(
-                            painter = painterResource(Res.drawable.image_post4),
-                            contentDescription = "Banner",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(190.dp)
-                                .align(Alignment.TopCenter)
-                        )
-
-                        // Sombra superior
+                // ÍTEM 1: HEADER (Banner + Info)
+                item(span = { GridItemSpan(3) }) {
+                    Column {
+                        // --- BANNER Y AVATAR ---
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(80.dp)
-                                .background(
-                                    Brush.verticalGradient(
-                                        colors = listOf(Color.Black.copy(alpha = 0.6f), Color.Transparent)
-                                    )
-                                )
-                                .align(Alignment.TopCenter)
-                        )
-
-                        // Avatar
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .size(110.dp)
-                                .align(Alignment.BottomCenter)
+                                .height(240.dp)
                         ) {
+                            // Banner
+                            Image(
+                                painter = painterResource(Res.drawable.image_post4),
+                                contentDescription = "Banner",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(190.dp)
+                                    .align(Alignment.TopCenter)
+                            )
+
+                            // Sombra superior
                             Box(
                                 modifier = Modifier
-                                    .fillMaxSize()
-                                    .clip(CircleShape)
-                                    .background(ColorBgWhite)
-                                    .padding(4.dp)
+                                    .fillMaxWidth()
+                                    .height(80.dp)
+                                    .background(
+                                        Brush.verticalGradient(
+                                            colors = listOf(Color.Black.copy(alpha = 0.6f), Color.Transparent)
+                                        )
+                                    )
+                                    .align(Alignment.TopCenter)
+                            )
+
+                            // Avatar
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .size(110.dp)
+                                    .align(Alignment.BottomCenter)
                             ) {
-                                if (userAvatar.isNotEmpty()) {
-                                    AsyncImage(
-                                        model = userAvatar,
-                                        contentDescription = "Perfil",
-                                        modifier = Modifier.fillMaxSize().clip(CircleShape),
-                                        contentScale = ContentScale.Crop
-                                    )
-                                } else {
-                                    Image(
-                                        painter = painterResource(Res.drawable.logo_watercolor),
-                                        contentDescription = "Perfil",
-                                        modifier = Modifier.fillMaxSize().clip(CircleShape),
-                                        contentScale = ContentScale.Crop
-                                    )
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(CircleShape)
+                                        .background(ColorBgWhite)
+                                        .padding(4.dp)
+                                ) {
+                                    if (displayAvatar.isNotEmpty()) {
+                                        AsyncImage(
+                                            model = displayAvatar,
+                                            contentDescription = "Perfil",
+                                            modifier = Modifier.fillMaxSize().clip(CircleShape),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    } else {
+                                        Image(
+                                            painter = painterResource(Res.drawable.logo_watercolor),
+                                            contentDescription = "Perfil",
+                                            modifier = Modifier.fillMaxSize().clip(CircleShape),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    // --- INFO DEL USUARIO ---
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        // Nombre
-                        Text(
-                            text = username,
-                            style = MaterialTheme.typography.headlineSmall.copy(
-                                fontFamily = openSansFamily,
-                                fontWeight = FontWeight.Bold,
-                                color = ColorDarkText
-                            )
-                        )
-                        // Handle
-                        Text(
-                            text = handle,
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color.Gray
-                            )
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        // Bio
-                        Text(
-                            text = bio,
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                color = ColorDarkText,
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                                lineHeight = 20.sp
-                            ),
-                            modifier = Modifier.padding(horizontal = 24.dp)
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // --- BOTONES DE ACCIÓN ---
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        // --- INFO DEL USUARIO ---
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Button(
-                                onClick = { isFollowing = !isFollowing },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = if (isFollowing) Color.Transparent else ColorAccent,
-                                    contentColor = if (isFollowing) ColorAccent else Color.White
-                                ),
-                                border = if (isFollowing) androidx.compose.foundation.BorderStroke(1.dp, ColorAccent) else null,
-                                shape = RoundedCornerShape(20.dp),
-                                modifier = Modifier.height(36.dp),
-                                contentPadding = PaddingValues(horizontal = 24.dp)
-                            ) {
-                                Text(
-                                    text = if (isFollowing) "Siguiendo" else "Seguir",
-                                    fontWeight = FontWeight.Bold
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            // Nombre Real
+                            Text(
+                                text = displayName,
+                                style = MaterialTheme.typography.headlineSmall.copy(
+                                    fontFamily = openSansFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    color = ColorDarkText
                                 )
-                            }
+                            )
+                            // Handle (@usuario)
+                            Text(
+                                text = "@$displayUsername",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Color.Gray
+                                )
+                            )
 
-                            Button(
-                                onClick = { /* Ir a chat */ },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color.Transparent,
-                                    contentColor = ColorDarkText
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            // Bio
+                            Text(
+                                text = bio,
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = ColorDarkText,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                    lineHeight = 20.sp
                                 ),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, Color.LightGray),
-                                shape = RoundedCornerShape(20.dp),
-                                modifier = Modifier.height(36.dp),
-                                contentPadding = PaddingValues(horizontal = 24.dp)
+                                modifier = Modifier.padding(horizontal = 24.dp)
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            // --- BOTONES DE ACCIÓN ---
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                Text("Mensaje", fontWeight = FontWeight.Bold)
+
+                                Button(
+                                    onClick = { screenModel.toggleFollow() },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = if (isFollowing) Color.Transparent else ColorAccent,
+                                        contentColor = if (isFollowing) ColorAccent else Color.White
+                                    ),
+                                    border = if (isFollowing) androidx.compose.foundation.BorderStroke(1.dp, ColorAccent) else null,
+                                    shape = RoundedCornerShape(20.dp),
+                                    modifier = Modifier.height(36.dp),
+                                    contentPadding = PaddingValues(horizontal = 24.dp)
+                                ) {
+                                    Text(
+                                        text = if (isFollowing) "Siguiendo" else "Seguir",
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+
+                                Button(
+                                    onClick = { /* Ir a chat */ },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color.Transparent,
+                                        contentColor = ColorDarkText
+                                    ),
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, Color.LightGray),
+                                    shape = RoundedCornerShape(20.dp),
+                                    modifier = Modifier.height(36.dp),
+                                    contentPadding = PaddingValues(horizontal = 24.dp)
+                                ) {
+                                    Text("Mensaje", fontWeight = FontWeight.Bold)
+                                }
                             }
+
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            // Estadísticas
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceEvenly
+                            ) {
+                                StatItem(count = postsCount.toString(), label = "Posts")
+                                StatItem(count = followersCount.toString(), label = "Seguidores")
+                                StatItem(count = followingCount.toString(), label = "Seguidos")
+                            }
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Icon(
+                                imageVector = Icons.Default.GridOn,
+                                contentDescription = null,
+                                tint = ColorAccent,
+                                modifier = Modifier.size(28.dp)
+                            )
+                            HorizontalDivider(
+                                color = ColorAccent.copy(alpha = 0.3f),
+                                modifier = Modifier.padding(top = 8.dp, bottom = 2.dp)
+                            )
                         }
+                    }
+                }
 
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        // Estadísticas
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly
+                // ÍTEMS: GRID DE FOTOS REALES
+                if (state.posts.isEmpty()) {
+                    item(span = { GridItemSpan(3) }) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-                            StatItem(count = userPosts.size.toString(), label = "Posts")
-                            StatItem(count = followersCount.toString(), label = "Seguidores")
-                            StatItem(count = "342", label = "Seguidos")
+                            Text("Este usuario aún no tiene publicaciones", color = Color.Gray)
                         }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Icon(
-                            imageVector = Icons.Default.GridOn,
-                            contentDescription = null,
-                            tint = ColorAccent,
-                            modifier = Modifier.size(28.dp)
-                        )
-                        HorizontalDivider(
-                            color = ColorAccent.copy(alpha = 0.3f),
-                            modifier = Modifier.padding(top = 8.dp, bottom = 2.dp)
-                        )
                     }
-                }
-            }
+                } else {
+                    // [CAMBIO] Iteramos sobre los posts reales
+                    items(state.posts) { post ->
+                        val mainImage = post.media.firstOrNull()?.url ?: post.mediaUrl
 
-            // ÍTEMS: GRID DE FOTOS
-            if (userPosts.isEmpty()) {
-                item(span = { GridItemSpan(3) }) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("Este usuario aún no tiene publicaciones", color = Color.Gray)
-                    }
-                }
-            } else {
-                items(userPosts) { post ->
-                    // --- CORRECCIÓN CLAVE AQUÍ ---
-                    // Antes: val mainImage = post.images.firstOrNull()
-                    // Ahora: Buscamos en 'media' o usamos 'mediaUrl'
-                    val mainImage = post.media.firstOrNull()?.url ?: post.mediaUrl
-
-                    Box(
-                        modifier = Modifier
-                            .aspectRatio(1f)
-                            .background(Color.LightGray)
-                            .clickable { onPostClick(post.id) }
-                    ) {
-                        if (!mainImage.isNullOrBlank()) {
-                            AsyncImage(
-                                model = mainImage,
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            Image(
-                                painter = painterResource(Res.drawable.logo_watercolor),
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
+                        Box(
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .background(Color.LightGray)
+                                .clickable { onPostClick(post.id) }
+                        ) {
+                            if (!mainImage.isNullOrBlank()) {
+                                AsyncImage(
+                                    model = mainImage,
+                                    contentDescription = null,
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                // Placeholder si no hay imagen (solo texto)
+                                Box(
+                                    modifier = Modifier.fillMaxSize().background(Color(0xFFEEEEEE)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = post.text.take(10),
+                                        color = Color.Gray,
+                                        fontSize = 10.sp
+                                    )
+                                }
+                            }
                         }
                     }
                 }

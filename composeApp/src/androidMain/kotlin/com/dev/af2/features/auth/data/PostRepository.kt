@@ -184,4 +184,24 @@ class PostRepository {
             Result.failure(e)
         }
     }
+    suspend fun getPostsByUser(userId: String): Result<List<Post>> {
+        return try {
+            val token = TokenManager.token
+            // Asegúrate que esta ruta coincida con tu backend.
+            // Según tu código anterior era: router.get('/user/:userId', PostController.getPostsByUser);
+            // Por lo tanto la URL es "post/user/$userId"
+            val response = client.get("post/user/$userId") {
+                header("Authorization", "Bearer $token")
+            }
+
+            if (response.status.isSuccess()) {
+                val wrapper = response.body<BaseResponse<List<Post>>>()
+                Result.success(wrapper.data)
+            } else {
+                Result.failure(Exception("Error fetching user posts"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

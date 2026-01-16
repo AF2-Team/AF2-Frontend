@@ -40,7 +40,8 @@ import com.dev.af2.features.auth.data.remote.User
 import com.dev.af2.features.auth.domain.SearchFilter
 import com.dev.af2.features.auth.domain.Tag
 import com.dev.af2.features.auth.presentation.comments.CommentsPage
-import com.dev.af2.features.auth.presentation.profile.ProfilePage // Asumiendo que existe
+import com.dev.af2.features.auth.presentation.profile.ProfilePage
+import com.dev.af2.features.auth.presentation.screens.UserProfilePage
 
 // --- COLORES ---
 private val ColorBgWhite = Color.White
@@ -56,10 +57,27 @@ class SearchPage : Screen {
         val navigator = LocalNavigator.currentOrThrow
         val screenModel = rememberScreenModel { SearchScreenModel() }
 
+        // [CORRECCIÓN] "Elevamos el estado": Lo recolectamos AQUÍ, en el padre.
+        val state by screenModel.state.collectAsState()
+
         SearchScreen(
+            state = state, // Ahora sí existe 'state' para pasarlo
             screenModel = screenModel,
-            onTagClick = { tag -> navigator.push(TagDetailPage(tag.name)) }, // Ajusta según tu TagDetailPage
-            onUserClick = { user -> navigator.push(ProfilePage(user.id)) }, // Ajusta según tu ProfilePage
+            onTagClick = { tag -> navigator.push(TagDetailPage(tag.name)) }, // Ajusta si tienes TagDetailPage
+            onUserClick = { user ->
+                // Ahora 'state' es visible aquí para la lógica de redirección
+                if (user.id == state.currentUserId) {
+                    navigator.push(ProfilePage()) // Mi perfil
+                } else {
+                    navigator.push(
+                        UserProfilePage(
+                            userId = user.id,
+                            username = user.username,
+                            userAvatar = user.avatar ?: ""
+                        )
+                    ) // Perfil de otro
+                }
+            },
             onPostClick = { post -> navigator.push(CommentsPage(post.id)) }
         )
     }
@@ -67,12 +85,14 @@ class SearchPage : Screen {
 
 @Composable
 fun SearchScreen(
+    state: SearchUiState, // Recibimos el estado ya recolectado
     screenModel: SearchScreenModel,
     onTagClick: (Tag) -> Unit,
     onUserClick: (User) -> Unit,
     onPostClick: (com.dev.af2.features.auth.domain.Post) -> Unit
 ) {
-    val state by screenModel.state.collectAsState()
+    // [CORRECCIÓN] Quitamos el 'collectAsState' de aquí porque ya lo recibimos por parámetro 'state'
+    // val state by screenModel.state.collectAsState() <--- ESTO SE BORRA
 
     // Mocks para cuando no hay búsqueda (Historial visual)
     val recentSearches = listOf("#arte", "diseño ui", "#kotlin", "viajes")
@@ -81,7 +101,7 @@ fun SearchScreen(
         topBar = {
             Surface(
                 color = ColorBgWhite,
-                shadowElevation = 0.dp // Quitamos elevación para un look más limpio con los chips
+                shadowElevation = 0.dp
             ) {
                 Column {
                     // 1. INPUT BÚSQUEDA
@@ -98,7 +118,7 @@ fun SearchScreen(
                         )
                     }
 
-                    // 2. FILTROS (CHIPS) - Solo visibles si hay texto o intención de búsqueda
+                    // 2. FILTROS (CHIPS)
                     if (state.query.isNotEmpty()) {
                         SearchFilterChips(
                             activeFilter = state.activeFilter,
@@ -152,10 +172,12 @@ fun SearchScreen(
                         items(state.posts) { post ->
                             PostItem(
                                 post = post,
+                                // En búsqueda no solemos mostrar el botón de opciones del dueño,
+                                // pero si quisieras podrías pasar state.currentUserId
                                 onLikeClick = {},
                                 onCommentClick = { onPostClick(post) },
                                 onShareClick = {},
-                                onProfileClick = {},
+                                onProfileClick = {}, // Podrías conectar esto a onUserClick(post.author)
                                 onFollowClick = {}
                             )
                             HorizontalDivider(thickness = 4.dp, color = ColorInputBg)
@@ -186,8 +208,7 @@ fun SearchScreen(
     }
 }
 
-// --- COMPONENTES AUXILIARES ---
-
+// ... (El resto de componentes auxiliares SearchFilterChips, SearchInput, etc. quedan igual)
 @Composable
 private fun SearchFilterChips(
     activeFilter: SearchFilter,
@@ -293,7 +314,6 @@ private fun RecentSearchItem(text: String, onClick: () -> Unit) {
     }
 }
 
-// Adaptado para usar el objeto Tag real
 @Composable
 private fun TagResultItem(tag: Tag, onClick: () -> Unit) {
     Row(
@@ -328,7 +348,6 @@ private fun TagResultItem(tag: Tag, onClick: () -> Unit) {
     }
 }
 
-// Nuevo componente para mostrar usuarios
 @Composable
 private fun UserResultItem(user: User, onClick: () -> Unit) {
     Row(
@@ -338,7 +357,6 @@ private fun UserResultItem(user: User, onClick: () -> Unit) {
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Avatar Placeholder (usar AsyncImage después)
         Box(
             modifier = Modifier
                 .size(40.dp)

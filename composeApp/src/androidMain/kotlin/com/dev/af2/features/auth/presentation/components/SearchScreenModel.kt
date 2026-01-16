@@ -2,6 +2,7 @@ package com.dev.af2.features.auth.presentation.components
 
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
+import com.dev.af2.features.auth.data.AuthRepository
 import com.dev.af2.features.auth.data.SearchRepository
 import com.dev.af2.features.auth.data.remote.User
 import com.dev.af2.features.auth.domain.Post
@@ -17,27 +18,34 @@ data class SearchUiState(
     val query: String = "",
     val activeFilter: SearchFilter = SearchFilter.ALL,
     val isLoading: Boolean = false,
-
-    // Resultados
     val users: List<User> = emptyList(),
     val posts: List<Post> = emptyList(),
     val tags: List<Tag> = emptyList(),
-
-    val error: String? = null
+    val error: String? = null,
+    val currentUserId: String? = null // [NUEVO] Para saber quién soy yo
 )
 
 class SearchScreenModel : ScreenModel {
     private val repository = SearchRepository()
+    private val authRepository = AuthRepository() // [NUEVO]
 
     private val _state = MutableStateFlow(SearchUiState())
     val state = _state.asStateFlow()
 
     private var searchJob: Job? = null
 
+    init {
+        // Cargar mi ID al iniciar
+        screenModelScope.launch {
+            val user = authRepository.getMe().getOrNull()
+            if (user != null) {
+                _state.value = _state.value.copy(currentUserId = user.id)
+            }
+        }
+    }
+
     fun onQueryChange(newQuery: String) {
         _state.value = _state.value.copy(query = newQuery)
-
-        // Cancelamos búsqueda anterior si el usuario sigue escribiendo
         searchJob?.cancel()
 
         if (newQuery.isBlank()) {
@@ -45,7 +53,6 @@ class SearchScreenModel : ScreenModel {
             return
         }
 
-        // Debounce: Esperamos 500ms antes de llamar a la API
         searchJob = screenModelScope.launch {
             delay(500)
             performSearch()
@@ -54,7 +61,6 @@ class SearchScreenModel : ScreenModel {
 
     fun onFilterChange(filter: SearchFilter) {
         _state.value = _state.value.copy(activeFilter = filter)
-        // Si ya hay texto, volvemos a buscar con el nuevo filtro inmediatamente
         if (_state.value.query.isNotBlank()) {
             searchJob?.cancel()
             searchJob = screenModelScope.launch { performSearch() }
@@ -67,6 +73,7 @@ class SearchScreenModel : ScreenModel {
 
         _state.value = _state.value.copy(isLoading = true, error = null)
 
+        // Tu lógica de búsqueda existente...
         when (filter) {
             SearchFilter.ALL -> {
                 repository.searchAll(query).onSuccess { res ->

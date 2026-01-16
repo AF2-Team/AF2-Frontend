@@ -77,8 +77,9 @@ class HomeTab : Tab {
                                     // Perfil de otro (asumiendo que UserProfilePage recibe username o id)
                                     rootNavigator.push(
                                         UserProfilePage(
+                                            userId = post.id,
                                             username = username,
-                                            userAvatar = avatar ?: ""
+                                            userAvatar = avatar ?: "",
                                         )
                                     )
                                 }

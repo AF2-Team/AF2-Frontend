@@ -58,6 +58,7 @@ import af2.composeapp.generated.resources.Res
 import af2.composeapp.generated.resources.image_profile
 import af2.composeapp.generated.resources.image_post4
 import com.dev.af2.features.auth.data.remote.User
+import com.dev.af2.features.auth.presentation.comments.CommentsPage
 
 // --- COLORES ---
 private val ColorBgWhite = Color.White
@@ -70,20 +71,19 @@ class ProfilePage(val userId: String? = null) : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-        // 1. Obtenemos el ViewModel
         val screenModel = rememberScreenModel { ProfileScreenModel() }
         val state by screenModel.state.collectAsState()
 
         ProfileScreen(
             user = state.user,
+            posts = state.posts, // [NUEVO] Pasamos los posts reales
             isLoading = state.isLoading,
             error = state.error,
             onBackClick = { navigator.pop() },
-            onPostClick = { postId -> println("Ver detalle post: $postId") },
+            onPostClick = { postId -> navigator.push(CommentsPage(postId)) },
             onSettingsClick = { navigator.push(SettingsPage()) },
-            onRetry = { screenModel.fetchProfile() },
+            onRetry = { screenModel.fetchProfile() }, // fetchProfile es wrapper de loadProfile en tu modelo
             isMyProfile = userId == null
-
         )
     }
 }
@@ -92,6 +92,7 @@ class ProfilePage(val userId: String? = null) : Screen {
 @Composable
 fun ProfileScreen(
     user: User?,
+    posts: List<Post>, // [NUEVO] Recibimos la lista real
     isLoading: Boolean,
     error: String?,
     onBackClick: () -> Unit,
@@ -103,19 +104,14 @@ fun ProfileScreen(
     val openSansFamily = getOpenSansFontFamily()
     val scope = rememberCoroutineScope()
 
-    // Estados de Perfil (Imagen local temporal)
     var profileImageUri by remember { mutableStateOf<Uri?>(null) }
-
-    // Listas vacías (Placeholder hasta conectar endpoint de posts)
-    val myPosts = remember { emptyList<Post>() }
-    val savedPosts = remember { emptyList<Post>() }
+    val savedPosts = remember { emptyList<Post>() } // Aún mockeado
 
     val photoLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri -> if (uri != null) profileImageUri = uri }
     )
 
-    // --- PAGER STATE ---
     val tabs = listOf(
         ProfileTabItem.Posts,
         ProfileTabItem.Saved,
@@ -126,7 +122,6 @@ fun ProfileScreen(
 
     Box(modifier = Modifier.fillMaxSize().background(ColorBgWhite)) {
 
-        // 2. Manejo de Estados de Carga y Error
         if (isLoading) {
             CircularProgressIndicator(
                 modifier = Modifier.align(Alignment.Center),
@@ -147,18 +142,15 @@ fun ProfileScreen(
                 }
             }
         } else if (user != null) {
-            // 3. Contenido Real del Perfil
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = 16.dp)
             ) {
-
-                // --- HEADER DEL PERFIL ---
+                // HEADER
                 item {
                     Column {
                         // Banner + Avatar
                         Box(modifier = Modifier.fillMaxWidth().height(240.dp)) {
-                            // Banner Estático (o user.banner si existiera)
                             Image(
                                 painter = painterResource(Res.drawable.image_post4),
                                 contentDescription = "Banner",
@@ -178,10 +170,7 @@ fun ProfileScreen(
                                 Box(
                                     modifier = Modifier.fillMaxSize().clip(CircleShape).background(ColorBgWhite).padding(4.dp)
                                 ) {
-                                    // Lógica de visualización de Avatar
-                                    // 1. URI Local (seleccionada ahora) -> 2. URL Backend -> 3. Placeholder
-                                    val avatarModel = profileImageUri ?: user?.avatar
-
+                                    val avatarModel = profileImageUri ?: user.avatar
                                     if (avatarModel != null) {
                                         AsyncImage(
                                             model = avatarModel,
@@ -207,28 +196,21 @@ fun ProfileScreen(
                             }
                         }
 
-                        // Info Texto (Datos Reales del Backend)
+                        // Info Texto
                         Column(
                             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Spacer(modifier = Modifier.height(8.dp))
-
-                            // NOMBRE
                             Text(
                                 text = user.name,
                                 style = MaterialTheme.typography.headlineSmall.copy(fontFamily = openSansFamily, fontWeight = FontWeight.Bold, color = ColorDarkText)
                             )
-
-                            // USERNAME
                             Text(
                                 text = "@${user.username}",
                                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold, color = Color.Gray)
                             )
-
                             Spacer(modifier = Modifier.height(8.dp))
-
-                            // BIOGRAFÍA
                             if (!user.bio.isNullOrBlank()) {
                                 Text(
                                     text = user.bio,
@@ -236,18 +218,14 @@ fun ProfileScreen(
                                     modifier = Modifier.padding(horizontal = 24.dp)
                                 )
                             } else {
-                                Text(
-                                    text = "Sin biografía",
-                                    style = MaterialTheme.typography.bodySmall.copy(color = Color.LightGray)
-                                )
+                                Text(text = "Sin biografía", style = MaterialTheme.typography.bodySmall.copy(color = Color.LightGray))
                             }
-
                             Spacer(modifier = Modifier.height(16.dp))
                         }
                     }
                 }
 
-                // --- TABS ---
+                // TABS
                 item {
                     TabRow(
                         selectedTabIndex = pagerState.currentPage,
@@ -267,14 +245,15 @@ fun ProfileScreen(
                     }
                 }
 
-                // --- CONTENIDO DEL PAGER ---
+                // PAGER
                 item {
-                    Box(modifier = Modifier.height(500.dp)) {
+                    // [CORRECCIÓN] Altura dinámica o suficiente para ver
+                    Box(modifier = Modifier.height(600.dp)) {
                         HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.Top) { page ->
                             when (tabs[page]) {
-                                ProfileTabItem.Posts -> PostsGridSection(posts = myPosts, onPostClick = onPostClick)
+                                // [CAMBIO] Usamos la lista real 'posts' aquí
+                                ProfileTabItem.Posts -> PostsGridSection(posts = posts, onPostClick = onPostClick)
                                 ProfileTabItem.Saved -> PostsGridSection(posts = savedPosts, onPostClick = onPostClick)
-                                // Pasamos contadores reales
                                 ProfileTabItem.Following -> UserListSection(count = user.followingCount, type = "Siguiendo")
                                 ProfileTabItem.Followers -> UserListSection(count = user.followersCount, type = "Seguidores")
                             }
@@ -284,7 +263,7 @@ fun ProfileScreen(
             }
         }
 
-        // --- TOP BAR FLOTANTE (Se mantiene fija) ---
+        // TOP BAR
         CenterAlignedTopAppBar(
             title = { },
             navigationIcon = {
@@ -309,7 +288,7 @@ fun ProfileScreen(
     }
 }
 
-// --- COMPONENTES AUXILIARES (Sin Cambios) ---
+// --- COMPONENTES AUXILIARES ---
 
 @Composable
 fun PostsGridSection(
@@ -345,11 +324,16 @@ fun PostsGridSection(
                             contentScale = ContentScale.Crop
                         )
                     } else {
+                        // Placeholder bonito para texto
                         Box(
-                            modifier = Modifier.fillMaxSize().background(Color(0xFFEEEEEE)),
+                            modifier = Modifier.fillMaxSize().background(Color(0xFFF0F0F0)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.GridOn, null, tint = Color.Gray)
+                            Text(
+                                text = post.text?.take(20) ?: "...", // Muestra un pedacito de texto
+                                color = Color.Gray,
+                                fontSize = 10.sp
+                            )
                         }
                     }
                 }

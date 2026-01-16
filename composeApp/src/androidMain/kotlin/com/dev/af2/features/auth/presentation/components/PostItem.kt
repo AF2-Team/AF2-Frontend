@@ -88,7 +88,7 @@ fun PostItem(
 
                 Column {
                     Text(
-                        text = "@${post.author.username}",
+                        text = "@${post.author.name ?: post.author.username}",
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp,
                         color = Color(0xFF2D2D2D),

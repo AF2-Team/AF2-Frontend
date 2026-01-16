@@ -47,7 +47,7 @@ data class BackendErrorDetail(
 
 @Serializable
 data class User(
-    @SerialName("id") val id: String,
+     val id: String,
     val name: String,
     val username: String,
     val email: String? = null,

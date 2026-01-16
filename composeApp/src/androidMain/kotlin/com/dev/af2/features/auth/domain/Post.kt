@@ -5,58 +5,83 @@ import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 import kotlinx.serialization.json.*
 
-
 @Serializable
 data class PostUser(
-    @SerialName("_id") val id: String,
-    val name: String,
+    // Dejamos el nombre limpio para usarlo en tu código UI
+    val id: String,
+    val name: String? = null,
     val username: String,
-    @SerialName("avatarUrl")
     val avatar: String? = null,
     val email: String? = null,
     var isFollowing: Boolean = false
 )
 
 object PostAuthorSerializer : KSerializer<PostUser> {
+    // Usamos el serializer generado por defecto solo como referencia para el descriptor
     private val delegateSerializer = PostUser.serializer()
     override val descriptor: SerialDescriptor = delegateSerializer.descriptor
 
     override fun deserialize(decoder: Decoder): PostUser {
         val input = (decoder as JsonDecoder).decodeJsonElement()
 
-        return if (input is JsonPrimitive && input.isString) {
-            // CASO EMERGENCIA: El backend envió solo el ID string
-            PostUser(
+        // CASO 1: El backend envió solo un String (el ID suelto)
+        if (input is JsonPrimitive && input.isString) {
+            return PostUser(
                 id = input.content,
-                name = "Usuario", // Placeholder
+                name = "Usuario",
                 username = "desconocido",
                 avatar = null
             )
-        } else {
-            // CASO CORRECTO: El backend envió el objeto completo
-            decoder.json.decodeFromJsonElement(delegateSerializer, input)
         }
+
+        // CASO 2: El backend envió el objeto completo
+        // Aquí hacemos la magia para soportar 'id' Y '_id'
+        val jsonObject = input.jsonObject
+
+        // 1. Buscamos el ID en "_id" O en "id"
+        val id = jsonObject["_id"]?.jsonPrimitive?.content
+            ?: jsonObject["id"]?.jsonPrimitive?.content
+            ?: "" // O lanzar error si es crítico
+
+        // 2. Extraemos el resto de campos manualmente para evitar problemas de nombres
+        val name = jsonObject["name"]?.jsonPrimitive?.content
+        val username = jsonObject["username"]?.jsonPrimitive?.content ?: "Unknown"
+
+        // OJO: El JSON suele traer "avatarUrl", pero tu clase usa "avatar"
+        val avatar = jsonObject["avatarUrl"]?.jsonPrimitive?.content
+            ?: jsonObject["avatar"]?.jsonPrimitive?.content
+
+        val email = jsonObject["email"]?.jsonPrimitive?.content
+        val isFollowing = jsonObject["isFollowing"]?.jsonPrimitive?.booleanOrNull ?: false
+
+        return PostUser(
+            id = id,
+            name = name,
+            username = username,
+            avatar = avatar,
+            email = email,
+            isFollowing = isFollowing
+        )
     }
 
     override fun serialize(encoder: Encoder, value: PostUser) {
+        // Para enviar datos al servidor (si alguna vez lo haces), usamos el estándar
         encoder.encodeSerializableValue(delegateSerializer, value)
     }
 }
 
-
 @Serializable
 data class Post(
-    @SerialName("_                                                                 " +
-            "id") val id: String,
+    @SerialName("_id") val id: String,
 
     @SerialName("user")
-    @Serializable(with = PostAuthorSerializer::class)
-    val author: PostUser, // Usamos la clase corregida PostUser
+    @Serializable(with = PostAuthorSerializer::class) // Tu serializer inteligente
+    val author: PostUser,
 
     val text: String = "",
     val media: List<PostMedia> = emptyList(),
 
-    // Campos legacy por compatibilidad
+    // Campos legacy
     val mediaUrl: String? = null,
     val mediaId: String? = null,
 

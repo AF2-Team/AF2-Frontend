@@ -19,6 +19,8 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.client.request.get
 import com.dev.af2.features.auth.data.remote.User
+import com.dev.af2.features.auth.domain.UserProfileResponse
+
 //Recordar borrar prints de depuración
 class AuthRepository {
     private val client = NetworkModule.client
@@ -173,6 +175,26 @@ class AuthRepository {
             }
         } catch (e: Exception) {
             println("DEBUG_REPO: Error getMe: ${e.message}")
+            Result.failure(e)
+        }
+    }
+    suspend fun getUserProfile(userId: String): Result<UserProfileResponse> {
+        return try {
+            val token = TokenManager.token
+            val response = client.get("user/$userId") {
+                header("Authorization", "Bearer $token")
+            }
+
+            if (response.status.isSuccess()) {
+                // Deserializamos directamente la respuesta completa
+                // (UserProfileResponse ya incluye success, message y data)
+                val fullResponse = response.body<UserProfileResponse>()
+                Result.success(fullResponse)
+            } else {
+                Result.failure(Exception("Error fetching profile: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
             Result.failure(e)
         }
     }
