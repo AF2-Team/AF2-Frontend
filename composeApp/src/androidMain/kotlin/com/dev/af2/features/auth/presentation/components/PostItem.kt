@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarOutline
 import androidx.compose.material.icons.filled.SubdirectoryArrowRight
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
@@ -39,8 +40,9 @@ fun PostItem(
     onShareClick: () -> Unit,
     onProfileClick: () -> Unit,
     onFollowClick: (String) -> Unit,
-    onEditClick: (Post) -> Unit = {},   // Callback Editar
-    onDeleteClick: (Post) -> Unit = {}  // Callback Eliminar
+    onEditClick: (Post) -> Unit = {},
+    onDeleteClick: (Post) -> Unit = {},
+    onFavoriteClick: () -> Unit,
 ) {
     val alegreyaFamily = getAlegreyaFontFamily()
 
@@ -198,11 +200,11 @@ fun PostItem(
                 }
             }
 
-            IconButton(onClick = { /* Save logic */ }) {
+            IconButton(onClick = onFavoriteClick) {
                 Icon(
-                    imageVector = Icons.Default.StarOutline,
+                    imageVector = if (post.isFavorited) Icons.Default.Star else Icons.Default.StarOutline,
                     contentDescription = "Save",
-                    tint = Color.Black
+                    tint = if (post.isFavorited) Color(0xFFFFC107) else Color.Black
                 )
             }
         }

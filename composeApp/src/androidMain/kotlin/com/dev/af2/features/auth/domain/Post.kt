@@ -90,7 +90,9 @@ data class Post(
     val isLiked: Boolean = false,
     val commentsCount: Int = 0,
     val repostsCount: Int = 0,
-    val createdAt: String? = null
+    val createdAt: String? = null,
+    val isFavorited: Boolean = false,
+    val favoritesCount: Int = 0,
 )
 
 @Serializable

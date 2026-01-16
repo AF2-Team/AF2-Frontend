@@ -109,7 +109,8 @@ data class UserFeedScreen(
                                 onEditClick = {
                                     postToEdit = it
                                     editContent = it.text
-                                }
+                                },
+                                onFavoriteClick = { screenModel.toggleFavorite(post.id) },
                             )
                         }
                     }

@@ -178,7 +178,8 @@ fun SearchScreen(
                                 onCommentClick = { onPostClick(post) },
                                 onShareClick = {},
                                 onProfileClick = {}, // Podrías conectar esto a onUserClick(post.author)
-                                onFollowClick = {}
+                                onFollowClick = {userId -> screenModel.toggleFollow(userId)},
+                                onFavoriteClick = {screenModel.toggleFavorite(post.id)}
                             )
                             HorizontalDivider(thickness = 4.dp, color = ColorInputBg)
                         }

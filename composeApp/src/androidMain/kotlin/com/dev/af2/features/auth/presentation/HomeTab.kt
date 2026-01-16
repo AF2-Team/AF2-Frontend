@@ -65,6 +65,7 @@ class HomeTab : Tab {
                             onLikeClick = { screenModel.toggleLike(post.id) },
                             onCommentClick = { rootNavigator.push(CommentsPage(post.id)) },
                             onShareClick = { println("Share post ${post.id}") },
+                            onFavoriteClick = { screenModel.toggleFavorite(post.id) },
 
                             // Navegación al perfil
                             onProfileClick = {

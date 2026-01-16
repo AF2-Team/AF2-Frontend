@@ -3,6 +3,7 @@ package com.dev.af2.features.auth.presentation
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.dev.af2.features.auth.data.AuthRepository
+import com.dev.af2.features.auth.data.FavoriteRepository
 import com.dev.af2.features.auth.data.FollowRepository
 import com.dev.af2.features.auth.data.PostRepository
 import com.dev.af2.features.auth.data.remote.User
@@ -22,6 +23,7 @@ class HomeScreenModel : ScreenModel {
     private val repository = PostRepository()
     private val followRepository = FollowRepository()
     private val authRepository = AuthRepository()
+    private val favoriteRepository = FavoriteRepository()
 
     private val _state = MutableStateFlow(HomeUiState())
     val state = _state.asStateFlow()
@@ -151,6 +153,45 @@ class HomeScreenModel : ScreenModel {
                     println("Error like: ${it.message}")
                     _state.value = _state.value.copy(posts = currentPosts)
                 }
+        }
+    }
+    fun toggleFavorite(postId: String) {
+        val currentPosts = _state.value.posts
+
+        // 1. Optimismo: Actualizamos la UI inmediatamente
+        val optimizedPosts = currentPosts.map { post ->
+            if (post.id == postId) {
+                val wasFavorited = post.isFavorited
+                // Invertimos el estado y actualizamos el contador
+                post.copy(
+                    isFavorited = !wasFavorited,
+                    favoritesCount = if (wasFavorited) post.favoritesCount - 1 else post.favoritesCount + 1
+                )
+            } else {
+                post
+            }
+        }
+        _state.value = _state.value.copy(posts = optimizedPosts)
+
+        // 2. Llamada al Backend
+        screenModelScope.launch {
+            // Buscamos el post original para saber qué acción tomar (add o remove)
+            val originalPost = currentPosts.find { it.id == postId }
+
+            if (originalPost != null) {
+                val result = if (originalPost.isFavorited) {
+                    favoriteRepository.removeFavorite(postId)
+                } else {
+                    favoriteRepository.addFavorite(postId)
+                }
+
+                // 3. Rollback si falla
+                result.onFailure {
+                    println("Error favorite: ${it.message}")
+                    // Volvemos a la lista original sin cambios
+                    _state.value = _state.value.copy(posts = currentPosts)
+                }
+            }
         }
     }
 }

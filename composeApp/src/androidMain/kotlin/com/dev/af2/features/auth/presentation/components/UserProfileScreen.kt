@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.GridOn
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Star // [NUEVO] Importante para el icono
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -48,10 +49,9 @@ private val ColorBgWhite = Color.White
 private val ColorDarkText = Color(0xFF423646)
 private val ColorAccent = Color(0xFFBCA1BD)
 
-// [CAMBIO] Recibimos userId para poder cargar los datos reales
 data class UserProfilePage(
     val userId: String,
-    val username: String, // Texto inicial mientras carga
+    val username: String,
     val userAvatar: String = ""
 ) : Screen {
     override val key: ScreenKey = uniqueScreenKey
@@ -59,8 +59,6 @@ data class UserProfilePage(
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
-
-        // [CAMBIO] Iniciamos el modelo con el ID
         val screenModel = rememberScreenModel { UserProfileScreenModel(userId) }
 
         UserProfileScreen(
@@ -68,13 +66,14 @@ data class UserProfilePage(
             initialAvatar = userAvatar,
             screenModel = screenModel,
             onBackClick = { navigator.pop() },
-            // Al hacer click, vamos a los comentarios del post
-            onPostClick = { postId -> navigator.push(
-                UserFeedScreen(
-                    userId = userId,
-                    initialPostId = postId
+            onPostClick = { postId ->
+                navigator.push(
+                    UserFeedScreen(
+                        userId = userId,
+                        initialPostId = postId
+                    )
                 )
-            ) }
+            }
         )
     }
 }
@@ -84,40 +83,32 @@ data class UserProfilePage(
 fun UserProfileScreen(
     initialUsername: String,
     initialAvatar: String,
-    screenModel: UserProfileScreenModel, // Recibimos el modelo
+    screenModel: UserProfileScreenModel,
     onBackClick: () -> Unit,
     onPostClick: (String) -> Unit
 ) {
     val openSansFamily = getOpenSansFontFamily()
-
-    // [CAMBIO] Observamos el estado real del backend
     val state by screenModel.state.collectAsState()
 
-    // Lógica de datos: Si state.user es nulo (cargando), usamos los iniciales
     val user = state.user
     val displayUsername = user?.username ?: initialUsername
     val displayName = user?.name ?: displayUsername
     val displayAvatar = user?.avatar ?: initialAvatar
     val bio = user?.bio ?: "Sin biografía"
 
-    // Contadores reales
     val postsCount = state.posts.size
     val followersCount = user?.followersCount ?: 0
     val followingCount = user?.followingCount ?: 0
-
-    // Estado local para seguimiento (visual)
     val isFollowing = state.isFollowing
 
     Box(modifier = Modifier.fillMaxSize().background(ColorBgWhite)) {
 
-        // Si está cargando y no hay posts, mostramos loader
         if (state.isLoading && state.posts.isEmpty()) {
             CircularProgressIndicator(
                 modifier = Modifier.align(Alignment.Center),
                 color = ColorAccent
             )
         } else {
-            // --- CAPA 1: CONTENIDO ---
             LazyVerticalGrid(
                 columns = GridCells.Fixed(3),
                 modifier = Modifier.fillMaxSize(),
@@ -135,7 +126,6 @@ fun UserProfileScreen(
                                 .fillMaxWidth()
                                 .height(240.dp)
                         ) {
-                            // Banner
                             Image(
                                 painter = painterResource(Res.drawable.image_post4),
                                 contentDescription = "Banner",
@@ -146,7 +136,6 @@ fun UserProfileScreen(
                                     .align(Alignment.TopCenter)
                             )
 
-                            // Sombra superior
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -159,7 +148,6 @@ fun UserProfileScreen(
                                     .align(Alignment.TopCenter)
                             )
 
-                            // Avatar
                             Box(
                                 contentAlignment = Alignment.Center,
                                 modifier = Modifier
@@ -201,7 +189,6 @@ fun UserProfileScreen(
                         ) {
                             Spacer(modifier = Modifier.height(8.dp))
 
-                            // Nombre Real
                             Text(
                                 text = displayName,
                                 style = MaterialTheme.typography.headlineSmall.copy(
@@ -210,7 +197,6 @@ fun UserProfileScreen(
                                     color = ColorDarkText
                                 )
                             )
-                            // Handle (@usuario)
                             Text(
                                 text = "@$displayUsername",
                                 style = MaterialTheme.typography.bodyMedium.copy(
@@ -221,7 +207,6 @@ fun UserProfileScreen(
 
                             Spacer(modifier = Modifier.height(8.dp))
 
-                            // Bio
                             Text(
                                 text = bio,
                                 style = MaterialTheme.typography.bodyMedium.copy(
@@ -234,11 +219,10 @@ fun UserProfileScreen(
 
                             Spacer(modifier = Modifier.height(16.dp))
 
-                            // --- BOTONES DE ACCIÓN ---
+                            // --- BOTONES ---
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-
                                 Button(
                                     onClick = { screenModel.toggleFollow() },
                                     colors = ButtonDefaults.buttonColors(
@@ -273,7 +257,6 @@ fun UserProfileScreen(
 
                             Spacer(modifier = Modifier.height(24.dp))
 
-                            // Estadísticas
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceEvenly
@@ -299,7 +282,7 @@ fun UserProfileScreen(
                     }
                 }
 
-                // ÍTEMS: GRID DE FOTOS REALES
+                // ÍTEMS: GRID DE FOTOS
                 if (state.posts.isEmpty()) {
                     item(span = { GridItemSpan(3) }) {
                         Box(
@@ -312,7 +295,6 @@ fun UserProfileScreen(
                         }
                     }
                 } else {
-                    // [CAMBIO] Iteramos sobre los posts reales
                     items(state.posts) { post ->
                         val mainImage = post.media.firstOrNull()?.url ?: post.mediaUrl
 
@@ -330,7 +312,6 @@ fun UserProfileScreen(
                                     contentScale = ContentScale.Crop
                                 )
                             } else {
-                                // Placeholder si no hay imagen (solo texto)
                                 Box(
                                     modifier = Modifier.fillMaxSize().background(Color(0xFFEEEEEE)),
                                     contentAlignment = Alignment.Center
@@ -342,19 +323,38 @@ fun UserProfileScreen(
                                     )
                                 }
                             }
+
+                            // [NUEVO] INDICADOR DE FAVORITO
+                            if (post.isFavorited) {
+                                Box(
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .padding(6.dp)
+                                        .background(Color.Black.copy(alpha = 0.4f), CircleShape)
+                                        .padding(4.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Star,
+                                        contentDescription = "Favorito",
+                                        tint = Color(0xFFFFC107), // Dorado
+                                        modifier = Modifier.size(12.dp)
+                                    )
+                                }
+                            }
                         }
                     }
                 }
             }
         }
 
-        // --- CAPA 2: TOP APP BAR ---
+        // TOP BAR TRANSPARENTE
         CenterAlignedTopAppBar(
             title = { },
             navigationIcon = {
                 IconButton(
                     onClick = onBackClick,
                     modifier = Modifier
+                        .padding(start = 8.dp)
                         .background(Color.Black.copy(alpha = 0.3f), CircleShape)
                         .size(40.dp)
                 ) {

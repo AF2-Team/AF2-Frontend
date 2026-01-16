@@ -3,6 +3,7 @@ package com.dev.af2.features.auth.presentation.components
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.dev.af2.features.auth.data.AuthRepository
+import com.dev.af2.features.auth.data.FavoriteRepository // [NUEVO] Importar Repo
 import com.dev.af2.features.auth.data.FollowRepository
 import com.dev.af2.features.auth.data.PostRepository
 import com.dev.af2.features.auth.data.remote.User
@@ -22,6 +23,7 @@ class UserFeedScreenModel(private val userId: String) : ScreenModel {
     private val postRepo = PostRepository()
     private val authRepo = AuthRepository()
     private val followRepo = FollowRepository()
+    private val favoriteRepo = FavoriteRepository() // [NUEVO] Instancia del repo
 
     private val _state = MutableStateFlow(UserFeedUiState())
     val state = _state.asStateFlow()
@@ -50,7 +52,7 @@ class UserFeedScreenModel(private val userId: String) : ScreenModel {
         }
     }
 
-    // --- ACCIONES (Copiadas del Home para mantener consistencia) ---
+    // --- ACCIONES ---
 
     fun toggleLike(postId: String) {
         // Optimista
@@ -69,6 +71,44 @@ class UserFeedScreenModel(private val userId: String) : ScreenModel {
             postRepo.toggleLike(postId).onFailure {
                 // Revertir si falla
                 _state.value = _state.value.copy(posts = currentPosts)
+            }
+        }
+    }
+
+    // [NUEVO] Función Toggle Favorite
+    fun toggleFavorite(postId: String) {
+        val currentPosts = _state.value.posts
+
+        // 1. Optimismo: Actualizar UI al instante
+        val optimizedPosts = currentPosts.map { post ->
+            if (post.id == postId) {
+                val wasFavorited = post.isFavorited
+                post.copy(
+                    isFavorited = !wasFavorited,
+                    favoritesCount = if (wasFavorited) post.favoritesCount - 1 else post.favoritesCount + 1
+                )
+            } else {
+                post
+            }
+        }
+        _state.value = _state.value.copy(posts = optimizedPosts)
+
+        // 2. Llamada a API
+        screenModelScope.launch {
+            val originalPost = currentPosts.find { it.id == postId }
+
+            if (originalPost != null) {
+                val result = if (originalPost.isFavorited) {
+                    favoriteRepo.removeFavorite(postId)
+                } else {
+                    favoriteRepo.addFavorite(postId)
+                }
+
+                // 3. Rollback si falla
+                result.onFailure {
+                    println("Error favorite: ${it.message}")
+                    _state.value = _state.value.copy(posts = currentPosts)
+                }
             }
         }
     }
@@ -92,5 +132,4 @@ class UserFeedScreenModel(private val userId: String) : ScreenModel {
             }
         }
     }
-
 }

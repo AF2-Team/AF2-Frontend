@@ -210,7 +210,8 @@ fun TagDetailScreen(
                                             onCommentClick = {},
                                             onShareClick = {},
                                             onProfileClick = {},
-                                            onFollowClick = {}
+                                            onFollowClick = {},
+                                            onFavoriteClick = {}
                                         )
                                     }
                                 }

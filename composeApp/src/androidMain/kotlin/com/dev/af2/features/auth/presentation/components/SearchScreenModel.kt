@@ -3,6 +3,9 @@ package com.dev.af2.features.auth.presentation.components
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.dev.af2.features.auth.data.AuthRepository
+import com.dev.af2.features.auth.data.FavoriteRepository
+import com.dev.af2.features.auth.data.FollowRepository
+import com.dev.af2.features.auth.data.PostRepository
 import com.dev.af2.features.auth.data.SearchRepository
 import com.dev.af2.features.auth.data.remote.User
 import com.dev.af2.features.auth.domain.Post
@@ -28,7 +31,9 @@ data class SearchUiState(
 class SearchScreenModel : ScreenModel {
     private val repository = SearchRepository()
     private val authRepository = AuthRepository() // [NUEVO]
-
+    private val followRepository = FollowRepository()
+    private val favoriteRepository = FavoriteRepository()
+    private val postRepository = PostRepository()
     private val _state = MutableStateFlow(SearchUiState())
     val state = _state.asStateFlow()
 
@@ -64,6 +69,76 @@ class SearchScreenModel : ScreenModel {
         if (_state.value.query.isNotBlank()) {
             searchJob?.cancel()
             searchJob = screenModelScope.launch { performSearch() }
+        }
+    }
+    fun toggleFollow(userId: String) {
+        val currentPosts = _state.value.posts
+
+        // 1. Optimismo visual (Actualiza todos los posts de ese usuario en la lista)
+        val optimizedPosts = currentPosts.map { post ->
+            if (post.author.id == userId) {
+                post.copy(author = post.author.copy(isFollowing = !post.author.isFollowing))
+            } else post
+        }
+        _state.value = _state.value.copy(posts = optimizedPosts)
+
+        // 2. Llamada a la API
+        screenModelScope.launch {
+            // Verificamos estado previo buscando cualquier post de ese autor
+            val wasFollowing = currentPosts.find { it.author.id == userId }?.author?.isFollowing ?: false
+
+            val result = if (wasFollowing) {
+                followRepository.unfollowUser(userId)
+            } else {
+                followRepository.followUser(userId)
+            }
+
+            // Rollback si falla
+            if (result.isFailure) {
+                _state.value = _state.value.copy(posts = currentPosts)
+            }
+        }
+    }
+
+    // AGREGA ESTO: Lógica de Favorito
+    fun toggleFavorite(postId: String) {
+        val currentPosts = _state.value.posts
+
+        val optimizedPosts = currentPosts.map { post ->
+            if (post.id == postId) {
+                val wasFav = post.isFavorited
+                post.copy(isFavorited = !wasFav, favoritesCount = if (wasFav) post.favoritesCount - 1 else post.favoritesCount + 1)
+            } else post
+        }
+        _state.value = _state.value.copy(posts = optimizedPosts)
+
+        screenModelScope.launch {
+            val original = currentPosts.find { it.id == postId } ?: return@launch
+            val result = if (original.isFavorited) favoriteRepository.removeFavorite(postId) else favoriteRepository.addFavorite(postId)
+
+            if (result.isFailure) _state.value = _state.value.copy(posts = currentPosts)
+        }
+    }
+
+    // AGREGA ESTO: Lógica de Like (si no la tenías)
+    fun toggleLike(postId: String) {
+        val currentPosts = _state.value.posts
+        // ... (Lógica idéntica a UserFeedScreenModel.toggleLike) ...
+        // Si quieres ahorrar código, copia y pega la de UserFeedScreenModel aquí
+        // Lo importante es actualizar el state.posts
+        val optimizedPosts = currentPosts.map { post ->
+            if (post.id == postId) {
+                val newLiked = !post.isLiked
+                val newCount = if (newLiked) post.likesCount + 1 else maxOf(0, post.likesCount - 1)
+                post.copy(isLiked = newLiked, likesCount = newCount)
+            } else post
+        }
+        _state.value = _state.value.copy(posts = optimizedPosts)
+
+        screenModelScope.launch {
+            postRepository.toggleLike(postId).onFailure {
+                _state.value = _state.value.copy(posts = currentPosts)
+            }
         }
     }
 
