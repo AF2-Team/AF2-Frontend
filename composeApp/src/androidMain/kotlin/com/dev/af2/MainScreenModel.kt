@@ -8,25 +8,34 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class MainScreenModel : ScreenModel {
-    private val repository = AuthRepository()
+// Estado para guardar al usuario globalmente en la pantalla principal
+data class MainUiState(
+    val currentUser: User? = null,
+    val isLoading: Boolean = false
+)
 
-    // Guardamos el usuario actual aquí. Al inicio es null.
-    private val _currentUser = MutableStateFlow<User?>(null)
-    val currentUser = _currentUser.asStateFlow()
+class MainScreenModel : ScreenModel {
+    private val authRepository = AuthRepository()
+
+    private val _state = MutableStateFlow(MainUiState())
+    val state = _state.asStateFlow()
 
     init {
-        fetchCurrentUser()
+        getCurrentUser()
     }
 
-    fun fetchCurrentUser() {
+    // Esta función carga al usuario al iniciar la app
+    fun getCurrentUser() {
         screenModelScope.launch {
-            // Llamamos al endpoint 'user/me' que ya arreglamos
-            repository.getMe().onSuccess { user ->
-                _currentUser.value = user
-            }.onFailure {
-                println("Error cargando usuario en Main: ${it.message}")
-            }
+            _state.value = _state.value.copy(isLoading = true)
+            authRepository.getMe()
+                .onSuccess { user ->
+                    _state.value = _state.value.copy(isLoading = false, currentUser = user)
+                }
+                .onFailure {
+                    _state.value = _state.value.copy(isLoading = false)
+                    println("Error cargando usuario principal: ${it.message}")
+                }
         }
     }
 }

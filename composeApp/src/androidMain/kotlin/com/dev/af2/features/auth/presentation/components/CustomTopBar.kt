@@ -39,7 +39,7 @@ import com.dev.af2.features.auth.presentation.profile.ProfilePage
 fun CustomTopBar(
     tabNavigator: TabNavigator,
     scrollBehavior: TopAppBarScrollBehavior,
-    userAvatarUrl: String? = null // <--- NUEVO PARÁMETRO
+    userAvatarUrl: String? = null // Recibimos la URL aquí
 ) {
     val colorTabBackground = Color(0xFF423646)
     val rootNavigator = LocalNavigator.currentOrThrow.parent
@@ -59,21 +59,20 @@ fun CustomTopBar(
                     .padding(horizontal = 8.dp)
                     .size(32.dp)
                     .clip(CircleShape)
-                    .clickable { rootNavigator?.push(ProfilePage()) }
-                    .background(Color.Gray) // Fondo mientras carga
+                    .clickable {
+                        // Al hacer click vamos al perfil
+                        rootNavigator?.push(ProfilePage())
+                    }
+                    .background(Color.Gray)
 
                 if (userAvatarUrl != null) {
                     AsyncImage(
                         model = userAvatarUrl,
                         contentDescription = "Perfil",
                         modifier = modifierAvatar,
-                        contentScale = ContentScale.Crop,
-                        // Mostramos la imagen local si falla la carga o mientras carga
-                       // error = painterResource(Res.drawable.image_profile),
-                      //  placeholder = painterResource(Res.drawable.image_profile)
+                        contentScale = ContentScale.Crop
                     )
                 } else {
-                    // Fallback si no hay URL (ej. usuario offline o error)
                     Image(
                         painter = painterResource(Res.drawable.image_profile),
                         contentDescription = "Perfil",
@@ -97,7 +96,7 @@ fun CustomTopBar(
         ) {
             CustomTopBarItem(tabNavigator = tabNavigator, tabModel = HomeTab())
             Spacer(Modifier.width(16.dp))
-            //CustomTopBarItem(tabNavigator = tabNavigator, tabModel = TagTab)
+            // Aquí irían tus otros tabs
         }
     }
 }
