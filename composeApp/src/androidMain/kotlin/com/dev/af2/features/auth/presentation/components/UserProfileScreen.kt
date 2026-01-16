@@ -43,6 +43,10 @@ import af2.composeapp.generated.resources.image_post4
 import af2.composeapp.generated.resources.logo_watercolor
 import com.dev.af2.features.auth.presentation.components.UserFeedScreen
 import com.dev.af2.features.auth.presentation.components.UserProfileScreenModel
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
 
 // --- COLORES ---
 private val ColorBgWhite = Color.White

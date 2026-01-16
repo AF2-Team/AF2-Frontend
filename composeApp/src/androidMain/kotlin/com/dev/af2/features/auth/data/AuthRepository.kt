@@ -20,6 +20,10 @@ import io.ktor.http.isSuccess
 import io.ktor.client.request.get
 import com.dev.af2.features.auth.data.remote.User
 import com.dev.af2.features.auth.domain.UserProfileResponse
+import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.client.request.forms.formData
+import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
 
 //Recordar borrar prints de depuración
 class AuthRepository {
@@ -192,6 +196,38 @@ class AuthRepository {
                 Result.success(fullResponse)
             } else {
                 Result.failure(Exception("Error fetching profile: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Result.failure(e)
+        }
+    }
+    suspend fun updateAvatar(imageBytes: ByteArray): Result<User> {
+        return try {
+            val token = TokenManager.token ?: throw Exception("No autenticado")
+
+            // Ruta basada en tu backend: router.patch('/me/avatar', ...)
+            val response = client.patch("user/me/avatar") {
+                header("Authorization", "Bearer $token")
+                setBody(
+                    MultiPartFormDataContent(
+                        formData {
+                            append("media", imageBytes, Headers.build {
+                                append(HttpHeaders.ContentType, "image/jpeg")
+                                append(HttpHeaders.ContentDisposition, "filename=\"avatar.jpg\"")
+                            })
+                        }
+                    )
+                )
+            }
+
+            if (response.status.isSuccess()) {
+                // Asumimos que el backend devuelve el usuario actualizado en 'data'
+                // Reutilizamos ProfileResponse o AuthResponse según devuelva tu backend
+                val wrapper = response.body<BaseResponse<User>>() // Ojo: verifica si devuelve User o AuthResponse
+                Result.success(wrapper.data)
+            } else {
+                Result.failure(Exception("Error subiendo avatar: ${response.status}"))
             }
         } catch (e: Exception) {
             e.printStackTrace()

@@ -97,4 +97,5 @@ class UserProfileScreenModel(private val userId: String) : ScreenModel {
             }
         }
     }
+
 }

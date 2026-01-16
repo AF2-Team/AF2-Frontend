@@ -369,13 +369,15 @@ private fun UserResultItem(user: User, onClick: () -> Unit) {
         }
         Spacer(modifier = Modifier.width(12.dp))
         Column {
-            Text(
-                text = user.name,
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = ColorDarkText
+            user.name?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = ColorDarkText
+                    )
                 )
-            )
+            }
             Text(
                 text = "@${user.username}",
                 style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray)

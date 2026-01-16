@@ -57,6 +57,7 @@ import com.dev.af2.features.auth.presentation.settings.SettingsPage
 import af2.composeapp.generated.resources.Res
 import af2.composeapp.generated.resources.image_profile
 import af2.composeapp.generated.resources.image_post4
+import androidx.compose.ui.platform.LocalContext
 import com.dev.af2.features.auth.data.remote.User
 import com.dev.af2.features.auth.presentation.comments.CommentsPage
 
@@ -76,14 +77,16 @@ class ProfilePage(val userId: String? = null) : Screen {
 
         ProfileScreen(
             user = state.user,
-            posts = state.posts, // [NUEVO] Pasamos los posts reales
+            posts = state.posts,
+            savedPosts = state.savedPosts,// [NUEVO] Pasamos los posts reales
             isLoading = state.isLoading,
             error = state.error,
             onBackClick = { navigator.pop() },
             onPostClick = { postId -> navigator.push(CommentsPage(postId)) },
             onSettingsClick = { navigator.push(SettingsPage()) },
             onRetry = { screenModel.fetchProfile() }, // fetchProfile es wrapper de loadProfile en tu modelo
-            isMyProfile = userId == null
+            isMyProfile = userId == null,
+            onAvatarChange = { bytes -> screenModel.updateAvatar(bytes) }
         )
     }
 }
@@ -92,24 +95,36 @@ class ProfilePage(val userId: String? = null) : Screen {
 @Composable
 fun ProfileScreen(
     user: User?,
-    posts: List<Post>, // [NUEVO] Recibimos la lista real
+    posts: List<Post>,
+    savedPosts: List<Post>,// [NUEVO] Recibimos la lista real
     isLoading: Boolean,
     error: String?,
     onBackClick: () -> Unit,
     onPostClick: (String) -> Unit,
     onSettingsClick: () -> Unit,
     onRetry: () -> Unit,
-    isMyProfile: Boolean
+    isMyProfile: Boolean,
+    onAvatarChange: (ByteArray) -> Unit
 ) {
     val openSansFamily = getOpenSansFontFamily()
     val scope = rememberCoroutineScope()
-
+    val context = LocalContext.current
     var profileImageUri by remember { mutableStateOf<Uri?>(null) }
     val savedPosts = remember { emptyList<Post>() } // Aún mockeado
 
     val photoLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
-        onResult = { uri -> if (uri != null) profileImageUri = uri }
+        onResult = { uri ->
+            if (uri != null) {
+                // Convertimos URI -> ByteArray y subimos
+                val inputStream = context.contentResolver.openInputStream(uri)
+                val bytes = inputStream?.readBytes()
+                inputStream?.close()
+                if (bytes != null) {
+                    onAvatarChange(bytes)
+                }
+            }
+        }
     )
 
     val tabs = listOf(
@@ -122,7 +137,7 @@ fun ProfileScreen(
 
     Box(modifier = Modifier.fillMaxSize().background(ColorBgWhite)) {
 
-        if (isLoading) {
+        if (isLoading && user == null) {
             CircularProgressIndicator(
                 modifier = Modifier.align(Alignment.Center),
                 color = ColorAccent
@@ -170,6 +185,12 @@ fun ProfileScreen(
                                 Box(
                                     modifier = Modifier.fillMaxSize().clip(CircleShape).background(ColorBgWhite).padding(4.dp)
                                 ) {
+                                    if(isLoading) {
+                                        Box(Modifier.fillMaxSize().background(Color.White.copy(alpha=0.5f)), contentAlignment = Alignment.Center) {
+                                            CircularProgressIndicator(modifier = Modifier.size(30.dp), strokeWidth = 2.dp)
+                                        }
+                                    }
+
                                     val avatarModel = profileImageUri ?: user.avatar
                                     if (avatarModel != null) {
                                         AsyncImage(
@@ -202,10 +223,12 @@ fun ProfileScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = user.name,
-                                style = MaterialTheme.typography.headlineSmall.copy(fontFamily = openSansFamily, fontWeight = FontWeight.Bold, color = ColorDarkText)
-                            )
+                            user.name?.let {
+                                Text(
+                                    text = it,
+                                    style = MaterialTheme.typography.headlineSmall.copy(fontFamily = openSansFamily, fontWeight = FontWeight.Bold, color = ColorDarkText)
+                                )
+                            }
                             Text(
                                 text = "@${user.username}",
                                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold, color = Color.Gray)
